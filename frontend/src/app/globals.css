@@ -4,7 +4,7 @@
      · le produit s'installe SUR SITE et doit fonctionner sans accès Internet ;
      · l'appel envoyait l'adresse IP de chaque visiteur à un tiers, sur un produit
        vendu à des enseignes européennes ;
-     · il était REDONDANT — `next/font/google` (layout.tsx) auto-héberge déjà Inter
+     · il était REDONDANT — `next/font/local` (layout.tsx) sert déjà Inter
        400/500/600 au build et l'applique au <body> (7 woff2 mesurés dans .next).
    ⚠️ Le retirer ne suffisait PAS : le nom littéral « Inter » n'était déclaré en local
    que pour 700/800/900 (plus bas), or l'aperçu du générateur promo rend en

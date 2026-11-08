@@ -1,11 +1,20 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import localFont from 'next/font/local'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
 import Providers from '@/components/providers'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600'] })
+// Inter servie depuis le dépôt (OFL, cf. public/fonts/promo/OFL.txt) : `next/font/google`
+// la téléchargeait chez Google AU BUILD — build impossible hors ligne, et CI instable.
+const inter = localFont({
+  src: [
+    { path: '../../public/fonts/promo/inter-400.woff2', weight: '400', style: 'normal' },
+    { path: '../../public/fonts/promo/inter-500.woff2', weight: '500', style: 'normal' },
+    { path: '../../public/fonts/promo/inter-600.woff2', weight: '600', style: 'normal' },
+  ],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'Vitrail',

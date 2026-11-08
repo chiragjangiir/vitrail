@@ -13,7 +13,7 @@ dependencies = [
     "uvicorn[standard]>=0.30",
     "python-multipart>=0.0.9",
     # DB
-    "sqlalchemy>=2.0",
+    "sqlalchemy[asyncio]>=2.0,<2.1",   # [asyncio] = greenlet ; 2.1 non validé
     "alembic>=1.13",
     "asyncpg>=0.29",
     "psycopg2-binary>=2.9",
