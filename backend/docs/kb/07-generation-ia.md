@@ -7,7 +7,7 @@ keywords: [génération, IA, image, vidéo, prompt, negative prompt, assistant, 
 
 # Génération de contenu par IA
 
-SignFlow peut générer des **images**, des **vidéos**, de la **musique** et des **voix off**
+Vitrail peut générer des **images**, des **vidéos**, de la **musique** et des **voix off**
 à partir d'une description en langage naturel. Le média généré devient un média normal de la
 médiathèque (renditions par écran, playlists, paniers audio).
 

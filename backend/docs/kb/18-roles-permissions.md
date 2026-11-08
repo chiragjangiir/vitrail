@@ -7,7 +7,7 @@ keywords: [rôles, permissions, droits, RBAC, IAM, utilisateurs, groupes, rôle 
 
 # Rôles et permissions — qui peut faire quoi
 
-SignFlow accorde les droits par **permissions atomiques** de la forme
+Vitrail accorde les droits par **permissions atomiques** de la forme
 `module:opération` (ex. `media:create`, `schedules:read`). Un **rôle** est un
 paquet de permissions ; un utilisateur porte un ou plusieurs rôles, directement
 ou **via un groupe** — les deux se cumulent.

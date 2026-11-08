@@ -9,7 +9,7 @@ keywords: [campagne, retail media, annonceur, publicité, SOV, part de voix, inv
 
 La page **Campagnes** transforme vos écrans en **inventaire publicitaire monétisable** :
 un annonceur (marque) achète une **part de voix (SOV)** — un pourcentage du temps
-d'antenne — sur une période et des écrans donnés. SignFlow intercale automatiquement ses
+d'antenne — sur une période et des écrans donnés. Vitrail intercale automatiquement ses
 créatifs dans la boucle de contenu, mesure la diffusion réelle (preuves signées) et
 produit le **rapport annonceur** chiffré.
 

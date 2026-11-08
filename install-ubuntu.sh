@@ -513,7 +513,7 @@ EXISTING_USERS=$(docker compose exec -T postgres psql -U signflow -d signflow -t
 
 if [[ "$EXISTING_USERS" == "0" ]]; then
     ADMIN_PASSWORD=$(openssl rand -base64 18 | tr -d '/+=' | cut -c1-20)aA1!
-    if docker compose exec -T -e BOOTSTRAP_ADMIN_EMAIL="${ADMIN_EMAIL:-admin@signflow.local}" -e BOOTSTRAP_ADMIN_PASSWORD="$ADMIN_PASSWORD" backend python3 - < backend/scripts/bootstrap.py; then
+    if docker compose exec -T -e BOOTSTRAP_ADMIN_EMAIL="${ADMIN_EMAIL:-admin@vitrail.local}" -e BOOTSTRAP_ADMIN_PASSWORD="$ADMIN_PASSWORD" backend python3 - < backend/scripts/bootstrap.py; then
         ok "Organisation et compte administrateur créés"
     else
         warn "Amorçage en échec — relancez :"
@@ -538,7 +538,7 @@ echo -e "   MinIO Console  : http://localhost:${MINIO_CONSOLE_PORT}"
 echo ""
 echo -e "   Logs           : docker compose -f ${INSTALL_DIR}/docker-compose.yml logs -f backend"
 echo -e "   Arrêt          : systemctl stop signflow"
-echo -e "   Mise à jour    : cd ${INSTALL_DIR} && git pull && docker compose up -d --build"
+echo -e "   Mise à jour    : relancer ce script (sudo bash install-ubuntu.sh) — git pull, rebuild et migrations ; le .env est conservé"
 echo ""
 echo -e "${CYAN}   Config player :${NC}"
 echo -e "     BACKEND_URL = http://${SERVER_IP}:${NGINX_PORT}"

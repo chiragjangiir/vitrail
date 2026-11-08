@@ -7,7 +7,7 @@ keywords: [feed, flux, RSS, actualité, page web, URL, météo, crypto, modérat
 
 # Contenus dynamiques — Feeds et pages web
 
-En plus des médias importés, SignFlow diffuse des contenus qui se mettent à jour tout
+En plus des médias importés, Vitrail diffuse des contenus qui se mettent à jour tout
 seuls. On les gère depuis la **Médiathèque** (sous-menus **Feeds** et **Pages web**).
 
 ## Feeds (flux d'actualité)

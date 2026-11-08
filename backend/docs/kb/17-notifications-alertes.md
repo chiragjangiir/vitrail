@@ -7,7 +7,7 @@ keywords: [notification, alerte, webhook, email, canal, règle, player hors lign
 
 # Notifications et alertes
 
-**Réglages → Notifications** : SignFlow pousse des alertes vers vos outils quand un
+**Réglages → Notifications** : Vitrail pousse des alertes vers vos outils quand un
 événement important survient. Un **canal** définit *où* envoyer ; une **règle** définit
 *quoi* envoyer et sous quelles conditions.
 

@@ -7,12 +7,12 @@ keywords: [chrome, extension, player, sans matériel, zero-hardware, navigateur,
 
 # Player Chrome Extension (sans matériel)
 
-L'**extension Chrome** transforme un simple Chrome en player SignFlow, sans installer
+L'**extension Chrome** transforme un simple Chrome en player Vitrail, sans installer
 d'appareil dédié. Idéal pour tester, ou pour un poste existant qui dispose déjà d'un écran.
 
 ## Quand l'utiliser
 
-- Vous voulez essayer SignFlow sans NUC ni box.
+- Vous voulez essayer Vitrail sans NUC ni box.
 - Vous avez un PC/écran déjà en place sous Chrome.
 - Vous n'avez pas besoin de la synchronisation LAN entre écrans (non disponible en
   extension, qui fonctionne en lecture en ligne avec dégradation gracieuse hors-ligne).
@@ -22,7 +22,7 @@ d'appareil dédié. Idéal pour tester, ou pour un poste existant qui dispose d�
 1. Récupérez le dossier de l'extension auprès de votre administrateur.
 2. Dans Chrome : `chrome://extensions`, activez le **mode développeur**, puis
    **« Charger l'extension non empaquetée »** et pointez le dossier.
-3. Ouvrez la **popup** de l'extension : saisissez l'URL du serveur SignFlow et un token de
+3. Ouvrez la **popup** de l'extension : saisissez l'URL du serveur Vitrail et un token de
    provisioning (`sfp_…`), puis lancez. Une fenêtre kiosk plein écran s'ouvre et le player
    s'enregistre.
 

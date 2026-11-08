@@ -7,7 +7,7 @@ keywords: [écran, alimentation, allumage, extinction, heures d'ouverture, auto-
 
 # Allumage et extinction des écrans (auto-power)
 
-SignFlow peut **allumer et éteindre vos écrans automatiquement** selon les heures d'ouverture
+Vitrail peut **allumer et éteindre vos écrans automatiquement** selon les heures d'ouverture
 du site : plus d'écran allumé toute la nuit, plus d'oubli de rallumage le matin. Le player,
 lui, reste allumé et connecté — seul l'écran est piloté.
 

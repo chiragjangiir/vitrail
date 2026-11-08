@@ -1,13 +1,13 @@
 ---
-title: Démarrer avec SignFlow
+title: Démarrer avec Vitrail
 section: getting-started
 roles: []
 keywords: [démarrage, prise en main, dashboard, organisation, rôles, premiers pas]
 ---
 
-# Démarrer avec SignFlow
+# Démarrer avec Vitrail
 
-SignFlow est une plateforme d'affichage dynamique (digital signage) : vous diffusez des
+Vitrail est une plateforme d'affichage dynamique (digital signage) : vous diffusez des
 contenus (vidéos, images, pages web, flux d'actualité) sur des écrans pilotés par des
 players, depuis une interface web centralisée.
 
@@ -36,7 +36,7 @@ L'écran affiche le contenu en quelques secondes une fois la programmation enreg
 
 ## Rôles et permissions
 
-SignFlow gère des rôles (Org Admin, Designer, Scheduler, Approbateur, Lecteur de
+Vitrail gère des rôles (Org Admin, Designer, Scheduler, Approbateur, Lecteur de
 rapports, Opérateur magasin…). Chaque rôle donne accès à un sous-ensemble de modules.
 Si un menu ou une action vous manque, c'est probablement une question de rôle :
 demandez à votre administrateur d'organisation de vous l'attribuer.

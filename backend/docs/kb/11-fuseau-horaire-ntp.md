@@ -14,7 +14,7 @@ du site**. Deux réglages garantissent que players et serveur sont d'accord sur 
 
 Chaque site a un **fuseau horaire** (Sites → votre site). C'est lui qui pilote les horaires
 de diffusion et d'auto-power. Quand un player est **rattaché à un site** (ou que le fuseau du
-site change), SignFlow **aligne automatiquement l'horloge du player** sur ce fuseau — utile
+site change), Vitrail **aligne automatiquement l'horloge du player** sur ce fuseau — utile
 pour un player cloné ou venu d'un autre pays.
 
 ## Voir et corriger le fuseau d'un player
@@ -34,7 +34,7 @@ remontée). Particularités par plateforme :
 
 Pour que tous les players d'un site partagent exactement la même horloge (indispensable à la
 synchronisation LAN entre écrans), renseignez un **serveur NTP** sur le site (IP ou nom
-d'hôte — souvent le serveur SignFlow du site). Chaque player l'applique automatiquement :
+d'hôte — souvent le serveur Vitrail du site). Chaque player l'applique automatiquement :
 - Linux / Raspberry Pi : via chrony ;
 - Windows : via le service de temps Windows ;
 - BrightSign : via sa configuration réseau native.

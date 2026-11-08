@@ -92,7 +92,7 @@ Points utiles :
 
 ## Supprimer un média en toute sécurité
 
-Avant de supprimer un média, SignFlow affiche son **impact** : playlists, programmes,
+Avant de supprimer un média, Vitrail affiche son **impact** : playlists, programmes,
 events et paniers audio qui l'utilisent, et s'il est en cours de diffusion. La suppression
 en cascade peut retirer le média des playlists, supprimer les playlists devenues vides et
 annuler les events orphelins. Lisez la modale avant de confirmer.

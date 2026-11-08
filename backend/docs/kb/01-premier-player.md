@@ -28,7 +28,7 @@ players, mais ceux déjà enrôlés continuent de fonctionner. Un token révoqu�
 Le logiciel player existe pour Linux (Debian), Raspberry Pi, Windows 11, Android, et en
 PWA ChromeOS / extension Chrome. À l'installation, on lui fournit deux choses :
 
-- l'**URL du serveur** SignFlow,
+- l'**URL du serveur** Vitrail,
 - le **token de provisioning** (`sfp_…`).
 
 Au premier démarrage, le player échange le token contre son identité permanente et

@@ -150,7 +150,7 @@ window.signflow.onDisconnected(() => {
 
 window.signflow.onSetupRequired(() => {
   log('Setup required: no token configured');
-  setFallback('Setup required\nCreate this player in the Vitrail interface and enter the token in config.json');
+  setFallback('Setup required\nCreate this player in the Vitrail web interface and enter the token in config.json');
 });
 
 window.signflow.onMaintenance(() => {

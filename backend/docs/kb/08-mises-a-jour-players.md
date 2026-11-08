@@ -7,7 +7,7 @@ keywords: [mise à jour, OTA, version, déploiement, players, updates, gestion d
 
 # Mises à jour des players (OTA)
 
-SignFlow met à jour ses players **à distance** (over-the-air), sans intervention sur place.
+Vitrail met à jour ses players **à distance** (over-the-air), sans intervention sur place.
 Tout se pilote depuis **Paramètres → Mises à jour** (`/settings/updates`). Le mécanisme couvre
 **tous les types de players** : Linux, Raspberry Pi, Windows (Electron), Android, BrightSign,
 ChromeOS et l'extension Chrome.

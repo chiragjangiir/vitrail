@@ -7,7 +7,7 @@ keywords: [assistant, IA, chat, widget, Jeanine, Telegram, messagerie, actions, 
 
 # Assistant IA et Jeanine (Telegram)
 
-SignFlow embarque un **assistant conversationnel** qui connaît votre compte : il répond
+Vitrail embarque un **assistant conversationnel** qui connaît votre compte : il répond
 sur vos données en direct, explique le produit (cette documentation), et peut **préparer
 des actions** que vous confirmez. Il existe sous deux formes : le **widget** dans le CMS
 (bouton en bas à droite ou **Ctrl+Shift+A**) et **Jeanine**, le même assistant par

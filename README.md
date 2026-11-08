@@ -34,6 +34,16 @@ and nothing phones home.
 
 ---
 
+## 📘 Getting started
+
+**→ [Operator's guide](docs/GUIDE.md)** · 🇫🇷 [Guide d'exploitation](docs/GUIDE.fr.md)
+
+Part 1 gets a server and a first screen running in about 15 minutes, on your own machine and
+any web browser. Part 2 covers production: sizing (with or without a GPU), HTTPS, every player
+platform, updates, backups, the Telegram assistant.
+
+---
+
 ## Quick start (development)
 
 ```bash
