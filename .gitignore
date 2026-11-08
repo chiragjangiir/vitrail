@@ -1,0 +1,119 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+dist/
+build/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+*.cover
+coverage.json
+coverage.xml
+
+# TypeScript build artifacts
+frontend/tsconfig.tsbuildinfo
+**/*.tsbuildinfo
+
+# Node
+node_modules/
+.next/
+out/
+.expo/
+dist/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Alembic
+backend/alembic/versions/*.pyc
+backend/celerybeat-schedule
+
+# Logs
+*.log
+logs/
+
+# MinIO data (local dev)
+docker/minio/
+
+# Claude Code (paramètres locaux — jamais dans le repo)
+.claude/
+
+# Spec / docs (pas dans le build, dans le repo pour référence)
+# PROMPT_CMS_DIGITAL_SIGNAGE.md — volumineux mais utile, on garde
+
+# Playwright test artifacts
+frontend/test-results/
+# stray debug files
+loadfile_check.txt
+
+# Docs constructeurs RS232/LAN (référence locale — codes de pilotage écrans)
+RS232 Command/
+nuc_shot.png
+
+# debug screenshots
+shot_*.png
+_verify_shot.png
+_shots/
+# Captures produites par les specs-outils (studio_capture…) : regenerables par
+# `npx playwright test <spec>`, donc jamais versionnees — elles se perimeraient.
+frontend/tests/e2e/__shots__/
+backup_*.sql
+SD_card_BS/
+
+# Dossier de présentation prospect DynaScan (CONFIDENTIEL — reste en local, hors repo public)
+docs/DYNASCAN_PRESENTATION_*.html
+docs/Signflow_docs_FR-EN.zip
+docs/screenshots/
+
+# Emails de présentation démo (local — perso, hors repo public)
+docs/DEMO_EMAIL_*.md
+
+# Artefacts de build de l'installeur terrain (images/clés USB — lourds, régénérables)
+installer/*/out/
+installer/*/cache/
+installer/*/qout/
+installer/**/apks-cache/
+.aidesigner/
+.agents/
+.mcp.json
+.aidesigner/*
+!.aidesigner/.gitkeep
+
+# Captures d ecran sources du manuel (les versions optimisees webp sont dans frontend/public/help/img/)
+Pics_signflow/
+
+# Licence produit (item #5) : document signe DU CLIENT, jamais dans le depot.
+# La cle PRIVEE de l'editeur non plus -- elle ne quitte pas le poste qui la detient.
+licence.json
+backend/licence.json
+*.licence.key
+signflow-licence.key
+
+# Sauvegardes pg_dump prises AVANT migration (update.sh cote client, deploiements prod).
+# Elles vivent dans le dossier d'install : les ignorer evite qu'un arbre "sale" bloque
+# publish-images.sh (qui refuse de construire une image depuis un arbre modifie).
+db-snapshots/
+
+# Captures de travail (maquettes aidesigner) — hors du depot
+aidesogner_dashboard.png

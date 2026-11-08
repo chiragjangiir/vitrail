@@ -1,0 +1,46 @@
+# Example Caddy reverse proxy with automatic TLS (Let's Encrypt) in front of Vitrail.
+#
+# Replace cms.example.com with your own domain. Its DNS record must point to this server,
+# and ports 80 and 443 must be reachable from the Internet so the certificate can be issued.
+# Set ACME_EMAIL in the environment of the Caddy container.
+#
+# The upstream names below are the docker compose service names. If Caddy is attached to
+# several Docker networks where these names are ambiguous, use the full container names
+# (for example `vitrail-backend-1:8000`) instead.
+
+{
+	email {env.ACME_EMAIL}
+}
+
+# Web CMS + player PWA + REST API + player WebSocket
+cms.example.com {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Frame-Options "DENY"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+		-X-Powered-By
+	}
+
+	@api path /api/* /health
+	handle @api {
+		reverse_proxy backend:8000
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+}
+
+# Media served by MinIO through signed URLs. The Host header must be preserved, or the
+# signatures stop matching. Set MINIO_PUBLIC_ENDPOINT=media.cms.example.com and
+# MINIO_PUBLIC_USE_SSL=true in the backend environment.
+media.cms.example.com {
+	encode zstd gzip
+	reverse_proxy minio:9000 {
+		header_up Host {host}
+	}
+}

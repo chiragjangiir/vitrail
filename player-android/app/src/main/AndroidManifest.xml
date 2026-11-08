@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- LAN sync (§III.3) : réception du broadcast UDP sur WiFi via MulticastLock -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <!-- OTA §XXX : sans Device Owner, l'install passe par une confirmation à l'écran.
+         Depuis l'API 26 une app doit détenir cette permission pour DEMANDER une
+         installation ; sans elle, un player non provisionné ne peut pas se mettre à
+         jour du tout. Sans effet sur les devices Device Owner (install silencieux). -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!-- Android TV declarations -->
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+
+    <application
+        android:label="SignFlow Player"
+        android:icon="@mipmap/ic_launcher"
+        android:banner="@drawable/banner"
+        android:supportsRtl="false"
+        android:hardwareAccelerated="true"
+        android:theme="@style/Theme.SignFlow"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="true">
+
+        <!--
+            LEANBACK_LAUNCHER: app appears in Android TV home screen grid
+            HOME + DEFAULT: app can be set as the default launcher (kiosk mode)
+            Set via ADB: adb shell pm set-home-activity app.signflow.player/.MainActivity
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="landscape"
+            android:configChanges="keyboard|keyboardHidden|navigation|screenSize|orientation">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- exported=true : permet le provisioning par intent ADB de l'installeur terrain
+             (§XXIX) sur un APK release (le shell ne peut lancer une activité non exportée que
+             sur un APK debuggable). L'enregistrement exige un token `sfp_` valide (secret,
+             vérifié serveur) → exporter l'écran de setup ne crée pas de surface d'attaque. -->
+        <activity
+            android:name=".SetupActivity"
+            android:exported="true"
+            android:screenOrientation="landscape" />
+
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Device Admin/Owner : autorise DevicePolicyManager.reboot() sans root
+             une fois provisionne via `adb shell dpm set-device-owner`. -->
+        <receiver
+            android:name=".SignFlowAdminReceiver"
+            android:permission="android.permission.BIND_DEVICE_ADMIN"
+            android:exported="true">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- OTA §XXX : reboot planifié (AlarmManager) après auto-install d'APK — survit à la mort
+             du process provoquée par l'install → écran propre sans intervention. -->
+        <receiver
+            android:name=".OtaRebootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="app.signflow.player.OTA_REBOOT" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

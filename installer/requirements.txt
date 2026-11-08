@@ -1,0 +1,4 @@
+requests>=2.31
+qrcode[pil]>=7.4
+# Canal Windows (driver WinRM) — import paresseux : requis seulement pour --os windows.
+pywinrm>=0.4.3

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="launcher_bg">#1D2B3A</color>
+    <color name="accent">#4875B4</color>
+    <color name="surface">#1C1E2A</color>
+    <color name="text_primary">#E8EAF0</color>
+    <color name="text_secondary">#66778A</color>
+    <color name="error">#EF4444</color>
+</resources>

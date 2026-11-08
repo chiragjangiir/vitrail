@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' blob: data: https: http:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'" />
+  <title>SignFlow Player</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="player-root">
+
+    <!-- Status dot (top-right, always visible) -->
+    <div id="status-bar" class="hidden">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Connecting...</span>
+    </div>
+
+    <!-- Content -->
+    <div id="content-area"></div>
+
+    <!-- Fallback (no content) -->
+    <div id="fallback-screen">
+      <div class="fallback-logo">Vitrail</div>
+      <p class="fallback-msg" id="fallback-msg">No content to display</p>
+    </div>
+
+    <!-- Setup wizard (first boot) -->
+    <div id="setup-screen" class="hidden">
+      <div class="setup-card">
+        <div class="setup-logo">Vitrail</div>
+        <p class="setup-subtitle">Player Setup</p>
+
+        <form id="setup-form">
+          <div class="setup-field">
+            <label for="inp-backend">Backend URL</label>
+            <input id="inp-backend" type="url" placeholder="http://192.168.1.10:8080" required />
+          </div>
+          <div class="setup-field">
+            <label for="inp-token">Provisioning Token</label>
+            <input id="inp-token" type="text" placeholder="sfp_..." required />
+          </div>
+          <div class="setup-field">
+            <label for="inp-name">Player Name</label>
+            <input id="inp-name" type="text" placeholder="windows-player-01" required />
+          </div>
+
+          <p id="setup-error" class="setup-error hidden"></p>
+
+          <button id="setup-btn" type="submit">Register Player</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="audio_player.js"></script>
+  <script src="player.js"></script>
+</body>
+</html>

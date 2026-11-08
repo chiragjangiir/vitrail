@@ -1,0 +1,368 @@
+# Rotation des logs conteneurs (json-file = ILLIMITÉ par défaut → remplit le disque à terme).
+# Ancre réutilisée par chaque service ci-dessous. 20 Mo × 5 fichiers = 100 Mo max par conteneur.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
+services:
+
+  # ── Base de données ───────────────────────────────────────────────────────────
+  postgres:
+    restart: unless-stopped
+    image: pgvector/pgvector:pg16
+    logging: *default-logging
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-signflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-signflow}
+      POSTGRES_DB: ${POSTGRES_DB:-signflow}
+      # Mots de passe des rôles applicatifs, lus par init.sh. Les valeurs par défaut
+      # reproduisent celles qui étaient EN DUR dans l'ancien init.sql → les
+      # installations existantes ne bougent pas. Toute installation NEUVE doit les
+      # définir (install-ubuntu.sh les génère aléatoirement).
+      POSTGRES_APP_PASSWORD: ${POSTGRES_APP_PASSWORD:-signflow_app_secret}
+      POSTGRES_WORKER_PASSWORD: ${POSTGRES_WORKER_PASSWORD:-signflow_worker_secret}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # .sh et non .sql : un .sql est joué tel quel par psql, sans substitution de
+      # variables — les mots de passe des rôles y étaient donc écrits en dur.
+      - ./docker/postgres/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-signflow}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ─────────────────────────────────────────────────────────────────────
+  redis:
+    restart: unless-stopped
+    logging: *default-logging
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Stockage objet (MinIO) ────────────────────────────────────────────────────
+  minio:
+    restart: unless-stopped
+    logging: *default-logging
+    # L'image officielle minio/minio a été retirée de Docker Hub (pull refusé) : fork
+    # communautaire pgsty/minio (même code AGPL, contient aussi `mc` pour le healthcheck).
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # ── Backend FastAPI ───────────────────────────────────────────────────────────
+  backend:
+    restart: unless-stopped
+    logging: *default-logging
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-signflow}:${POSTGRES_PASSWORD:-signflow}@postgres:5432/${POSTGRES_DB:-signflow}
+      DATABASE_WORKER_URL: postgresql+asyncpg://signflow_worker:${POSTGRES_WORKER_PASSWORD:-signflow_worker_secret}@postgres:5432/${POSTGRES_DB:-signflow}
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      # Nombre de processus uvicorn. « auto » = un par cœur moins un, plafonné à 8, calculé
+      # par l'entrypoint de l'image. Un processus unique SÉRIALISE les reconnexions : il
+      # cloue UN cœur à 101 % pendant que le reste de la machine ne fait rien (mesuré à 4 %
+      # sur 16 cœurs le 2026-08-08, cf. deploy/loadtest/). Mettre 1 pour revenir au
+      # comportement mono-processus historique.
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-auto}
+      # Connexions PostgreSQL que l'ENSEMBLE des processus backend peut consommer. Les
+      # pools par processus en sont DÉRIVÉS : ajouter des processus n'ajoute donc jamais
+      # de connexions (cf. app/core/pooling.py).
+      CMS_DB_CONNECTION_BUDGET: ${CMS_DB_CONNECTION_BUDGET:-60}
+      # Version de release affichée dans l'UI (pied de sidebar). "dev" = build source.
+      SIGNFLOW_VERSION: ${SIGNFLOW_VERSION:-dev}
+      # Cloche « MAJ serveur disponible » : le backend sonde ce manifeste public et
+      # compare à SIGNFLOW_VERSION. Coupe la cloche sur une prod multi-tenant qu'on
+      # exploite (BELL=false) ; un build source ("dev") est muet de toute façon.
+      SIGNFLOW_UPDATE_MANIFEST_URL: ${SIGNFLOW_UPDATE_MANIFEST_URL:-https://raw.githubusercontent.com/edkahall/signflow-install/main/versions.json}
+      SIGNFLOW_UPDATE_BELL: ${SIGNFLOW_UPDATE_BELL:-true}
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-}
+      # https pour les URLs pré-signées publiques (MinIO derrière un proxy TLS, ex. Caddy).
+      # Défaut false = inchangé. Active-le quand MINIO_PUBLIC_ENDPOINT pointe sur le proxy HTTPS.
+      MINIO_PUBLIC_USE_SSL: ${MINIO_PUBLIC_USE_SSL:-false}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_USE_SSL: "false"
+      CMS_JWT_SECRET: ${CMS_JWT_SECRET:-changeme}
+      # Tokens machine players (« Option B ») : expiration finie → rotation, jamais de coupure d'écran
+      CMS_PLAYER_TOKEN_EXPIRE_DAYS: ${CMS_PLAYER_TOKEN_EXPIRE_DAYS:-60}
+      CMS_PLAYER_TOKEN_REFRESH_DAYS: ${CMS_PLAYER_TOKEN_REFRESH_DAYS:-20}
+      CMS_PLAYER_TOKEN_GRACE_DAYS: ${CMS_PLAYER_TOKEN_GRACE_DAYS:-14}
+      CORS_ORIGINS: ${CORS_ORIGINS:-'["http://localhost:3000","http://localhost:3010"]'}
+      EVENT_BUS_BACKEND: ${EVENT_BUS_BACKEND:-redis_streams}
+      CMS_LITELLM_URL: ${CMS_LITELLM_URL:-http://litellm:4000}
+      CMS_LITELLM_API_KEY: ${CMS_LITELLM_API_KEY:-}
+      # Coffre-fort de clés API IA par org (BYOK §XXVII) — chiffrement au repos (Fernet)
+      CMS_VAULT_KEY: ${CMS_VAULT_KEY:-}
+      # Doc API interactive (/api/docs, /api/redoc, openapi.json) — false en prod (sécu)
+      CMS_DOCS_ENABLED: ${CMS_DOCS_ENABLED:-true}
+      # AI Assistant RAG (§XXVII) — embeddings locaux Ollama + chat claude-sonnet
+      CMS_EMBED_MODEL: ${CMS_EMBED_MODEL:-local/nomic-embed}
+      CMS_ASSISTANT_MODEL: ${CMS_ASSISTANT_MODEL:-claude-sonnet-4-6}
+      # URL publique du CMS — liens cliquables dans les emails (lien portail annonceur)
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-noreply@signflow.io}
+      SMTP_TLS: ${SMTP_TLS:-false}
+      SIGNFLOW_TZ: ${SIGNFLOW_TZ:-UTC}
+      # Proof of Play — archivage & rotation (§XXIV)
+      CMS_POP_HOT_RETENTION_DAYS: ${CMS_POP_HOT_RETENTION_DAYS:-90}
+      CMS_POP_ARCHIVE_PREFIX: ${CMS_POP_ARCHIVE_PREFIX:-pop-archives}
+      # « Jeanine » — bot Telegram (POC messagerie) ; vides = canal désactivé (webhook 503)
+      CMS_TELEGRAM_BOT_TOKEN: ${CMS_TELEGRAM_BOT_TOKEN:-}
+      CMS_TELEGRAM_WEBHOOK_SECRET: ${CMS_TELEGRAM_WEBHOOK_SECRET:-}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ── Celery Worker LÉGER (events, notifications, analytics) ─────────────────────
+  # Séparé du média : les tâches courtes et temps-réel (activation d'events, santé
+  # players, fenêtres horaires) ne sont JAMAIS bloquées par un transcode vidéo lourd.
+  celery-worker:
+    restart: unless-stopped
+    logging: *default-logging
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-signflow}:${POSTGRES_PASSWORD:-signflow}@postgres:5432/${POSTGRES_DB:-signflow}
+      DATABASE_WORKER_URL: postgresql+asyncpg://signflow_worker:${POSTGRES_WORKER_PASSWORD:-signflow_worker_secret}@postgres:5432/${POSTGRES_DB:-signflow}
+      REDIS_URL: redis://redis:6379/0
+      CMS_JWT_SECRET: ${CMS_JWT_SECRET:-changeme}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_USE_SSL: "false"
+      SIGNFLOW_TZ: ${SIGNFLOW_TZ:-UTC}
+      # Tokens machine players (« Option B ») : auto-refresh proactif dans check_player_health
+      CMS_PLAYER_TOKEN_EXPIRE_DAYS: ${CMS_PLAYER_TOKEN_EXPIRE_DAYS:-60}
+      CMS_PLAYER_TOKEN_REFRESH_DAYS: ${CMS_PLAYER_TOKEN_REFRESH_DAYS:-20}
+      CMS_PLAYER_TOKEN_GRACE_DAYS: ${CMS_PLAYER_TOKEN_GRACE_DAYS:-14}
+      LIGHT_CONCURRENCY: ${LIGHT_CONCURRENCY:-}
+      # Feeds §25.3 : worker fetch_feed → proxy (socials/financiers/météo) + résumé IA (LiteLLM).
+      FEED_PROXY_URL: ${FEED_PROXY_URL:-http://feed-proxy:8001}
+      CMS_LITELLM_URL: ${CMS_LITELLM_URL:-http://litellm:4000}
+      CMS_LITELLM_API_KEY: ${CMS_LITELLM_API_KEY:-}
+      CMS_FEED_SUMMARY_MODEL: ${CMS_FEED_SUMMARY_MODEL:-claude-haiku-4-5}
+      # Coffre-fort de clés API IA par org (BYOK §XXVII) — feed_ai/feedback_ai BYOK
+      CMS_VAULT_KEY: ${CMS_VAULT_KEY:-}
+      # AI Assistant RAG (§XXVII) — la task d'indexation (celery) embedde via LiteLLM→Ollama
+      CMS_EMBED_MODEL: ${CMS_EMBED_MODEL:-local/nomic-embed}
+      # Proof of Play — archivage & rotation (§XXIV) : worker archive_pop
+      CMS_POP_HOT_RETENTION_DAYS: ${CMS_POP_HOT_RETENTION_DAYS:-90}
+      CMS_POP_ARCHIVE_PREFIX: ${CMS_POP_ARCHIVE_PREFIX:-pop-archives}
+      # SMTP — rapports planifiés §24.3 + canal EMAIL des alertes §XXII (dispatch_sync
+      # tourne ICI ; n'était déclaré que sur backend → les envois worker échouaient)
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-noreply@signflow.io}
+      SMTP_TLS: ${SMTP_TLS:-false}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+    # Concurrence auto-adaptée à la machine (cf. app/core/resources.py).
+    command: >
+      sh -c 'celery -A app.workers.celery_app worker --loglevel=info
+      --queues=default,notifications,analytics
+      --concurrency=$$(python -c "from app.core.resources import light_concurrency; print(light_concurrency())")'
+
+  # ── Celery Worker MÉDIA (transcodage / renditions ffmpeg) ─────────────────────
+  # Worker dédié, à concurrence AUTO-ADAPTÉE aux ressources (CPU+RAM réels) : un upload
+  # massif de vidéos ne sature plus la machine. ffmpeg tourne en priorité basse (nice)
+  # et avec un plafond de threads → l'API/DB/sync players restent réactifs (cf. resources.py).
+  celery-media:
+    restart: unless-stopped
+    logging: *default-logging
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-signflow}:${POSTGRES_PASSWORD:-signflow}@postgres:5432/${POSTGRES_DB:-signflow}
+      DATABASE_WORKER_URL: postgresql+asyncpg://signflow_worker:${POSTGRES_WORKER_PASSWORD:-signflow_worker_secret}@postgres:5432/${POSTGRES_DB:-signflow}
+      REDIS_URL: redis://redis:6379/0
+      CMS_JWT_SECRET: ${CMS_JWT_SECRET:-changeme}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_USE_SSL: "false"
+      SIGNFLOW_TZ: ${SIGNFLOW_TZ:-UTC}
+      # Surcharges optionnelles (sinon auto depuis CPU/RAM) :
+      MEDIA_CONCURRENCY: ${MEDIA_CONCURRENCY:-}
+      FFMPEG_THREADS: ${FFMPEG_THREADS:-}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+    command: >
+      sh -c 'celery -A app.workers.celery_app worker --loglevel=info
+      --queues=media
+      --concurrency=$$(python -c "from app.core.resources import media_concurrency; print(media_concurrency())")'
+
+  # ── Celery Screenshot (Playwright/Chromium — captures URL Display §XXV.2) ──────
+  celery-screenshot:
+    restart: unless-stopped
+    logging: *default-logging
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: screenshot
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-signflow}:${POSTGRES_PASSWORD:-signflow}@postgres:5432/${POSTGRES_DB:-signflow}
+      DATABASE_WORKER_URL: postgresql+asyncpg://signflow_worker:${POSTGRES_WORKER_PASSWORD:-signflow_worker_secret}@postgres:5432/${POSTGRES_DB:-signflow}
+      REDIS_URL: redis://redis:6379/0
+      CMS_JWT_SECRET: ${CMS_JWT_SECRET:-changeme}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_USE_SSL: "false"
+      SIGNFLOW_TZ: ${SIGNFLOW_TZ:-UTC}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+    command: celery -A app.workers.celery_app worker --loglevel=info --queues=cms_screenshot --concurrency=2
+
+  # ── Celery Beat (scheduler) ───────────────────────────────────────────────────
+  celery-beat:
+    restart: unless-stopped
+    logging: *default-logging
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-signflow}:${POSTGRES_PASSWORD:-signflow}@postgres:5432/${POSTGRES_DB:-signflow}
+      DATABASE_WORKER_URL: postgresql+asyncpg://signflow_worker:${POSTGRES_WORKER_PASSWORD:-signflow_worker_secret}@postgres:5432/${POSTGRES_DB:-signflow}
+      REDIS_URL: redis://redis:6379/0
+      SIGNFLOW_TZ: ${SIGNFLOW_TZ:-UTC}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+    command: celery -A app.workers.celery_app beat --loglevel=info --scheduler celery.beat.PersistentScheduler
+
+  # ── Frontend Next.js ──────────────────────────────────────────────────────────
+  frontend:
+    restart: unless-stopped
+    logging: *default-logging
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_WS_URL: ws://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    command: npm run dev
+
+  # ── Feed Proxy ────────────────────────────────────────────────────────────────
+  feed-proxy:
+    restart: unless-stopped
+    logging: *default-logging
+    build:
+      context: ./feed-proxy
+      dockerfile: Dockerfile
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      VAULT_ADDR: ${VAULT_ADDR:-}
+      VAULT_TOKEN: ${VAULT_TOKEN:-}
+    volumes:
+      - ./feed-proxy:/app
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+
+  # ── Ollama (embeddings locaux pour le RAG §XXVII) ─────────────────────────
+  # Sert UNIQUEMENT nomic-embed-text (768 dims) à LiteLLM → embeddings 100% locaux,
+  # sans clé API (l'agent de chat reste claude-sonnet via le cloud). Modèle ~0,3 Go,
+  # tourne en CPU (corpus de doc petit) — aucun GPU requis. L'entrypoint pull le
+  # modèle au démarrage (idempotent : no-op s'il est déjà présent dans le volume).
+  ollama:
+    restart: unless-stopped
+    logging: *default-logging
+    image: ollama/ollama:latest
+    entrypoint: ["/bin/sh", "-c", "ollama serve & sleep 8 && ollama pull nomic-embed-text && wait"]
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list | grep -q nomic-embed-text || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # ── LiteLLM (proxy Claude) ────────────────────────────────────────────────
+  litellm:
+    restart: unless-stopped
+    logging: *default-logging
+    image: ghcr.io/berriai/litellm:main-stable
+    command: --config /app/config.yaml --port 4000
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ./docker/litellm/config.yaml:/app/config.yaml:ro
+    depends_on:
+      - ollama
+    healthcheck:
+      # L'image litellm n'embarque PAS curl (healthcheck toujours unhealthy sinon) ;
+      # /health/liveliness = non authentifié (contrairement à /health, gaté master key).
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:4000/health/liveliness', timeout=5)\" || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── Mailpit (SMTP dev) ────────────────────────────────────────────────────
+  mailpit:
+    restart: unless-stopped
+    logging: *default-logging
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI → http://localhost:8025
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  ollama_data:

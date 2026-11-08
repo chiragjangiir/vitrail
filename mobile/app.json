@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "SignFlow",
+    "slug": "signflow",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#1D2B3A"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "io.signflow.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "SignFlow uses Face ID to securely unlock the app.",
+        "NSCameraUsageDescription": "SignFlow uses the camera to scan QR codes."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1D2B3A"
+      },
+      "package": "io.signflow.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "SignFlow uses Face ID to securely unlock the app."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#4875B4"
+        }
+      ]
+    ],
+    "scheme": "signflow",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

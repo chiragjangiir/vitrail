@@ -1,0 +1,14 @@
+# Android / Gradle build artifacts
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Signature release (SECRETS — ne JAMAIS committer ; SAUVEGARDER le .jks hors dépôt)
+keystore.properties
+*.jks
+*.keystore

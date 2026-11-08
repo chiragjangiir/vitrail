@@ -1,0 +1,40 @@
+# ⚠️ Sans ce fichier, tests/ (9 Mo) et les __pycache__ du poste de dev partaient
+# dans les images de PRODUCTION. Les .pyc compilés ailleurs sont au mieux inutiles,
+# au pire trompeurs lors d'un diagnostic.
+#
+# NB : le développement local n'est pas affecté — docker-compose.yml bind-monte
+# ./backend sur /app, donc tests/ reste disponible dans le conteneur et
+# `make test` continue de fonctionner.
+
+# Tests et rapports (la CI les exécute sur le runner, pas dans l'image)
+tests
+.pytest_cache
+htmlcov
+.coverage
+.coverage.*
+
+# Caches d'outillage
+__pycache__
+*.py[cod]
+.ruff_cache
+.mypy_cache
+
+# Environnements virtuels locaux
+.venv
+venv
+
+# VCS / éditeur
+.git
+.gitignore
+.vscode
+.idea
+
+# Secrets locaux — ne doivent jamais entrer dans une image distribuée
+.env
+.env.*
+
+# Divers
+*.log
+Dockerfile
+Dockerfile.*
+.dockerignore

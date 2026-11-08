@@ -1,0 +1,6 @@
+# SignFlow — auto-provision à l'insertion d'une clé USB (§XXIX.10).
+# À l'ajout d'une PARTITION USB portant un système de fichiers, démarre le service templaté
+# sf-provision@<kdev> (ex. sf-provision@sdb1) qui monte la clé et, si elle porte
+# signflow-config.json, lance sf-configure sur l'écran actif. Ne matche QUE l'USB (ID_BUS==usb)
+# → le disque interne du player n'est jamais concerné.
+ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="usb", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", TAG+="systemd", ENV{SYSTEMD_WANTS}="sf-provision@%k.service"

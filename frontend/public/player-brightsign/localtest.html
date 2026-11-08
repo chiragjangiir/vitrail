@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SignFlow — BrightSign local-HTTP video PoC</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0b0d16; color: #e8eefc; overflow: hidden;
+                 font: 20px/1.5 Inter, system-ui, sans-serif; cursor: none; }
+    #wrap { display: flex; height: 100%; }
+    #vidbox { flex: 1; background: #000; position: relative; }
+    video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    #log { width: 38%; max-width: 620px; padding: 22px; box-sizing: border-box; overflow: auto;
+           background: #12152400; border-left: 1px solid #2a3350; }
+    h1 { font-size: 22px; margin: 0 0 4px; color: #7fb0ff; }
+    .sub { color: #9db4d0; font-size: 14px; margin: 0 0 16px; }
+    .line { padding: 6px 10px; border-radius: 6px; margin: 4px 0; font-size: 15px; white-space: pre-wrap; word-break: break-all; }
+    .ok   { background: #16331f; color: #9be8b0; }
+    .err  { background: #3a1620; color: #ffb0c0; }
+    .info { background: #14233a; color: #bcd4f0; }
+    #verdict { font-size: 26px; font-weight: 700; margin: 14px 0; }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <div id="vidbox"><video id="v" autoplay loop muted playsinline></video></div>
+    <div id="log">
+      <h1>Local-HTTP video PoC</h1>
+      <p class="sub">Teste si le &lt;video&gt; lit une source servie par le serveur HTTP local
+        de la BrightSign (roHttpServer). Source = <code id="srcurl"></code></p>
+      <div id="verdict" class="info">… test en cours</div>
+      <div id="lines"></div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    // Le port + host sont surchargeables par query (?host=localhost&port=8888&file=test.mp4).
+    var qs   = new URLSearchParams(location.search);
+    var host = qs.get('host') || '127.0.0.1';
+    var port = qs.get('port') || '8888';
+    var file = qs.get('file') || 'test.mp4';
+    var SRC  = 'http://' + host + ':' + port + '/' + file;
+
+    var v = document.getElementById('v');
+    var lines = document.getElementById('lines');
+    var verdict = document.getElementById('verdict');
+    document.getElementById('srcurl').textContent = SRC;
+
+    function log(cls, msg) {
+      var d = document.createElement('div');
+      d.className = 'line ' + cls;
+      d.textContent = new Date().toISOString().substr(11, 12) + '  ' + msg;
+      lines.appendChild(d);
+      // console aussi (visible via inspector_server / DevTools distant)
+      (cls === 'err' ? console.error : console.log)('[PoC] ' + msg);
+    }
+    function setVerdict(cls, msg) { verdict.className = cls; verdict.textContent = msg; }
+
+    log('info', 'UA: ' + navigator.userAgent);
+    log('info', 'page origin: ' + location.origin + '  (mixed-content si https→http loopback)');
+
+    // 1) D'abord un fetch HEAD : le serveur local répond-il ? (distingue "serveur injoignable"
+    //    de "vidéo non décodable"). Peut échouer en mixed-content même si le <video> marche.
+    log('info', 'fetch HEAD ' + SRC + ' …');
+    fetch(SRC, { method: 'GET', headers: { Range: 'bytes=0-1' } })
+      .then(function (r) {
+        log('ok', 'fetch OK — HTTP ' + r.status + '  Content-Type=' + (r.headers.get('content-type') || '?') +
+                  '  Accept-Ranges=' + (r.headers.get('accept-ranges') || '?') +
+                  '  Content-Range=' + (r.headers.get('content-range') || '?'));
+      })
+      .catch(function (e) { log('err', 'fetch ÉCHEC: ' + e.message + '  (mixed-content ? serveur down ?)'); });
+
+    // 2) Le vrai test : le <video> lit-il la source locale ?
+    v.addEventListener('loadedmetadata', function () {
+      log('ok', 'loadedmetadata — durée=' + (v.duration || 0).toFixed(1) + 's  dim=' + v.videoWidth + 'x' + v.videoHeight);
+    });
+    v.addEventListener('playing', function () {
+      log('ok', 'PLAYING — la vidéo joue depuis le serveur local !');
+      setVerdict('ok', '✅ U1 VALIDÉ : <video> lit le HTTP local');
+    });
+    v.addEventListener('stalled', function () { log('err', 'stalled (réseau/source bloquée)'); });
+    v.addEventListener('error', function () {
+      var err = v.error || {};
+      log('err', 'video ERROR code=' + (err.code || '?') + '  msg=' + (err.message || '(vide)'));
+      setVerdict('err', '❌ U1 ÉCHEC : <video> ne lit pas le HTTP local (code ' + (err.code || '?') + ')');
+    });
+
+    v.src = SRC;
+    v.load();
+    var p = v.play();
+    if (p && p.catch) p.catch(function (e) { log('err', 'play() rejeté: ' + e.message); });
+
+    // Filet : si rien ne bouge en 12 s, on le dit.
+    setTimeout(function () {
+      if (verdict.className === 'info') setVerdict('err', '❌ aucun event vidéo en 12 s — voir le log');
+    }, 12000);
+  })();
+  </script>
+</body>
+</html>

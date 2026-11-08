@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SignFlow — Guide de dimensionnement infrastructure</title>
+<style>
+  :root{
+    --accent:#4875B4; --accent-soft:#eaf0f8;
+    --canvas:#F8F7F5; --sidebar:#1D2B3A; --ink:#1C1E2A;
+    --muted:#6b7280; --line:#e5e3df; --card:#ffffff;
+    --green:#198754; --green-soft:#e8f3ec; --amber:#b45309; --amber-soft:#fef3e2;
+    --red:#b42318; --red-soft:#fdecea; --violet:#5b53b4; --violet-soft:#ecebf7;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:Inter,-apple-system,Segoe UI,Roboto,sans-serif;
+    color:var(--ink); background:var(--canvas); line-height:1.6; font-weight:400;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:0 24px 80px}
+  header{background:var(--sidebar); color:#fff; padding:40px 0 34px; margin-bottom:36px}
+  header .wrap{padding-bottom:0}
+  header .tag{display:inline-block; font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+    color:#9db4cf; border:1px solid #34506b; padding:3px 10px; border-radius:999px; margin-bottom:14px}
+  header h1{margin:0 0 8px; font-size:28px; font-weight:600; letter-spacing:-.01em}
+  header p{margin:0; color:#c4d2e2; font-size:15px}
+  h2{font-size:21px; font-weight:600; margin:46px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--line)}
+  h3{font-size:16px; font-weight:600; margin:26px 0 8px}
+  p{margin:0 0 12px}
+  a{color:var(--accent)}
+  code{background:#eef0f3; padding:1px 6px; border-radius:4px; font-size:13px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .lead{font-size:16px; color:#374151}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin:16px 0}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px}
+  @media(max-width:680px){.grid,.grid3{grid-template-columns:1fr}}
+  .pill{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:500;
+    padding:2px 9px; border-radius:999px; background:var(--accent-soft); color:var(--accent)}
+  .callout{border-left:3px solid var(--accent); background:#fff; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0}
+  .callout.warn{border-color:var(--amber); background:var(--amber-soft)}
+  .callout.warn b{color:var(--amber)}
+  .callout.key{border-color:var(--green); background:var(--green-soft)}
+  .callout.key b{color:var(--green)}
+  .callout .ttl{font-weight:600; margin-bottom:4px}
+  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:14px; background:#fff;
+    border:1px solid var(--line); border-radius:8px; overflow:hidden}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{background:#f4f6f8; font-weight:600; font-size:13px}
+  tr:last-child td{border-bottom:none}
+  td code{white-space:nowrap}
+  .muted{color:var(--muted)}
+  .ok{color:var(--green); font-weight:600}
+  .small{font-size:13px}
+  .nowrap{white-space:nowrap}
+  .formula{font-family:ui-monospace,Menlo,monospace; font-size:13.5px; line-height:1.7; background:#fbfaf8;
+    border:1px solid var(--line); border-radius:8px; padding:14px 18px; overflow-x:auto; color:#374151; margin:14px 0}
+  .formula b{color:var(--accent)}
+  .calc{background:#fff; border:1px solid var(--line); border-left:3px solid var(--violet);
+    border-radius:0 8px 8px 0; padding:14px 18px; margin:14px 0}
+  .calc .ttl{font-weight:600; color:var(--violet); margin-bottom:6px; font-size:14px}
+  .calc .step{font-family:ui-monospace,Menlo,monospace; font-size:13px; color:#374151; margin:2px 0}
+  .calc .res{font-weight:600; margin-top:6px}
+  .toc{background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 20px; margin:0 0 10px}
+  .toc ol{margin:6px 0 0; padding-left:20px; columns:2; column-gap:30px; font-size:14px}
+  @media(max-width:680px){.toc ol{columns:1}}
+  .toc a{text-decoration:none}
+  .tier{display:inline-block; font-size:12px; font-weight:600; padding:2px 9px; border-radius:6px}
+  .t1{background:#e8f3ec; color:#198754} .t2{background:#eaf0f8; color:#4875B4}
+  .t3{background:#fef3e2; color:#b45309} .t4{background:#fdecea; color:#b42318}
+  .badge{font-size:11px; font-weight:600; padding:1px 7px; border-radius:6px; background:#e5e7eb; color:#4b5563}
+  .gpu{background:#e8f3ec; color:#198754} .cpu{background:#fdecea; color:#b42318}
+  footer{margin-top:50px; padding-top:18px; border-top:1px solid var(--line); font-size:13px; color:var(--muted)}
+  h2 .num{color:var(--muted); font-weight:500; margin-right:8px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <span class="tag">SignFlow · Infrastructure · Capacity planning</span>
+    <h1>Dimensionnement serveur, bande passante, stockage &amp; encodage</h1>
+    <p>Par palier de parc — &lt; 200, 200–500, 500–1000, 1000+ players. Avec hypothèses et exemples chiffrés.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <p class="lead">Ce guide dimensionne l'infrastructure SignFlow selon la taille du parc. Le point
+  d'architecture qui change tout : grâce au <b>download&#8209;then&#8209;play</b> (les players cachent
+  les médias et les lisent <b>en local</b>, jamais en streaming), la charge ne ressemble pas à celle
+  d'un CMS « streaming ». Trois ressources se dimensionnent <b>indépendamment</b>, et chacune suit un
+  driver différent.</p>
+
+  <div class="callout key">
+    <div class="ttl">Les 3 vérités de dimensionnement</div>
+    <b>1. Bande passante</b> → suit le <b>volume de contenu × fréquence de refresh</b>, par rafales, pas le nb de players.<br>
+    <b>2. Stockage objet</b> → suit la <b>taille du catalogue</b>, quasi pas le nb de players.<br>
+    <b>3. Encodage</b> → suit le <b>débit d'ingestion (uploads)</b>, pas le nb de players. GPU &gt;&gt; CPU.
+  </div>
+
+  <div class="toc">
+    <b>Sommaire</b>
+    <ol>
+      <li><a href="#plans">Les deux plans de charge</a></li>
+      <li><a href="#hyp">Hypothèses de référence</a></li>
+      <li><a href="#bp">Bande passante</a></li>
+      <li><a href="#stockage">Stockage (3 couches)</a></li>
+      <li><a href="#encode">Encodage (cœurs &amp; GPU)</a></li>
+      <li><a href="#synth">Synthèse serveur par palier</a></li>
+      <li><a href="#scenarios">3 scénarios complets chiffrés</a></li>
+      <li><a href="#leviers">Leviers de scaling</a></li>
+    </ol>
+  </div>
+
+  <!-- ===================================================================== -->
+  <h2 id="plans"><span class="num">1.</span>Les deux plans de charge</h2>
+
+  <p>Toute la charge SignFlow se range dans deux catégories qui n'ont rien à voir :</p>
+
+  <table>
+    <tr><th>Plan</th><th>Contenu</th><th>Dépend de</th><th>Verdict</th></tr>
+    <tr>
+      <td><b>Contrôle</b></td>
+      <td>WebSocket persistant, heartbeats, sync, commandes, proof&#8209;of&#8209;play</td>
+      <td>Nb de players</td>
+      <td><span class="ok">Négligeable.</span> 1000 players ≈ qq centaines de kbps + ~700 écritures PG/s. <b>Jamais le goulot.</b></td>
+    </tr>
+    <tr>
+      <td><b>Contenu</b></td>
+      <td>Distribution des médias depuis l'object storage vers les players</td>
+      <td>Volume × players × refresh × <b>fenêtre</b></td>
+      <td><b>Le seul vrai dimensionnant.</b> Par rafales (pas un flux continu).</td>
+    </tr>
+  </table>
+
+  <div class="callout warn">
+    <div class="ttl">À retenir</div>
+    On <b>ne</b> dimensionne <b>pas</b> la bande passante à <code>N × débit vidéo</code> (ça, c'est le
+    modèle streaming). On la dimensionne pour <b>distribuer le contenu dans la fenêtre de mise à jour</b>.
+    C'est ce qui rend SignFlow beaucoup plus léger — et moins cher — qu'un CMS classique.
+  </div>
+
+  <!-- ===================================================================== -->
+  <h2 id="hyp"><span class="num">2.</span>Hypothèses de référence</h2>
+
+  <p>Tous les exemples ci-dessous partent de ces valeurs. <b>Adaptez-les à votre réalité</b> : ce sont
+  elles, et non le nombre de players, qui pilotent les chiffres.</p>
+
+  <table>
+    <tr><th>Paramètre</th><th>Valeur retenue</th><th>Note</th></tr>
+    <tr><td>Content&#8209;set par player (<code>R</code>)</td><td><b>500 Mo</b> (parc FHD) · <b>2 Go</b> (parc 4K lourd)</td><td>Total des médias cachés par un écran</td></tr>
+    <tr><td>Taille master moyenne d'un asset</td><td><b>70 Mo</b> (FHD) · <b>180 Mo</b> (4K HEVC ~30 s)</td><td>Mix images + vidéos</td></tr>
+    <tr><td>Facteur renditions</td><td><b>×1,5</b></td><td>master + FHD + HD720 + miniature (<code>auto_fhd</code>)</td></tr>
+    <tr><td>Fenêtre de propagation (<code>T</code>)</td><td><b>4 h</b> (push de nuit)</td><td>Délai accepté pour qu'un nouveau contenu touche tout le parc</td></tr>
+    <tr><td>Plays / jour / player</td><td><b>~3000</b></td><td>Heures d'ouverture, boucle de playlist</td></tr>
+    <tr><td>Rétention proof&#8209;of&#8209;play</td><td><b>90 jours</b> chauds</td><td>Au-delà → archivage Parquet / drop de partition</td></tr>
+    <tr><td>Provision sur les moyennes</td><td><b>×2 à ×3</b></td><td>Pour absorber les pics</td></tr>
+  </table>
+
+  <!-- ===================================================================== -->
+  <h2 id="bp"><span class="num">3.</span>Bande passante</h2>
+
+  <div class="formula">
+BP moyenne (Mbps) = ( <b>N</b> players × <b>R</b> Mo/player ) × 8 / ( <b>T</b> fenêtre en secondes )
+  </div>
+
+  <table>
+    <tr><th>Palier</th><th>Calcul (R=500 Mo, T=4 h)</th><th>Moyenne</th><th>À provisionner</th></tr>
+    <tr><td><span class="tier t1">&lt; 200</span></td><td>200 × 500 / 14400</td><td>~55 Mbps</td><td><b>100–200 Mbps</b> symétrique · lien fibre pro</td></tr>
+    <tr><td><span class="tier t2">200–500</span></td><td>500 × 500 / 14400</td><td>~140 Mbps</td><td><b>300–500 Mbps</b> <span class="muted">ou CDN (→ ~100 Mbps origine)</span></td></tr>
+    <tr><td><span class="tier t3">500–1000</span></td><td>1000 × 500 / 14400</td><td>~280 Mbps</td><td><b>CDN quasi obligatoire</b> · sinon ~1 Gbps</td></tr>
+    <tr><td><span class="tier t4">1000+</span></td><td>CDN edge</td><td>—</td><td>Origine <b>indépendante</b> du nb de players · CDN absorbe l'egress</td></tr>
+  </table>
+
+  <div class="calc">
+    <div class="ttl">⚡ Le levier qui change tout : la fenêtre de propagation</div>
+    <div class="step">1000 players × 500 Mo en <b>4 h</b> → 500 000 Mo × 8 / 14 400 s = <b>~280 Mbps</b> (gérable)</div>
+    <div class="step">Les mêmes en <b>15 min</b> → 500 000 × 8 / 900 = <b>~4 440 Mbps</b> (≈ 4,4 Gbps !)</div>
+    <div class="res">→ Pour le contenu programmé, gardez des fenêtres larges (nuit). Réservez la propagation
+    rapide aux triggers légers (events, VOD) qui sont <b>déjà pré-cachés</b>.</div>
+  </div>
+
+  <div class="callout">
+    <div class="ttl">Piège : plusieurs écrans par site</div>
+    Le LAN sync gère la <b>synchro de lecture</b>, <b>pas</b> le partage de contenu : 4 écrans d'un même
+    magasin tirent chacun leur copie depuis le serveur. Un <b>CDN</b> ou un <b>cache par site</b> élimine
+    cette redondance — gain majeur quand il y a beaucoup d'écrans par lieu.
+  </div>
+
+  <!-- ===================================================================== -->
+  <h2 id="stockage"><span class="num">4.</span>Stockage — trois couches</h2>
+
+  <div class="grid3">
+    <div class="card">
+      <h3 style="margin-top:0">🗄️ Object storage</h3>
+      <p class="small">MinIO / S3 : master + renditions + miniatures. Scale avec le <b>catalogue</b>,
+      ~pas le nb de players.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">🐘 Base Postgres</h3>
+      <p class="small">Métadonnées (petit) + <b>logs partitionnés</b> (proof&#8209;of&#8209;play,
+      audience, audit). Scale avec players <b>× temps</b>.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">💾 Côté player</h3>
+      <p class="small">Cache local du content&#8209;set. <b>2–3×</b> le content&#8209;set (ancien +
+      nouveau pendant le swap) + OS.</p>
+    </div>
+  </div>
+
+  <div class="formula">
+Object storage ≈ <b>Nb assets</b> × taille master moy × facteur renditions (~1,5)
+DB / an    ≈ <b>N players</b> × plays/jour × ~0,3 Ko × jours de rétention   <span class="muted">(proof-of-play dominant)</span>
+Disque player ≈ <b>R</b> × 2–3  + OS
+  </div>
+
+  <table>
+    <tr><th>Palier</th><th>Object storage (médias)</th><th>DB Postgres</th><th>Côté player</th></tr>
+    <tr>
+      <td><span class="tier t1">&lt; 200</span></td>
+      <td>Catalogue 0,3–1k assets → <b>30–150 Go</b><br><span class="muted small">Provision 500 Go–1 To NVMe, MinIO local OK</span></td>
+      <td>~50–100 Go<br><span class="muted small">PoP ~15 Go/an</span></td>
+      <td>RPi 32–64 Go · mini&#8209;PC 128–256 Go<br><span class="muted small">⚠ box Android 16–32 Go eMMC = facteur limitant</span></td>
+    </tr>
+    <tr>
+      <td><span class="tier t2">200–500</span></td>
+      <td>0,2–1 To → <b>1–2 To</b><br><span class="muted small">Commencer à externaliser (S3/GCS)</span></td>
+      <td>~100–200 Go<br><span class="muted small">PoP ~40 Go/an + rétention</span></td>
+      <td>idem · 128–256 Go SSD</td>
+    </tr>
+    <tr>
+      <td><span class="tier t3">500–1000</span></td>
+      <td>0,5–3 To → <b>S3/GCS + lifecycle</b><br><span class="muted small">Plus de MinIO local</span></td>
+      <td>~200–400 Go<br><span class="muted small">PG managé + drop de partition</span></td>
+      <td>256 Go si parc 4K</td>
+    </tr>
+    <tr>
+      <td><span class="tier t4">1000+</span></td>
+      <td>Multi&#8209;To → dizaines de To<br><span class="muted small">S3 + tiering chaud/froid + CDN</span></td>
+      <td>0,5–1 To+<br><span class="muted small">Réplicas + archivage Parquet</span></td>
+      <td>256 Go+ · surveiller les eMMC Android</td>
+    </tr>
+  </table>
+
+  <div class="callout warn">
+    <div class="ttl">Le vrai piège stockage = les box Android</div>
+    L'eMMC d'une box TV (16–32 Go, soudé, non extensible) sature bien avant le serveur : un content&#8209;set
+    4K de 2–4 Go × 2–3 (swap atomique) ne tient pas sur 16 Go. → Pour le <b>4K</b>, privilégier des mini&#8209;PC
+    à SSD, ou des box avec microSD/USB. L'éviction de cache priority&#8209;aware est déjà en place côté player.
+  </div>
+
+  <!-- ===================================================================== -->
+  <h2 id="encode"><span class="num">5.</span>Encodage — cœurs &amp; GPU</h2>
+
+  <p>L'encodage (transcode ffmpeg sur le worker <code>celery-media</code>) scale avec le <b>volume
+  d'ingestion</b>, pas avec le nombre de players. C'est un tier <b>séparable</b> : on ajoute des nœuds
+  d'encodage qui tirent la même file Celery/Redis, sans toucher au backend ni à la DB.</p>
+
+  <div class="callout key">
+    <div class="ttl">GPU vs software : un ordre de grandeur (mesuré sur le parc)</div>
+    Burst de 10 vidéos dont une de 2 Go, sur une RTX 5050 :<br>
+    • <span class="badge cpu">Software</span> libx264/x265 → <b>load CPU ~370</b>, serveur à genoux<br>
+    • <span class="badge gpu">GPU NVENC</span> → encodeur NVENC 100 %, <b>GPU compute 6 %, load CPU ~2</b><br>
+    L'ASIC NVENC encode <b>hors des cœurs CPU</b> → avec GPU, le dimensionnant devient le <b>GPU</b>, pas les cœurs.
+  </div>
+
+  <h3>Budget par flux concurrent</h3>
+  <table>
+    <tr><th>Mode</th><th>FHD H.264</th><th>4K HEVC</th></tr>
+    <tr><td><span class="badge cpu">Software (x264/x265)</span></td><td>~4–6 cœurs/flux pour rester &gt; temps réel</td><td>16+ cœurs/flux <b>et toujours plus lent que le temps réel</b> → à éviter</td></tr>
+    <tr><td><span class="badge gpu">GPU NVENC</span></td><td>dizaines de flux 1080p &gt; temps réel / carte</td><td>plusieurs flux 4K HEVC simultanés / carte</td></tr>
+  </table>
+  <p class="small muted">⚠ Limite GPU : les GeForce grand public plafonnent les sessions NVENC concurrentes
+  (~3 à 8 selon le driver) ; les cartes pro/datacenter <b>T4 / L4 sont déplafonnées</b> — ce qui compte dès
+  qu'on encode beaucoup en parallèle, en continu.</p>
+
+  <h3>Recommandation par palier</h3>
+  <table>
+    <tr><th>Palier</th><th>Encodage recommandé</th><th>Cœurs à réserver</th></tr>
+    <tr><td><span class="tier t1">&lt; 200</span></td><td><b>1 GPU NVENC</b> (même grand public) sur le serveur</td><td>GPU : ~2 cœurs. <span class="muted">Sans GPU : 8–12 cœurs dédiés, FHD only</span></td></tr>
+    <tr><td><span class="tier t2">200–500</span></td><td><b>1 GPU</b> (T4/L4 si 4K ou parallèle soutenu)</td><td>2–4 cœurs · plus de 4K software</td></tr>
+    <tr><td><span class="tier t3">500–1000</span></td><td><b>Nœud d'encodage dédié</b> avec GPU (1× L4/T4)</td><td>4–8 cœurs sur le nœud (muxing/IO)</td></tr>
+    <tr><td><span class="tier t4">1000+</span></td><td><b>Pool d'encodage horizontal</b> (N nœuds GPU)</td><td>scale le pool selon le débit d'ingestion</td></tr>
+  </table>
+
+  <div class="callout">
+    <div class="ttl">3 variables qui pilotent le tier encode</div>
+    <b>1.</b> Débit d'ingestion (Go uploadés / fenêtre) — le vrai driver &nbsp;·&nbsp;
+    <b>2.</b> Nb de renditions (<b>2–3 encodes par fichier</b>, pas un) &nbsp;·&nbsp;
+    <b>3.</b> Part de 4K HEVC (coûteux) vs FHD H.264 (léger).<br>
+    <span class="small muted">Les garde&#8209;fous anti&#8209;surcharge (concurrence adaptative, <code>nice 19</code>,
+    prefetch/acks_late, worker média isolé) empêchent déjà un burst de faire tomber le serveur.</span>
+  </div>
+
+  <!-- ===================================================================== -->
+  <h2 id="synth"><span class="num">6.</span>Synthèse serveur par palier</h2>
+
+  <table>
+    <tr><th>Palier</th><th>Déploiement</th><th>App / DB / storage</th><th>Encodage</th><th>Bande passante</th></tr>
+    <tr>
+      <td><span class="tier t1">&lt; 200</span></td>
+      <td><b>On&#8209;prem 1 serveur</b> ou 1 VM cloud — tout co&#8209;localisé en Docker</td>
+      <td>8 vCPU · 32 Go RAM · 0,5–1 To NVMe</td>
+      <td><span class="badge gpu">+1 GPU NVENC</span></td>
+      <td>100–200 Mbps symétrique</td>
+    </tr>
+    <tr>
+      <td><span class="tier t2">200–500</span></td>
+      <td>On&#8209;prem costaud <b>ou</b> cloud · sortir l'object storage</td>
+      <td>16 vCPU · 64 Go RAM · 1–2 To · DB séparable</td>
+      <td><span class="badge gpu">1 GPU (T4/L4)</span></td>
+      <td>300–500 Mbps <b>ou CDN</b></td>
+    </tr>
+    <tr>
+      <td><span class="tier t3">500–1000</span></td>
+      <td><b>Cloud / hybride</b> · CDN quasi obligatoire</td>
+      <td>App ×2 derrière LB (8–16 vCPU) · PG managé 8 vCPU/32 Go · Redis managé · S3+CDN</td>
+      <td><span class="badge gpu">Nœud GPU dédié</span></td>
+      <td>Origine faible (CDN)</td>
+    </tr>
+    <tr>
+      <td><span class="tier t4">1000+</span></td>
+      <td><b>Cloud&#8209;native, scale horizontal</b> · CDN obligatoire</td>
+      <td>Backends multiples (WS shardés, fan&#8209;out Redis) · PG + réplicas · Redis cluster · S3+tiering</td>
+      <td><span class="badge gpu">Pool GPU</span></td>
+      <td>CDN edge · origine ∝ catalogue</td>
+    </tr>
+  </table>
+  <p class="small muted">Au&#8209;delà de ~100k players, l'<code>EventBus</code> est prévu pour passer de Redis Streams à Kafka (interface déjà abstraite).</p>
+
+  <!-- ===================================================================== -->
+  <h2 id="scenarios"><span class="num">7.</span>Trois scénarios complets chiffrés</h2>
+
+  <!-- Scénario A -->
+  <div class="card">
+    <h3 style="margin-top:0"><span class="tier t1">Scénario A</span> &nbsp;Chaîne retail — 150 players, FHD</h3>
+    <p class="small"><b>Hypothèses :</b> 150 écrans · content&#8209;set 500 Mo · catalogue 600 assets FHD ·
+    refresh hebdo de nuit (50 nouveaux assets/sem) · push 4 h.</p>
+    <div class="calc">
+      <div class="step"><b>BP</b> : 150 × 500 Mo × 8 / 14 400 s = <b>~42 Mbps</b> moy → provision <b>100 Mbps</b></div>
+      <div class="step"><b>Object storage</b> : 600 × 70 Mo × 1,5 = <b>~63 Go</b> → provision <b>500 Go NVMe</b> (MinIO local)</div>
+      <div class="step"><b>DB</b> : 150 × 3000 × 0,3 Ko × 90 j = ~12 Go PoP → <b>~40 Go</b> DB</div>
+      <div class="step"><b>Encodage</b> : 50 assets FHD/sem → <b>1 GPU grand public</b> vide la file en minutes (ou 8 cœurs software)</div>
+      <div class="step"><b>Player</b> : 500 Mo × 3 + OS ≈ 2 Go → RPi 32 Go ou mini&#8209;PC, sans souci</div>
+      <div class="res">→ <b>1 serveur on&#8209;prem</b> : 8 vCPU, 32 Go RAM, 500 Go NVMe, 1 GPU NVENC, lien 100 Mbps.</div>
+    </div>
+  </div>
+
+  <!-- Scénario B -->
+  <div class="card">
+    <h3 style="margin-top:0"><span class="tier t2">Scénario B</span> &nbsp;Réseau mixte — 400 players</h3>
+    <p class="small"><b>Hypothèses :</b> 400 écrans · content&#8209;set 700 Mo (mix FHD + un peu de 4K) ·
+    catalogue 1500 assets · refresh bi&#8209;hebdo · push 4 h.</p>
+    <div class="calc">
+      <div class="step"><b>BP</b> : 400 × 700 Mo × 8 / 14 400 s = <b>~155 Mbps</b> moy → <b>300–400 Mbps</b> ou CDN</div>
+      <div class="step"><b>Object storage</b> : 1500 × 70 Mo × 1,5 = <b>~158 Go</b> → provision <b>1 To</b>, S3 conseillé</div>
+      <div class="step"><b>DB</b> : 400 × 3000 × 0,3 Ko × 90 j = ~32 Go PoP → <b>~80 Go</b> DB</div>
+      <div class="step"><b>Encodage</b> : mix 4K → <b>1 GPU T4/L4</b>, worker celery&#8209;media séparé</div>
+      <div class="step"><b>Player</b> : 700 Mo × 3 ≈ 2,1 Go → mini&#8209;PC 128 Go SSD</div>
+      <div class="res">→ <b>Serveur costaud ou cloud</b> : 16 vCPU, 64 Go RAM, 1 To, GPU T4/L4, lien 400 Mbps + CDN recommandé.</div>
+    </div>
+  </div>
+
+  <!-- Scénario C -->
+  <div class="card">
+    <h3 style="margin-top:0"><span class="tier t4">Scénario C</span> &nbsp;Grand réseau 4K — 1200 players</h3>
+    <p class="small"><b>Hypothèses :</b> 1200 écrans · content&#8209;set 2 Go (4K) · catalogue 4000 assets
+    (master 4K HEVC) · refresh fréquent · push 4 h · CDN.</p>
+    <div class="calc">
+      <div class="step"><b>BP</b> sans CDN : 1200 × 2000 Mo × 8 / 14 400 s = <b>~1,3 Gbps</b> → <b>CDN obligatoire</b> (origine ne fait que remplir le CDN)</div>
+      <div class="step"><b>Object storage</b> : 4000 × 180 Mo × 1,5 = <b>~1,08 To</b> → provision <b>2–3 To S3</b> + lifecycle</div>
+      <div class="step"><b>DB</b> : 1200 × 3000 × 0,3 Ko × 90 j = ~97 Go PoP → <b>~250 Go</b> DB, PG managé + réplicas</div>
+      <div class="step"><b>Encodage</b> : 4K HEVC volumineux → <b>pool de nœuds GPU L4</b> dédiés</div>
+      <div class="step"><b>Player</b> : 2 Go × 3 + OS ≈ 7 Go → <b>mini&#8209;PC 256 Go SSD</b> (pas de box 16 Go eMMC)</div>
+      <div class="res">→ <b>Cloud&#8209;native</b> : backends ×N derrière LB, PG managé + réplicas, Redis cluster,
+      S3 + tiering, <b>CDN</b>, pool GPU L4 pour l'encodage.</div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <h2 id="leviers"><span class="num">8.</span>Leviers de scaling (ordre de rentabilité)</h2>
+
+  <ol>
+    <li><b>CDN devant les médias</b> (CloudFront / Cloudflare / Bunny devant S3/MinIO) — de loin le plus gros gain, retire ~90 % de l'egress origine. <span class="muted small">À brancher : le player sert des URLs signées S3v4, compatibles CDN mais pas encore câblées.</span></li>
+    <li><b>Object storage externalisé</b> (S3/GCS) au lieu de MinIO local.</li>
+    <li><b>Rétention + drop de partitions</b> (pg_partman, déjà partitionné) — borne la DB. PoP = seul gros grossissant.</li>
+    <li><b>Postgres managé</b> (heartbeats + tables partitionnées montent bien, déléguer la maintenance).</li>
+    <li><b>Backends horizontaux</b> (le fan&#8209;out Redis par canal <code>player:{id}</code> le permet déjà).</li>
+    <li><b>Pool d'encodage GPU</b> séparé, scalé sur le débit d'ingestion (indépendant de l'app/DB).</li>
+    <li><b>Cache par site / lifecycle froid / dédup par hash</b> — gains additionnels en multi&#8209;tenant.</li>
+  </ol>
+
+  <div class="callout warn">
+    <div class="ttl">Trois corrections à ne pas oublier</div>
+    <b>1.</b> Sous 500 players, le serveur <b>doit</b> avoir un GPU NVENC — sinon réserver 8–12 cœurs <i>en plus</i> rien que pour l'encodage (et oublier le 4K).<br>
+    <b>2.</b> Dès 500+, <b>séparer physiquement</b> le nœud d'encodage GPU du nœud app/DB.<br>
+    <b>3.</b> En cloud, prendre des instances <b>GPU média (L4/T4)</b> pour l'encodage, pas des grosses instances CPU.
+  </div>
+
+  <footer>
+    <p><b>SignFlow — Guide de dimensionnement infrastructure.</b> Les chiffres dépendent de votre profil
+    réel (taille de catalogue, débit d'ingestion, part de 4K, fenêtre de propagation acceptable, nb d'écrans
+    par site). Recalculez avec vos valeurs via les formules des sections 3 à 5. Document indicatif —
+    à affiner par un test de charge avant un déploiement &gt; 500 players.</p>
+  </footer>
+
+</div>
+</body>
+</html>

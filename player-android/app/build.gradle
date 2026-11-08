@@ -1,0 +1,84 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+// Signature RELEASE : lit keystore.properties (racine player-android/, GITIGNORÉ) → keystore + mots
+// de passe HORS git. Absent (ex. CI sans secrets) → le bloc release ne signe pas (build debug OK).
+// ⚠️ Le keystore (.jks) DOIT être sauvegardé : le perdre = impossible de mettre à jour l'app sans
+// désinstaller (Android exige la MÊME clé de signature pour les mises à jour d'un même package).
+def keystorePropsFile = rootProject.file("keystore.properties")
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
+android {
+    namespace 'app.signflow.player'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "app.signflow.player"
+        minSdk 28
+        targetSdk 34
+        versionCode 34
+        versionName "2.5.32"
+    }
+
+    signingConfigs {
+        release {
+            // Ne configure la clé que si keystore.properties existe (sinon build debug non impacté).
+            if (keystorePropsFile.exists()) {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            debuggable true
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // Signé avec la clé release SI le keystore est présent (parc prod). Sans keystore, l'APK
+            // release sort NON signé (non installable) → il faut keystore.properties pour livrer.
+            if (keystorePropsFile.exists()) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'androidx.work:work-runtime-ktx:2.9.0'
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    implementation 'org.nanohttpd:nanohttpd:2.3.1'   // Store Control Panel LAN (§19.3)
+    // Rendu vidéo HW natif (HEVC + 4K@60 hors WebView) sur box Android TV — cf. ExoController
+    implementation 'androidx.media3:media3-exoplayer:1.3.1'
+    implementation 'androidx.media3:media3-common:1.3.1'
+    // Proof of Play (§XXIV, P2) — signature Ed25519 des preuves. Android < 33 n'a pas Ed25519
+    // dans le JCE natif → API bas-niveau BouncyCastle (org.bouncycastle.crypto.*, sans provider JCE).
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
+}

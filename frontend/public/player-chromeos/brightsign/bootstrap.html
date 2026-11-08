@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SignFlow Player — BrightSign (local cache)</title>
+  <meta name="theme-color" content="#1C1E2A" />
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #1C1E2A; cursor: none; }
+    #setup-screen {
+      position: fixed; inset: 0; z-index: 2147483646; display: none;
+      align-items: center; justify-content: center;
+      background: #1C1E2A; color: #F8F7F5;
+      font: 15px/1.5 Inter, system-ui, sans-serif; cursor: auto;
+    }
+    #setup-screen.show { display: flex; }
+    #setup-card { width: min(440px,88vw); background:#232636; padding:32px; border-radius:14px; border:1px solid rgba(72,117,180,.35); }
+    #setup-card h1 { margin:0 0 4px; font-size:20px; font-weight:600; color:#7fb0ff; }
+    #setup-card p  { margin:0 0 20px; font-size:13px; color:#9db4d0; }
+  </style>
+</head>
+<body>
+  <!-- ── BOOTSTRAP LOCAL (servi par le roHttpServer de l'autorun à http://127.0.0.1:8888/) ──
+       La page est en ORIGINE LOCALE http → le <video> peut lire http://127.0.0.1:8888/media/<key>
+       (zéro mixed-content). Les ressources HTTPS (renderer JS, MinIO en repli, API backend) se
+       chargent normalement (https-sur-http = pas de blocage). Le renderer reste DISTANT
+       (auto-update, 1 source de vérité), chargé depuis ?backend=. -->
+  <div id="player-root">
+    <div id="status-bar" class="hidden">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Connecting...</span>
+    </div>
+    <div id="content-area"></div>
+    <div id="fallback-screen">
+      <div class="fallback-logo">SignFlow</div>
+      <p class="fallback-msg" id="fallback-msg">No content to display</p>
+    </div>
+  </div>
+
+  <div id="setup-screen">
+    <div id="setup-card">
+      <h1>SignFlow Player — BrightSign</h1>
+      <p>Backend &amp; token attendus via l'autorun (?backend=&amp;token=). Mode local cache.</p>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var qs = new URLSearchParams(location.search);
+    var backend = (qs.get('backend') || qs.get('backend_url') || '').replace(/\/+$/, '');
+    if (!backend) backend = localStorage.getItem('signflow_backend_url') || '';
+
+    // Identité plateforme + base du serveur de cache local (lue par signflow.js, branche IS_BS).
+    window.__SF_PLAYER_OS__ = 'brightsign';
+    window.__SF_PLAYER_VERSION__ = '1.1.0-bs-cache';   // ≤20 car. (cms_players.player_version = varchar(20))
+    window.__SF_PLAYER_NAME__ = 'BrightSign Player';
+    window.__SF_LOCAL_CACHE_BASE__ = location.origin;   // http://127.0.0.1:8888
+
+    // Charge le renderer depuis le serveur LOCAL (autorun sert /player-chromeos/* depuis la SD) →
+    // fonctionne HORS-LIGNE (offline-cold-boot). Le backend (prod) n'est utilisé que par le
+    // renderer pour l'API/WS, via ?backend= ci-dessus. async=false → ordre garanti.
+    // ed25519.js (noble vendorisé) AVANT signflow.js → window.SFEd25519 pour la signature PoP (P2).
+    var files = ['ed25519.js', 'signflow.js', 'audio_player.js', 'player.js'];
+    files.forEach(function (f) {
+      var s = document.createElement('script');
+      s.src = '/player-chromeos/' + f;
+      s.async = false;
+      document.body.appendChild(s);
+    });
+
+    // Styles du renderer (mêmes que ChromeOS), servis en local depuis la SD.
+    var link = document.createElement('link');
+    link.rel = 'stylesheet'; link.href = '/player-chromeos/style.css';
+    document.head.appendChild(link);
+  })();
+  </script>
+</body>
+</html>

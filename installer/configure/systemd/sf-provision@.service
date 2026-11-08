@@ -1,0 +1,12 @@
+[Unit]
+Description=SignFlow auto-provision depuis clé USB (%i)
+After=graphical.target systemd-udevd.service
+# Ne pas ré-exécuter en boucle si le script échoue.
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+# Le script monte /dev/%i, et si la clé porte signflow-config.json, ouvre sf-configure
+# sur l'écran actif (interactif). Reste "activating" tant que sf-configure tourne (jusqu'au reboot).
+ExecStart=/usr/local/bin/sf-autoprovision.sh %i
+TimeoutStartSec=0

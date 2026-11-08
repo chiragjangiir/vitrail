@@ -1,0 +1,28 @@
+# ⚠️ SANS CE FICHIER, le `COPY . .` du stage builder écrase le node_modules installé
+# pour Alpine par celui du poste de dev (binaires natifs Windows/macOS → image cassée),
+# et gonfle le contexte de build de plusieurs centaines de Mo.
+node_modules
+.next
+out
+
+# Artefacts de test
+test-results
+playwright-report
+blob-report
+.playwright
+
+# VCS / éditeur
+.git
+.gitignore
+.vscode
+.idea
+
+# Secrets locaux — ne doivent jamais entrer dans une image distribuée
+.env
+.env.*
+
+# Divers
+npm-debug.log*
+*.log
+Dockerfile
+.dockerignore

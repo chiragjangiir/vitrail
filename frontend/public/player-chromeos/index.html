@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' blob: data: https: http: ws: wss:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https: http: ws: wss:" />
+  <title>SignFlow Player</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#1C1E2A" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Plein écran kiosk : pas de scroll, fond canvas dark, curseur masqué. */
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #1C1E2A; cursor: none; }
+    /* Écran de setup (fallback navigateur hors kiosk) */
+    #setup-screen {
+      position: fixed; inset: 0; z-index: 2147483646; display: none;
+      align-items: center; justify-content: center;
+      background: #1C1E2A; color: #F8F7F5;
+      font: 15px/1.5 Inter, system-ui, sans-serif; cursor: auto;
+    }
+    #setup-screen.show { display: flex; }
+    #setup-card {
+      width: min(440px, 88vw); background: #232636; padding: 32px;
+      border-radius: 14px; border: 1px solid rgba(72,117,180,.35);
+    }
+    #setup-card h1 { margin: 0 0 4px; font-size: 20px; font-weight: 600; color: #7fb0ff; }
+    #setup-card p  { margin: 0 0 20px; font-size: 13px; color: #9db4d0; }
+    #setup-card label { display: block; font-size: 12px; margin: 14px 0 5px; color: #9db4d0; }
+    #setup-card input {
+      width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px;
+      border: 1px solid #3a4258; background: #1C1E2A; color: #F8F7F5; font-size: 14px;
+    }
+    #setup-card button {
+      width: 100%; margin-top: 22px; padding: 11px; border: none; border-radius: 8px;
+      background: #4875B4; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    #setup-card button:hover { background: #5586c5; }
+  </style>
+</head>
+<body>
+  <div id="player-root">
+    <div id="status-bar" class="hidden">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Connecting...</span>
+    </div>
+
+    <div id="content-area"></div>
+
+    <div id="fallback-screen">
+      <div class="fallback-logo">Vitrail</div>
+      <p class="fallback-msg" id="fallback-msg">No content to display</p>
+    </div>
+  </div>
+
+  <!-- Setup (browser fallback only — managed kiosk passes ?backend=&token= in the URL) -->
+  <div id="setup-screen">
+    <div id="setup-card">
+      <h1>Vitrail Player — Setup</h1>
+      <p>Create this player in the Vitrail, then enter the backend URL and the player token.</p>
+      <label for="su-backend">Backend URL</label>
+      <input id="su-backend" type="url" placeholder="http://cms.example.com:8080" />
+      <label for="su-token">Player token</label>
+      <input id="su-token" type="text" placeholder="eyJhbGciOi…  or  sfp_…" />
+      <button id="su-save">Connect</button>
+    </div>
+  </div>
+
+  <!-- Pin-aware renderer loader (SXXX #4). Loads the renderer version this player is PINNED to
+       (GET /updates/renderer-version) from ./v/<version>/, NOT "whatever the server currently serves"
+       - so updating the server never moves a running player until the admin deploys the version.
+       Falls back to the flat path (historical behaviour) when there is no player JWT yet, when the
+       pinned version is not present (transition / pruned), or offline. The versioned dir sits UNDER
+       the SW scope (/player-chromeos/) so it is cached and the pin survives offline reboots.
+       Order matters: ed25519 (window.SFEd25519) -> bridge (window.signflow) -> audio -> renderer. -->
+  <script>
+    (function () {
+      var FILES = ['ed25519.js', 'signflow.js', 'audio_player.js', 'player.js'];
+      var LS_BACKEND = 'signflow_backend_url';
+      var LS_TOKEN   = 'signflow_player_token';
+      var LS_RVER    = 'signflow_renderer_version';   // last resolved pin (offline fallback)
+      var LS_DEGRADED = 'signflow_renderer_degraded'; // pin connu mais NON chargé (remonté au CMS)
+
+      // Setup screen wiring (reveals on setup-required, persists via the bridge wizard). Waits for the
+      // bridge because signflow.js is now injected asynchronously by this loader.
+      function wireSetup() {
+        if (!window.signflow || !window.signflow.onSetupRequired) { setTimeout(wireSetup, 50); return; }
+        var screen = document.getElementById('setup-screen');
+        window.signflow.onSetupRequired(function () {
+          document.getElementById('su-backend').value = localStorage.getItem(LS_BACKEND) || '';
+          screen.classList.add('show');
+        });
+        window.signflow.onConnected(function () { screen.classList.remove('show'); });
+        document.getElementById('su-save').addEventListener('click', function () {
+          var b = document.getElementById('su-backend').value.trim();
+          var t = document.getElementById('su-token').value.trim();
+          if (!b || !t) return;
+          screen.classList.remove('show');
+          window.signflow.saveWizard({ backend_url: b, player_token: t });
+        });
+      }
+
+      function loadFrom(base) {
+        FILES.forEach(function (f) {
+          var s = document.createElement('script');
+          s.src = base + f; s.async = false;   // async=false -> in-order execution of injected scripts
+          document.head.appendChild(s);
+        });
+        wireSetup();
+      }
+
+      // Renderer DÉGRADÉ : on a connu une version épinglée mais on n'a pas pu la charger, donc on
+      // exécute le chemin plat. Sans ce drapeau, un recul de version est INDISCERNABLE d'un « pas
+      // encore déployé » : le CMS affiche un numéro ancien, on lit « pas encore mis à jour », et
+      // le recul vit des semaines (constat du 2026-08-12 — trois semaines en 2.0.8 alors que le
+      // serveur épinglait 2.0.17). Le player le remonte dans ses capabilities.
+      function commit(base, wanted) {
+        try {
+          if (base || !wanted) localStorage.removeItem(LS_DEGRADED);
+          else localStorage.setItem(LS_DEGRADED, wanted);
+        } catch (e) { /* quota / mode privé */ }
+        loadFrom(base);
+      }
+
+      // Confirm the pinned renderer actually exists here (transition / pruned version) before
+      // committing to it. Probe order (decision 3 "single update channel", 2026-07-28):
+      //   1. static v/<ver>/ — under the SW scope, cached, survives offline reboots;
+      //   2. catalogue route /api/v1/updates/renderers/chromeos/<ver>/ — an IMPORTED renderer
+      //      (zip -> extracted files) lives only there; outside the SW scope, so an
+      //      imported-only version degrades to flat when offline (fail-safe, never blank);
+      //   3. flat (historical behaviour). Offline, the SW serves the cached copies.
+      // ⚠️ LA SONDE EST UN GET, PLUS UN HEAD (2026-08-12). `Cache.match` IGNORE les requêtes non
+      // GET : hors ligne, un HEAD sur `v/<ver>/signflow.js` ne pouvait donc JAMAIS être servi par
+      // le cache du Service Worker, même quand le fichier s'y trouvait. La sonde déclarait absente
+      // une version PRÉSENTE, le loader dégradait vers le chemin plat, et le plat servait sa copie
+      // en cache — figée à fin juillet faute d'être jamais réempruntée. Un simple redémarrage
+      // pendant une indisponibilité serveur ramenait le player en 2.0.8, où il restait jusqu'au
+      // déploiement suivant (deux reculs mesurés le 11/08). Le GET est en outre servi depuis le
+      // cache ET le réchauffe. Le SW accepte désormais aussi les HEAD (ignoreMethod), ceinture et
+      // bretelles : les deux corrigent des moitiés différentes du même chemin.
+      function useVersion(v) {
+        if (!v || !/^\d+\.\d+\.\d+/.test(v)) { commit('', ''); return; }
+        var stat = 'v/' + v + '/';
+        // backend peut être VIDE (kiosk same-origin : signflow.js résout location.origin sans
+        // remplir LS_BACKEND — mesuré sur le Chromebox, canary 2026-07-28) → chemin ABSOLU
+        // same-origin, exactement comme le fetch renderer-version relatif qui fonctionne déjà.
+        var api = (backend || '') + '/api/v1/updates/renderers/chromeos/' + v + '/';
+        function tryApi() {
+          fetch(api + 'signflow.js', { cache: 'no-store' })
+            .then(function (r) { commit(r && r.ok ? api : '', v); })
+            .catch(function () { commit('', v); });
+        }
+        fetch(stat + 'signflow.js', { cache: 'no-store' })
+          .then(function (r) { if (r && r.ok) commit(stat, v); else tryApi(); })
+          .catch(tryApi);
+      }
+
+      var qs = new URLSearchParams(location.search);
+      var backend = (qs.get('backend') || qs.get('backend_url') || localStorage.getItem(LS_BACKEND) || '').replace(/\/+$/, '');
+      var token   = qs.get('token') || qs.get('player_token') || localStorage.getItem(LS_TOKEN) || '';
+      var stored  = localStorage.getItem(LS_RVER) || '';
+
+      // No player JWT yet (setup / sfp_ provisioning) -> flat path (historical behaviour).
+      // Aucun pin n'est ATTENDU dans cet état : ce n'est pas une dégradation, on efface le drapeau.
+      if (!token || token.indexOf('sfp_') === 0) { commit('', ''); return; }
+
+      var settled = false;
+      function offline() { if (settled) return; settled = true; useVersion(stored); }
+      var timer = setTimeout(offline, 4000);   // offline never blocks boot
+      fetch(backend + '/api/v1/updates/renderer-version', {
+        headers: { Authorization: 'Bearer ' + token }, cache: 'no-store',
+      }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+        if (settled) return; settled = true; clearTimeout(timer);
+        var v = d && d.version;
+        if (v) { try { localStorage.setItem(LS_RVER, v); } catch (e) {} useVersion(v); }
+        else { useVersion(stored); }
+      }).catch(function () { clearTimeout(timer); offline(); });
+    })();
+  </script>
+</body>
+</html>

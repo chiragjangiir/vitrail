@@ -1,0 +1,222 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  cursor: none !important;
+}
+
+/* Cursor visible during setup wizard */
+body.setup-mode * {
+  cursor: auto !important;
+}
+
+body {
+  background: #1C1E2A;
+  overflow: hidden;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+}
+
+#player-root {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  background: #1C1E2A;
+}
+
+/* Rotation du contenu (CSS) — universelle (l'OS rotation échoue sur les box à API display
+   muette, ex. AOpen Intel HD 6000). 90/270 : on permute les dimensions (100vh×100vw) et on
+   recentre avant de tourner → le canvas portrait remplit l'écran paysage physique. */
+#player-root.sf-rot-90,
+#player-root.sf-rot-270 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  transform-origin: center center;
+}
+#player-root.sf-rot-90  { transform: translate(-50%, -50%) rotate(90deg); }
+#player-root.sf-rot-270 { transform: translate(-50%, -50%) rotate(270deg); }
+#player-root.sf-rot-180 { transform: rotate(180deg); }
+
+#content-area {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s ease;
+}
+
+/* ── Fallback ─────────────────────────────────────────────────────────────── */
+
+#fallback-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #1C1E2A;
+  gap: 0.75rem;
+}
+
+#fallback-screen.hidden { display: none; }
+
+.fallback-logo {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #4875B4;
+  letter-spacing: 0.12em;
+}
+
+.fallback-msg {
+  font-size: 0.875rem;
+  color: #66778a;
+  white-space: pre-line;
+  text-align: center;
+  max-width: 480px;
+}
+
+/* ── Status bar ───────────────────────────────────────────────────────────── */
+
+#status-bar {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(28, 30, 42, 0.88);
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #8899aa;
+  z-index: 100;
+}
+
+#status-bar.hidden { display: none; }
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #66778a;
+}
+
+.status-dot.online  { background: #22c55e; }
+.status-dot.offline { background: #ef4444; }
+
+/* ── Error slide ──────────────────────────────────────────────────────────── */
+
+.slide-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* ── Setup wizard ─────────────────────────────────────────────────────────── */
+
+#setup-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1C1E2A;
+  z-index: 200;
+}
+
+#setup-screen.hidden { display: none; }
+
+.setup-card {
+  background: #242638;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.setup-logo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #4875B4;
+  letter-spacing: 0.1em;
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.setup-subtitle {
+  font-size: 0.8rem;
+  color: #66778a;
+  text-align: center;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.setup-field {
+  margin-bottom: 1.25rem;
+}
+
+.setup-field label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #8899aa;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.setup-field input {
+  width: 100%;
+  background: #1C1E2A;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.875rem;
+  color: #e2e8f0;
+  outline: none;
+  font-family: inherit;
+}
+
+.setup-field input:focus {
+  border-color: #4875B4;
+}
+
+.setup-field input::placeholder {
+  color: #445566;
+}
+
+.setup-error {
+  font-size: 0.8rem;
+  color: #ef4444;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.setup-error.hidden { display: none; }
+
+#setup-btn {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: #4875B4;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-top: 0.5rem;
+}
+
+#setup-btn:hover:not(:disabled) { opacity: 0.9; }
+#setup-btn:disabled { opacity: 0.5; cursor: not-allowed !important; }

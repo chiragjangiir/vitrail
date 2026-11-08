@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SignFlow "S" shape — blue accent on dark background -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M70,28 Q38,28 38,46 Q38,58 54,62 Q70,66 70,78 Q70,94 42,94"
+        android:strokeColor="#4875B4"
+        android:strokeWidth="10"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+</vector>

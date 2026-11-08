@@ -1,0 +1,261 @@
+/* ⛔ PAS DE CDN DE POLICES. Cette ligne était un `@import` vers fonts.googleapis.com,
+   mesuré présent dans le CSS SERVI en production (2026-08-11) — donc chaque navigateur
+   qui ouvrait le CMS interrogeait Google. Trois raisons de le retirer :
+     · le produit s'installe SUR SITE et doit fonctionner sans accès Internet ;
+     · l'appel envoyait l'adresse IP de chaque visiteur à un tiers, sur un produit
+       vendu à des enseignes européennes ;
+     · il était REDONDANT — `next/font/google` (layout.tsx) auto-héberge déjà Inter
+       400/500/600 au build et l'applique au <body> (7 woff2 mesurés dans .next).
+   ⚠️ Le retirer ne suffisait PAS : le nom littéral « Inter » n'était déclaré en local
+   que pour 700/800/900 (plus bas), or l'aperçu du générateur promo rend en
+   `font-family: Inter` à 400/500/600 — sans ces trois faces il serait retombé sur la
+   police système et aurait cessé de correspondre au rendu du worker, ce qui est
+   précisément sa raison d'être. D'où les trois déclarations ci-dessous. */
+@font-face { font-family: 'Inter'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/promo/inter-400.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 500; font-style: normal; font-display: swap; src: url('/fonts/promo/inter-500.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 600; font-style: normal; font-display: swap; src: url('/fonts/promo/inter-600.woff2') format('woff2'); }
+
+/* Fira Mono — la CHASSE FIXE de l'interface (décision d'Ed, 2026-08-11, après rendu
+   comparé : `frontend/scripts/compare-fonts.mjs`).
+
+   Ce que le comparatif a montré, et qui a décidé du choix :
+     · aucune des candidates de TEXTE (Inter, Fira Sans, Encode Sans) ne distingue
+       `I` de `l` — changer la police de corps n'achetait rien sur ce critère, et
+       coûtait +2,4 à +2,5 % de largeur, donc tous les points de troncature et les
+       37 captures du manuel ;
+     · le vrai défaut était sur les 35 surfaces `font-mono` (IP, MAC, versions,
+       schémas) : Tailwind ne personnalisait QUE `sans`, si bien qu'elles rendaient
+       en SF Mono sur Mac, Consolas sur Windows, Liberation Mono sur Linux — et en
+       Courier New là où rien n'existe. Aucune n'était embarquée, sur un produit qui
+       s'installe sur site et doit tourner sans Internet.
+   Fira Mono désambiguïse (`I` à empattements, `l` à queue, `1` à drapeau, zéro
+   pointé) et s'embarque pour 33 Ko. ⚠️ Elle n'a pas de 600 : sans objet, aucune
+   surface `font-mono` du produit n'est en gras (mesuré : 0). */
+@font-face { font-family: 'Fira Mono'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/ui/fira-mono-400.woff2') format('woff2'); }
+@font-face { font-family: 'Fira Mono'; font-weight: 500; font-style: normal; font-display: swap; src: url('/fonts/ui/fira-mono-500.woff2') format('woff2'); }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Tokens thème « Mission Control » (refonte aidesigner 2026-07-17) ─────────
+   DARK ONLY : la classe .dark est posée en dur sur <html> (layout.tsx) pour que
+   les variantes dark: existantes s'appliquent partout ; :root et .dark portent
+   les MÊMES valeurs (aucun mode clair). Rampe de gris sémantique inversée :
+   50 = fond le plus sombre … 900 = texte le plus clair. */
+:root,
+.dark {
+  color-scheme: dark;
+
+  --color-canvas:        #0B0C10;   /* base quasi-noire */
+  --color-surface:       #151722;   /* panels/cartes */
+  --color-surface-hover: #1A1D2B;   /* cartes en relief / hover */
+  --color-sidebar:       #0B0C10;   /* sidebar fondue dans la base (séparée par hairline) */
+  --color-accent:        #2563EB;   /* bleu électrique */
+  --color-accent-rgb:    37 99 235;    /* triplet pour les modifieurs /alpha Tailwind */
+  --color-accent-hover:  #3B82F6;   /* glow */
+
+  --color-gray-50:  #151722;
+  --color-gray-100: #1A1D2B;
+  --color-gray-200: #292C3D;   /* bordures */
+  --color-gray-300: #363A4E;   /* bordures hover */
+  --color-gray-400: #8B949E;   /* texte atténué */
+  --color-gray-500: #99A1AC;
+  --color-gray-600: #A9B1BD;
+  --color-gray-700: #BCC3CE;
+  --color-gray-800: #CBD2DC;
+  --color-gray-900: #E2E8F0;   /* texte principal */
+}
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+
+  body {
+    @apply bg-canvas text-gray-900 antialiased;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  /* Typo normalisée des en-têtes de tableaux (polish aidesigner 2026-07-09) :
+     petites capitales espacées, gris atténué — s'applique partout sans toucher
+     les pages (les classes utilitaires explicites d'un <th> gardent la priorité). */
+  thead th {
+    font-size: 11px;
+    line-height: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    @apply text-gray-400;
+  }
+
+  /* Scrollbar discrète */
+  ::-webkit-scrollbar        { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track  { background: transparent; }
+  ::-webkit-scrollbar-thumb  { @apply bg-gray-200 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-accent-hover); }
+}
+
+@layer components {
+  /* Transitions Design System — ≤ 150ms */
+  .transition-sf {
+    @apply transition-all duration-150 ease-in-out;
+  }
+
+  /* Badge statut (icône + couleur + libellé — jamais icône seule).
+     Liseré ton-sur-ton très léger (polish aidesigner). */
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium border;
+  }
+  .badge-online  { @apply badge bg-green-50  text-success border-green-600/10  dark:bg-green-500/15  dark:text-green-300  dark:border-green-400/20; }
+  .badge-offline { @apply badge bg-red-50    text-danger  border-red-600/10    dark:bg-red-500/15    dark:text-red-300    dark:border-red-400/20; }
+  .badge-warning { @apply badge bg-orange-50 text-warning border-orange-600/10 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-400/20; }
+
+  /* ── Grammaire « Mission Control » (refonte aidesigner 2026-07-17) ─────────
+     Item de nav actif : dégradé accent fondu + liseré gauche lumineux. */
+  .sf-nav-active {
+    background: linear-gradient(90deg, rgb(var(--color-accent-rgb) / 0.15) 0%, rgb(var(--color-accent-rgb) / 0) 100%);
+    border-left: 3px solid var(--color-accent-hover);
+    color: #fff;
+  }
+
+  /* Carte panel : hairline + highlight interne haut + ombre portée profonde. */
+  .sf-panel {
+    @apply bg-surface rounded-xl border border-white/5;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Ligne-lumière dégradée en haut d'une carte KPI (posée en ::before). */
+  .sf-topline { @apply relative overflow-hidden; }
+  .sf-topline::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgb(var(--sf-topline-rgb, var(--color-accent-rgb)) / 0.5), transparent);
+  }
+
+  /* Fond en matrice de points (carte du parc, zones techniques). */
+  .sf-dotted {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+    background-size: 10px 10px;
+    background-position: center center;
+  }
+}
+
+/* Carte du parc (Fleet Status) — tuiles OSM assombries pour le thème dark only,
+   et contrôles/popups Leaflet re-teintés. */
+.sf-fleet-map .leaflet-tile {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.7);
+}
+.sf-fleet-map .leaflet-container { background: #0B0C10; }
+.sf-fleet-map .leaflet-bar a {
+  background: #151722; color: #E2E8F0; border-color: rgba(255,255,255,0.08);
+}
+.sf-fleet-map .leaflet-bar a:hover { background: #1A1D2B; }
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #151722 !important;
+  color: #E2E8F0 !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.leaflet-popup-content { color: #E2E8F0 !important; }
+.leaflet-popup-content b { color: #fff; }
+.leaflet-container a.leaflet-popup-close-button { color: #8B949E !important; }
+.leaflet-container a.leaflet-popup-close-button:hover { color: #E2E8F0 !important; }
+.sf-fleet-map .leaflet-control-attribution {
+  background: rgba(11,12,16,0.7); color: #8B949E;
+}
+.sf-fleet-map .leaflet-control-attribution a { color: #8B949E; }
+
+/* ── Animations Mission Control ────────────────────────────────────────────── */
+
+/* Point de statut « vivant » (parc, map) — pulsation douce. */
+@keyframes sf-pulse-dot {
+  0%   { transform: scale(0.85); opacity: 0.9; }
+  70%  { transform: scale(1);    opacity: 1; }
+  100% { transform: scale(0.85); opacity: 0.9; }
+}
+.sf-glow-dot { animation: sf-pulse-dot 2.5s ease-in-out infinite; }
+
+/* Entrée en cascade des sections (dashboard). Respecte prefers-reduced-motion. */
+@keyframes sf-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.sf-stagger > * { animation: sf-fade-up 0.5s ease-out both; }
+.sf-stagger > *:nth-child(2) { animation-delay: 0.08s; }
+.sf-stagger > *:nth-child(3) { animation-delay: 0.16s; }
+.sf-stagger > *:nth-child(4) { animation-delay: 0.24s; }
+.sf-stagger > *:nth-child(5) { animation-delay: 0.32s; }
+
+/* Aurora ambiante (haut de page) — CSS pur, composée GPU (transform/opacity),
+   aucun canvas/WebGL : coût quasi nul, coupée si reduced-motion. */
+@keyframes sf-aurora-drift {
+  0%   { transform: translate3d(-8%, 0, 0) scale(1); }
+  50%  { transform: translate3d(8%, 4%, 0) scale(1.15); }
+  100% { transform: translate3d(-8%, 0, 0) scale(1); }
+}
+.sf-aurora {
+  position: absolute; inset: -40% -10% auto -10%; height: 80%;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 55% at 22% 38%, rgb(59 130 246 / 0.16), transparent 70%),
+    radial-gradient(30% 45% at 55% 25%, rgb(139 92 246 / 0.13), transparent 70%),
+    radial-gradient(32% 50% at 80% 42%, rgb(16 185 129 / 0.10), transparent 70%);
+  filter: blur(40px);
+  animation: sf-aurora-drift 24s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sf-aurora, .sf-glow-dot, .sf-stagger > * { animation: none; }
+}
+
+/* ── Polices Générateur Promo (Phase A) — auto-hébergées, MÊMES woff2 que le worker de rendu ──
+   (public/fonts/promo/) → l'aperçu WYSIWYG correspond au PNG rendu par Playwright.
+   Inter 400/500/600 est déjà chargé (import Google en tête) ; on ajoute 700/800/900 pour la promo. */
+@font-face { font-family: 'Inter'; font-weight: 700; font-style: normal; font-display: swap; src: url('/fonts/promo/inter-700.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 800; font-style: normal; font-display: swap; src: url('/fonts/promo/inter-800.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 900; font-style: normal; font-display: swap; src: url('/fonts/promo/inter-900.woff2') format('woff2'); }
+@font-face { font-family: 'Montserrat'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/promo/montserrat-400.woff2') format('woff2'); }
+@font-face { font-family: 'Montserrat'; font-weight: 600; font-style: normal; font-display: swap; src: url('/fonts/promo/montserrat-600.woff2') format('woff2'); }
+@font-face { font-family: 'Montserrat'; font-weight: 800; font-style: normal; font-display: swap; src: url('/fonts/promo/montserrat-800.woff2') format('woff2'); }
+@font-face { font-family: 'Poppins'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/promo/poppins-400.woff2') format('woff2'); }
+@font-face { font-family: 'Poppins'; font-weight: 600; font-style: normal; font-display: swap; src: url('/fonts/promo/poppins-600.woff2') format('woff2'); }
+@font-face { font-family: 'Poppins'; font-weight: 700; font-style: normal; font-display: swap; src: url('/fonts/promo/poppins-700.woff2') format('woff2'); }
+@font-face { font-family: 'Oswald'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/promo/oswald-400.woff2') format('woff2'); }
+@font-face { font-family: 'Oswald'; font-weight: 500; font-style: normal; font-display: swap; src: url('/fonts/promo/oswald-500.woff2') format('woff2'); }
+@font-face { font-family: 'Oswald'; font-weight: 700; font-style: normal; font-display: swap; src: url('/fonts/promo/oswald-700.woff2') format('woff2'); }
+@font-face { font-family: 'Bebas Neue'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/promo/bebas-neue-400.woff2') format('woff2'); }
+@font-face { font-family: 'Playfair Display'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/promo/playfair-display-400.woff2') format('woff2'); }
+@font-face { font-family: 'Playfair Display'; font-weight: 700; font-style: normal; font-display: swap; src: url('/fonts/promo/playfair-display-700.woff2') format('woff2'); }
+@font-face { font-family: 'Playfair Display'; font-weight: 900; font-style: normal; font-display: swap; src: url('/fonts/promo/playfair-display-900.woff2') format('woff2'); }
+
+/* Marquee (defilement horizontal) — noms trop longs dans le drawer player (Current State).
+   Ping-pong avec pauses aux extremites ; applique seulement si le texte deborde (JS pose --sf-marquee-x). */
+@keyframes sf-marquee {
+  0%, 12%   { transform: translateX(0); }
+  88%, 100% { transform: translateX(var(--sf-marquee-x, 0)); }
+}
+.sf-marquee { animation: sf-marquee var(--sf-marquee-dur, 8s) ease-in-out infinite alternate; }
+
+/* Defilement au survol (noms de medias longs, panneau lateral) : n'anime que si le
+   texte deborde (JS pose --sf-marquee-x) et seulement au hover du conteneur. */
+.sf-scroll-host { overflow: hidden; white-space: nowrap; }
+.sf-scroll-host .sf-scroll-inner { display: inline-block; will-change: transform; }
+.sf-scroll-host:hover .sf-scroll-inner {
+  animation: sf-marquee var(--sf-marquee-dur, 4s) linear infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-scroll-host:hover .sf-scroll-inner { animation: none; }
+}
+
+/* Barre de progression INDETERMINEE (encodage dont la duree source est inconnue, ou phase
+   de finalisation). Va-et-vient d'un segment : dit qu'il se passe quelque chose sans
+   annoncer un pourcentage qu'on ne connait pas. La classe utilitaire est posee en
+   motion-safe: cote composant, donc coupee par prefers-reduced-motion. */
+@keyframes sf-indeterminate {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}

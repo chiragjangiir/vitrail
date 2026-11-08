@@ -1,0 +1,89 @@
+from fastapi import APIRouter
+
+from app.api.v1.endpoints import (
+    analytics,
+    approvals,
+    assistant,
+    audio_baskets,
+    auth,
+    bi_export,
+    campaigns,
+    dashboard,
+    events,
+    feed,
+    feedback,
+    firmware,
+    generation,
+    governance,
+    local_control,
+    media,
+    media_folders,
+    messaging,
+    meta,
+    notifications,
+    organizations,
+    player_groups,
+    players,
+    playlists,
+    pop,
+    portal,
+    promo,
+    provisioning,
+    reports,
+    schedules,
+    search,
+    site_groups,
+    sites,
+    tags,
+    templates,
+    updates,
+    url_display,
+    users,
+    vod,
+    ws,
+)
+
+api_router = APIRouter()
+
+api_router.include_router(auth.router)
+api_router.include_router(dashboard.router)
+api_router.include_router(search.router)
+api_router.include_router(organizations.router)
+api_router.include_router(users.router)
+# Avant media.router : /media/folders doit primer sur /media/{id_media}.
+api_router.include_router(media_folders.router)
+api_router.include_router(media.router)
+api_router.include_router(generation.router)
+api_router.include_router(templates.router)
+api_router.include_router(playlists.router)
+api_router.include_router(schedules.router)
+api_router.include_router(campaigns.router)
+api_router.include_router(approvals.router)
+api_router.include_router(portal.router)
+api_router.include_router(events.router)
+api_router.include_router(players.router)
+api_router.include_router(firmware.router)
+api_router.include_router(updates.router)
+api_router.include_router(notifications.router)
+api_router.include_router(player_groups.router)
+api_router.include_router(site_groups.router)
+api_router.include_router(sites.router)
+api_router.include_router(provisioning.router)
+api_router.include_router(pop.router)
+api_router.include_router(promo.router)
+api_router.include_router(reports.router)
+api_router.include_router(analytics.router)
+api_router.include_router(analytics.public_router)
+api_router.include_router(bi_export.router)
+api_router.include_router(governance.router)
+api_router.include_router(tags.router)
+api_router.include_router(audio_baskets.router)
+api_router.include_router(local_control.router)
+api_router.include_router(vod.router)
+api_router.include_router(url_display.router)
+api_router.include_router(feed.router)
+api_router.include_router(feedback.router)
+api_router.include_router(assistant.router)
+api_router.include_router(messaging.router)
+api_router.include_router(meta.router)
+api_router.include_router(ws.router)

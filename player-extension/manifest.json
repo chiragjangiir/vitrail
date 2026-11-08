@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Vitrail Player",
+  "version": "2.0.12",
+  "description": "Vitrail lightweight digital-signage player (§3.10) — turns any Chrome browser into a managed player, no native app required.",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "storage",
+    "alarms",
+    "tabs",
+    "system.display"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Vitrail Player",
+    "default_popup": "popup.html",
+    "default_icon": "player/icon.svg"
+  },
+  "icons": {
+    "128": "player/icon.svg"
+  },
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https: http:; media-src 'self' blob: data: https: http:; connect-src 'self' https: http: ws: wss:; frame-src https: http:"
+  }
+}

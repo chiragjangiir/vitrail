@@ -1,0 +1,12 @@
+{
+  "backend_url": "https://cms.example.com",
+  "token": "sfp_REMPLACER_PAR_LE_TOKEN_DE_PROVISIONING",
+  "width": 1920,
+  "height": 1080,
+  "video_mode": "1920x1080x60p",
+  "autorun_autoupdate": true,
+  "dws": true,
+  "mem_watchdog": false,
+  "mem_low_ratio": 0.08,
+  "mem_low_count": 5
+}

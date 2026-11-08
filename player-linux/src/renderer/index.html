@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' blob: data: https: http:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'" />
+  <title>SignFlow Player</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="player-root">
+    <div id="status-bar" class="hidden">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Connecting...</span>
+    </div>
+
+    <div id="content-area"></div>
+
+    <div id="fallback-screen">
+      <div class="fallback-logo">Vitrail</div>
+      <p class="fallback-msg" id="fallback-msg">Aucun contenu à diffuser</p>
+    </div>
+  </div>
+
+  <script src="audio_player.js"></script>
+  <script src="player.js"></script>
+</body>
+</html>

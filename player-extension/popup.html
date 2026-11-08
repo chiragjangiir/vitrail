@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SignFlow Player</title>
+  <style>
+    /* Design system — Inter, canvas dark, accent #4875B4. */
+    :root { color-scheme: dark; }
+    body {
+      margin: 0; width: 320px; font: 13px/1.5 Inter, system-ui, sans-serif;
+      background: #1C1E2A; color: #F8F7F5;
+    }
+    header { padding: 16px 16px 8px; }
+    header h1 { margin: 0; font-size: 15px; font-weight: 600; color: #7fb0ff; }
+    header p { margin: 2px 0 0; font-size: 11px; color: #9db4d0; }
+    main { padding: 0 16px 16px; }
+    label { display: block; font-size: 11px; margin: 12px 0 4px; color: #9db4d0; }
+    input {
+      width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: 7px;
+      border: 1px solid #3a4258; background: #232636; color: #F8F7F5; font-size: 13px;
+    }
+    button {
+      width: 100%; margin-top: 14px; padding: 9px; border: none; border-radius: 7px;
+      background: #4875B4; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    button:hover { background: #5586c5; }
+    button.secondary { background: #2c3144; color: #cdd9ea; }
+    button.secondary:hover { background: #353b52; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .row { display: flex; gap: 8px; }
+    .row button { margin-top: 0; }
+    .status {
+      margin: 12px 0 0; padding: 10px; border-radius: 8px; background: #232636;
+      border: 1px solid #2c3550; font-size: 12px;
+    }
+    .status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+    .dot.on { background: #3FB984; } .dot.off { background: #8a93a8; }
+    .msg { margin-top: 10px; font-size: 12px; min-height: 16px; }
+    .msg.err { color: #ff8a8a; } .msg.ok { color: #7fdcb0; }
+    .hint { font-size: 10px; color: #6b7a93; margin-top: 4px; }
+    section { display: none; } section.show { display: block; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Vitrail Player</h1>
+    <p>Lightweight Chrome player (§3.10)</p>
+  </header>
+  <main>
+    <!-- Configured: status + controls -->
+    <section id="sec-status">
+      <div class="status">
+        <span class="dot off" id="run-dot"></span>
+        <span id="run-text">Stopped</span>
+        <div class="hint" id="cfg-line"></div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button id="btn-launch">Open player</button>
+        <button id="btn-stop" class="secondary">Stop</button>
+      </div>
+      <button id="btn-reset" class="secondary" style="margin-top:8px">Unregister / reset</button>
+    </section>
+
+    <!-- Not configured: registration form -->
+    <section id="sec-setup">
+      <label for="in-backend">Backend URL</label>
+      <input id="in-backend" type="url" placeholder="https://cms.example.com" />
+      <label for="in-token">Provisioning or player token</label>
+      <input id="in-token" type="text" placeholder="sfp_…  or  eyJhbGciOi…" />
+      <label for="in-name">Player name (optional)</label>
+      <input id="in-name" type="text" placeholder="Lobby screen" />
+      <button id="btn-register">Register &amp; launch</button>
+      <div class="hint">Create a provisioning token in the Vitrail (Players &rsaquo; Provisioning), or paste an existing player JWT to re-attach.</div>
+    </section>
+
+    <div class="msg" id="msg"></div>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

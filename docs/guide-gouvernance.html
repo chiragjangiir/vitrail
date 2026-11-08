@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SignFlow — Guide Gouvernance hiérarchique (§XVIII)</title>
+<style>
+  :root{
+    --accent:#4875B4; --accent-soft:#eaf0f8;
+    --canvas:#F8F7F5; --sidebar:#1D2B3A; --ink:#1C1E2A;
+    --muted:#6b7280; --line:#e5e3df; --card:#ffffff;
+    --green:#198754; --amber:#b45309; --amber-soft:#fef3e2; --red:#b42318; --red-soft:#fdecea;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:Inter,-apple-system,Segoe UI,Roboto,sans-serif;
+    color:var(--ink); background:var(--canvas); line-height:1.6; font-weight:400;
+  }
+  .wrap{max-width:880px; margin:0 auto; padding:0 24px 80px}
+  header{
+    background:var(--sidebar); color:#fff; padding:40px 0 34px; margin-bottom:40px;
+  }
+  header .wrap{padding-bottom:0}
+  header .tag{display:inline-block; font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+    color:#9db4cf; border:1px solid #34506b; padding:3px 10px; border-radius:999px; margin-bottom:14px}
+  header h1{margin:0 0 8px; font-size:28px; font-weight:600; letter-spacing:-.01em}
+  header p{margin:0; color:#c4d2e2; font-size:15px}
+  h2{font-size:21px; font-weight:600; margin:46px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--line)}
+  h3{font-size:16px; font-weight:600; margin:26px 0 8px}
+  p{margin:0 0 12px}
+  a{color:var(--accent)}
+  code{background:#eef0f3; padding:1px 6px; border-radius:4px; font-size:13px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .lead{font-size:16px; color:#374151}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin:16px 0}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .pill{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:500;
+    padding:2px 9px; border-radius:999px; background:var(--accent-soft); color:var(--accent)}
+  .callout{border-left:3px solid var(--accent); background:#fff; padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0}
+  .callout.warn{border-color:var(--amber); background:var(--amber-soft)}
+  .callout.warn b{color:var(--amber)}
+  .callout .ttl{font-weight:600; margin-bottom:4px}
+  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:14px; background:#fff;
+    border:1px solid var(--line); border-radius:8px; overflow:hidden}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{background:#f4f6f8; font-weight:600; font-size:13px}
+  tr:last-child td{border-bottom:none}
+  td code{white-space:nowrap}
+  ol.steps{counter-reset:s; list-style:none; padding:0; margin:16px 0}
+  ol.steps>li{counter-increment:s; position:relative; padding:0 0 16px 44px; margin:0}
+  ol.steps>li::before{content:counter(s); position:absolute; left:0; top:-2px; width:28px; height:28px;
+    background:var(--accent); color:#fff; border-radius:999px; display:flex; align-items:center;
+    justify-content:center; font-size:13px; font-weight:600}
+  ol.steps>li::after{content:""; position:absolute; left:13px; top:30px; bottom:-2px; width:2px; background:var(--line)}
+  ol.steps>li:last-child::after{display:none}
+  ol.steps b{display:block; margin-bottom:2px}
+  .tree{font-family:ui-monospace,Menlo,monospace; font-size:13.5px; line-height:1.7; background:#fbfaf8;
+    border:1px solid var(--line); border-radius:8px; padding:16px 18px; white-space:pre; overflow-x:auto; color:#374151}
+  .layers{margin:14px 0}
+  .layer{border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin-bottom:8px; background:#fff}
+  .layer.l0{border-color:#d5dde7; background:#f7f9fb}
+  .layer.l1{border-color:#dfe5ec; background:#fafbfc}
+  .layer.local{border-color:rgba(72,117,180,.4); background:var(--accent-soft)}
+  .layer .lh{display:flex; align-items:center; gap:8px; font-size:13px}
+  .layer .lvl{font-size:11px; padding:1px 7px; border-radius:6px; background:#e5e7eb; color:#4b5563}
+  .layer .lock{font-size:11px; color:#9ca3af}
+  .layer .items{margin-top:6px; display:flex; gap:6px; flex-wrap:wrap}
+  .chip{font-size:12px; padding:2px 8px; border:1px solid var(--line); border-radius:6px; background:#fff; color:#4b5563}
+  .muted{color:var(--muted)}
+  .ok{color:var(--green); font-weight:600}
+  .small{font-size:13px}
+  footer{margin-top:50px; padding-top:18px; border-top:1px solid var(--line); font-size:13px; color:var(--muted)}
+  .kbd{font-size:12px; background:#eef0f3; border:1px solid #d8dce1; border-bottom-width:2px;
+    border-radius:5px; padding:1px 6px; font-family:ui-monospace,Menlo,monospace}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <span class="tag">SignFlow · §XVIII · Phase 2</span>
+    <h1>Gouvernance hiérarchique &amp; délégation</h1>
+  <p style="background:#1A1D2B;border-left:3px solid #2563EB;padding:10px 14px;border-radius:8px;font-size:.92em">La référence à jour est le <b>manuel utilisateur in-app</b> (menu « Manuel utilisateur », section « Gouvernance hiérarchique ») : il suit le produit à chaque version et contient un exemple complet « entrée et sortie de magasin ». Ce guide reste utile pour les concepts et le scénario de test.</p>
+    <p>Guide d'utilisation — concepts, configuration pas à pas, et scénario de test.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <p class="lead">La <b>gouvernance hiérarchique</b> permet à une enseigne multi&#8209;niveaux
+  (ex. <i>Groupe → Région → Magasin</i>) de <b>déléguer la programmation</b> à chaque échelon,
+  tout en garantissant qu'un niveau inférieur ne peut <b>jamais</b> modifier le contenu d'un niveau
+  supérieur. Le serveur compile alors, pour chaque écran, un <b>programme fusionné en couches</b>
+  (national → local) sous contraintes de budget et de préemption.</p>
+
+  <div class="callout">
+    <div class="ttl">En une phrase</div>
+    Un programme (« schedule ») peut être rattaché à un <b>nœud de gouvernance</b>. Tous les
+    programmes des nœuds dont dépend un écran sont <b>empilés et fusionnés</b> à la diffusion ;
+    seuls les <b>administrateurs</b> d'un nœud (ou d'un nœud parent) peuvent les modifier.
+  </div>
+
+  <h2>1. Les concepts</h2>
+
+  <p>L'arbre de gouvernance est <b>indépendant</b> de l'arbre des organisations. Il modélise votre
+  topologie de délégation :</p>
+
+  <div class="tree">Nœud 0 — National (Groupe)
+  ├── Nœud 1 — Région Nord
+  │     ├── Nœud 2 — Magasin Lille
+  │     └── Nœud 2 — Magasin Roubaix
+  └── Nœud 1 — Région Sud
+        └── Nœud 2 — Magasin Marseille</div>
+
+  <div class="grid">
+    <div class="card">
+      <h3 style="margin-top:0">🌳 Nœud</h3>
+      <p class="small">Un échelon de l'arbre (national, régional, magasin…). Porte un <b>niveau</b>
+      (0 = racine) calculé automatiquement.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">🖥️ Cibles</h3>
+      <p class="small">Les <b>players / groupes / sites</b> rattachés à un nœud. C'est ce qui dit
+      « cet écran dépend de ce nœud ».</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">🛡️ Administrateurs</h3>
+      <p class="small">Les <b>utilisateurs</b> autorisés à éditer les programmes du nœud
+      <b>et de son sous&#8209;arbre</b>. Un admin national édite tout en dessous.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">⚖️ Règles de délégation</h3>
+      <p class="small">Les <b>contraintes</b> appliquées au contenu du nœud à la diffusion :
+      budget temps par cycle, nombre d'items par tour, préemption…</p>
+    </div>
+  </div>
+
+  <h2>2. Comment un écran reçoit son contenu</h2>
+
+  <p>Pour un écran rattaché à un nœud <i>magasin</i>, le serveur rassemble les programmes
+  <b>actifs maintenant</b> de ce nœud <b>et de tous ses parents</b>, les trie par niveau
+  (<b>national d'abord</b>), puis applique les règles de délégation. Résultat : un <b>cycle compilé</b>.</p>
+
+  <div class="layers">
+    <div class="layer l0">
+      <div class="lh"><span class="lvl">Niveau 0</span> <b>National</b>
+        <span class="lock">🔒 hérité — lecture seule pour le magasin</span></div>
+      <div class="items"><span class="chip">Spot_A · 30s</span><span class="chip">Spot_B · 20s</span></div>
+    </div>
+    <div class="layer l1">
+      <div class="lh"><span class="lvl">Niveau 1</span> <b>Régional</b>
+        <span class="lock">🔒 hérité</span></div>
+      <div class="items"><span class="chip">Promo_Région · 15s</span></div>
+    </div>
+    <div class="layer local">
+      <div class="lh"><span class="lvl">Niveau 2</span> <b>Magasin</b>
+        <span class="pill">éditable ici</span></div>
+      <div class="items"><span class="chip">Offre_Magasin · 10s</span></div>
+    </div>
+  </div>
+  <p class="small muted">→ Cycle diffusé : <code>Spot_A → Spot_B → Promo_Région → Offre_Magasin</code> (puis boucle),
+  positionné à l'horloge murale comme un programme normal.</p>
+
+  <p>C'est exactement ce que montre l'<b>aperçu en couches</b> dans la page Gouvernance
+  (carte « Programme compilé »). Les niveaux supérieurs y apparaissent <b>grisés avec un cadenas</b>
+  (hérités), le niveau local en bleu.</p>
+
+  <h3>Les règles de délégation</h3>
+  <table>
+    <tr><th>Règle</th><th>Paramètre</th><th>Effet sur le cycle compilé</th></tr>
+    <tr><td><code>time_budget</code></td><td><code>sec_per_cycle</code></td><td>Secondes d'antenne accordées au nœud <b>par cycle compilé</b> (volume <b>absolu</b>, indépendant de ce que placent les autres niveaux) ; au&#8209;delà, les items de queue du nœud sont rognés.</td></tr>
+    <tr><td><code>item_count</code></td><td><code>max_per_cycle</code>, <code>mode</code></td><td>Nombre de contenus que le nœud place <b>par tour</b>. Ses contenus <b>tournent</b> d'un tour à l'autre (séquentiel ou aléatoire) au lieu de rejouer toujours les mêmes.</td></tr>
+    <tr><td><code>time_window</code></td><td><code>start</code>, <code>end</code>, <code>days</code></td><td>La couche n'est active que dans cette plage horaire.</td></tr>
+    <tr><td><code>preemptive</code></td><td>—</td><td>Ce nœud <b>interrompt</b> tout contenu de niveau inférieur tant qu'il est actif.</td></tr>
+  </table>
+
+  <p class="small muted">Un nœud ne porte qu'<b>une seule règle par type</b> : pour changer un
+  budget ou une plage, on modifie la règle existante (ou on la supprime) plutôt que d'en empiler
+  une seconde.</p>
+
+  <div class="callout">
+    <div class="ttl">Coupure douce vs stricte (<code>soft_cut</code>)</div>
+    Quand le budget par cycle est dépassé : <b>douce</b> (par défaut) = l'item qui déborde va au
+    bout (le dépassement est signalé) ; <b>stricte</b> = l'item qui déborde est retiré du cycle.
+  </div>
+
+  <h2>3. Qui peut modifier quoi — l'immutabilité</h2>
+
+  <p>Un programme rattaché à un nœud n'est modifiable que par les <b>administrateurs de ce nœud
+  ou d'un de ses parents</b>. Sinon l'API renvoie <b>403</b> et le message s'affiche dans l'éditeur.</p>
+
+  <table>
+    <tr><th>Utilisateur</th><th>Peut éditer…</th></tr>
+    <tr><td>Admin du nœud <b>National</b></td><td>National + Région + Magasins (<b>tout le sous&#8209;arbre</b>) <span class="ok">✓</span></td></tr>
+    <tr><td>Admin du nœud <b>Magasin</b></td><td>Uniquement son magasin. Pas le régional ni le national. <span class="muted">✗ (403)</span></td></tr>
+    <tr><td><b>Administrateur de l'organisation</b></td><td>Tout, sans être admin de nœud (contournement). <span class="ok">✓</span></td></tr>
+    <tr><td>Programme <b>sans nœud</b></td><td>Aucune contrainte de gouvernance (comme avant). <span class="ok">✓</span></td></tr>
+  </table>
+
+  <div class="callout warn">
+    <div class="ttl">⚠️ Un nœud sans administrateur</div>
+    Si un nœud n'a <b>aucun</b> administrateur, seuls les <b>admins de l'organisation</b> peuvent
+    éditer ses programmes. Pensez à affecter au moins un administrateur par nœud délégué.
+  </div>
+
+  <h2>4. Configuration pas à pas</h2>
+
+  <ol class="steps">
+    <li><b>Construire l'arbre</b>
+      Page <code>/governance</code> → <i>Nouveau nœud racine</i>, puis <i>Ajouter un sous&#8209;nœud</i>
+      pour créer Région, Magasin… Donnez un type (international / national / regional / department /
+      store…) si utile.</li>
+    <li><b>Rattacher les écrans</b>
+      Sur le nœud feuille (magasin), section <b>Cibles</b> → ajoutez les <b>players</b>, <b>groupes</b>
+      ou <b>sites</b> qui en dépendent.</li>
+    <li><b>Désigner les administrateurs</b>
+      Section <b>Administrateurs du nœud</b> → choisissez les utilisateurs autorisés à éditer ce
+      nœud et son sous&#8209;arbre.</li>
+    <li><b>(Optionnel) Poser des règles</b>
+      Section <b>Règles de délégation</b> → ajoutez un budget temps par cycle, un nombre d'items
+      par tour, une plage horaire, la préemption.</li>
+    <li><b>Créer les programmes par couche</b>
+      Page <code>/schedules</code> → à la création/édition d'un programme, choisissez le
+      <b>Nœud de gouvernance</b> dans le sélecteur. National sur le nœud national, offre locale sur
+      le magasin, etc.</li>
+    <li><b>Vérifier le rendu</b>
+      Retour sur <code>/governance</code> → carte <b>Programme compilé</b> → sélectionnez un player
+      du nœud : vous voyez les couches empilées et le cycle final.</li>
+  </ol>
+
+  <h2>5. Scénario de test guidé</h2>
+
+  <div class="card">
+    <ol class="steps" style="margin-bottom:0">
+      <li><b>Arbre</b> — Créez <code>National</code>, puis un sous&#8209;nœud <code>Magasin A</code>.</li>
+      <li><b>Cible</b> — Sur <code>Magasin A</code>, rattachez l'un de vos players (ex. riri).</li>
+      <li><b>Programmes</b> — Dans <code>/schedules</code>, créez deux programmes <i>Toujours</i> :
+        l'un sur <code>National</code> (priorité 80), l'autre sur <code>Magasin A</code> (priorité 10).</li>
+      <li><b>Aperçu</b> — Dans <code>/governance</code> → carte <b>Programme compilé</b> → choisissez
+        le player : vous devez voir <b>2 couches</b>, National (grisé/cadenas) <b>au&#8209;dessus</b> du Magasin.</li>
+      <li><b>Préemption</b> — Ajoutez la règle <code>preemptive</code> sur <code>National</code> :
+        la couche Magasin passe en <b>« préempté »</b> et disparaît du cycle tant que le national est actif.</li>
+      <li><b>Immutabilité</b> — Avec un utilisateur <b>non admin</b> du nœud (et non org&#8209;admin),
+        tentez d'éditer le programme National : vous devez obtenir un <b>403</b> avec le message
+        d'erreur dans le drawer. Affectez&#8209;le ensuite comme admin du nœud → l'édition passe.</li>
+    </ol>
+  </div>
+
+  <h2>6. Bon à savoir / limites</h2>
+
+  <ul>
+    <li><b>Opt&#8209;in total.</b> Un player <b>non rattaché</b> à un nœud (ou sans programme gouverné
+      actif) garde le comportement actuel : ses programmes classiques s'appliquent normalement.</li>
+    <li><b>Budgets déterministes.</b> Les budgets sont appliqués en <b>compilant le cycle</b>
+      (pas de compteur temps réel) — les écrans restent sans état, cohérent avec l'horloge murale.
+      L'<i>état de budget</i> affiché est donc une consommation <b>planifiée</b>.</li>
+    <li><b>Synchro LAN.</b> Deux écrans d'un même mur sous des couches différentes n'ont pas le même
+      contenu effectif à certains moments → ils ne sont alors <b>pas synchronisables image par image</b>.
+      À réserver aux écrans indépendants.</li>
+    <li><b>Audio.</b> Le moteur de couches concerne le <b>contenu visuel</b> ; les paniers audio §XIX
+      gardent leur propre résolution.</li>
+  </ul>
+
+  <footer>
+    SignFlow CMS — Digital Signage · Gouvernance hiérarchique §XVIII (spec v4.5) · Phase 2 (moteur,
+    sync live, vue en couches, immutabilité). Document généré le 2026&#8209;06&#8209;05.
+  </footer>
+
+</div>
+</body>
+</html>

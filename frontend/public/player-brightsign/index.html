@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' blob: data: https: http: ws: wss:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https: http: ws: wss:" />
+  <title>SignFlow Player — BrightSign</title>
+  <meta name="theme-color" content="#1C1E2A" />
+  <link rel="stylesheet" href="/player-chromeos/style.css" />
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #1C1E2A; cursor: none; }
+    #setup-screen {
+      position: fixed; inset: 0; z-index: 2147483646; display: none;
+      align-items: center; justify-content: center;
+      background: #1C1E2A; color: #F8F7F5;
+      font: 15px/1.5 Inter, system-ui, sans-serif; cursor: auto;
+    }
+    #setup-screen.show { display: flex; }
+    #setup-card {
+      width: min(440px, 88vw); background: #232636; padding: 32px;
+      border-radius: 14px; border: 1px solid rgba(72,117,180,.35);
+    }
+    #setup-card h1 { margin: 0 0 4px; font-size: 20px; font-weight: 600; color: #7fb0ff; }
+    #setup-card p  { margin: 0 0 20px; font-size: 13px; color: #9db4d0; }
+    #setup-card label { display: block; font-size: 12px; margin: 14px 0 5px; color: #9db4d0; }
+    #setup-card input {
+      width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 8px;
+      border: 1px solid #3a4258; background: #1C1E2A; color: #F8F7F5; font-size: 14px;
+    }
+    #setup-card button {
+      width: 100%; margin-top: 22px; padding: 11px; border: none; border-radius: 8px;
+      background: #4875B4; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="player-root">
+    <div id="status-bar" class="hidden">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Connecting...</span>
+    </div>
+
+    <div id="content-area"></div>
+
+    <div id="fallback-screen">
+      <div class="fallback-logo">Vitrail</div>
+      <p class="fallback-msg" id="fallback-msg">No content to display</p>
+    </div>
+  </div>
+
+  <!-- Setup (browser fallback only — BrightSign passe ?backend=&token= via autorun.brs). -->
+  <div id="setup-screen">
+    <div id="setup-card">
+      <h1>Vitrail Player — BrightSign</h1>
+      <p>Create this player in the Vitrail, then enter the backend URL and the player token.</p>
+      <label for="su-backend">Backend URL</label>
+      <input id="su-backend" type="url" placeholder="https://cms.example.com" />
+      <label for="su-token">Player token</label>
+      <input id="su-token" type="text" placeholder="eyJhbGciOi…  or  sfp_…" />
+      <button id="su-save">Connect</button>
+    </div>
+  </div>
+
+  <!-- Identité plateforme : posée AVANT le bridge (signflow.js la lit pour le code natif BrightSign). -->
+  <script>
+    window.__SF_PLAYER_OS__ = 'brightsign';
+    window.__SF_PLAYER_VERSION__ = '1.0.0-brightsign';
+    window.__SF_PLAYER_NAME__ = 'BrightSign Player';
+  </script>
+
+  <!-- Renderer PARTAGÉ avec ChromeOS (servi par le frontend) — une seule source de vérité.
+       Ordre : bridge (window.signflow) → audio runtime → renderer. -->
+  <script src="/player-chromeos/ed25519.js"></script>
+  <script src="/player-chromeos/signflow.js"></script>
+  <script src="/player-chromeos/audio_player.js"></script>
+  <script src="/player-chromeos/player.js"></script>
+
+  <script>
+    (function () {
+      var screen = document.getElementById('setup-screen');
+      var save   = document.getElementById('su-save');
+      window.signflow.onSetupRequired(function () {
+        document.getElementById('su-backend').value = localStorage.getItem('signflow_backend_url') || '';
+        screen.classList.add('show');
+      });
+      window.signflow.onConnected(function () { screen.classList.remove('show'); });
+      save.addEventListener('click', function () {
+        var backend = document.getElementById('su-backend').value.trim();
+        var token   = document.getElementById('su-token').value.trim();
+        if (!backend || !token) return;
+        screen.classList.remove('show');
+        window.signflow.saveWizard({ backend_url: backend, player_token: token });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SignFlow Player</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="player-root">
+    <div id="status-bar" class="hidden">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Connecting...</span>
+    </div>
+
+    <div id="content-area"></div>
+
+    <div id="fallback-screen">
+      <div class="fallback-logo">SignFlow</div>
+      <p class="fallback-msg" id="fallback-msg">No content to display</p>
+    </div>
+  </div>
+
+  <!-- Bridge must load before player.js to define window.signflow -->
+  <script src="signflow_bridge.js"></script>
+  <!-- Audio in-store runtime (§XIX) — defines window.signflowAudio, loaded before player.js -->
+  <script src="audio_player.js"></script>
+  <script src="player.js"></script>
+</body>
+</html>
