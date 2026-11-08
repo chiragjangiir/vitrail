@@ -10,7 +10,7 @@ import Topbar from '@/components/layout/Topbar'
  * Manuel utilisateur — rend le markdown statique `public/help/manual.<locale>.md`
  * (servi live après git pull, sans rebuild). Renderer maison volontairement borné
  * (zéro dépendance) : #/##/###, paragraphes, listes -/1., citations >, **gras**,
- * `code`, et images `![légende](/help/img/x.webp)` SEULES sur leur ligne (captures
+ * `code`, et images `![légende](img/x.webp)` SEULES sur leur ligne (captures
  * d'écran de l'UI, cliquables pour ouvrir en pleine taille). Le contenu du manuel
  * n'utilise QUE cette syntaxe.
  */
@@ -104,7 +104,10 @@ function SectionBody({ lines }: { lines: string[] }) {
     if (!trimmed) continue
     const mImg = /^!\[([^\]]*)\]\(([^)\s]+)\)$/.exec(trimmed)
     if (mImg) {
-      const [, alt, src] = mImg
+      const [, alt, rawSrc] = mImg
+      // Le manuel référence ses captures en RELATIF (`img/x.webp`) pour qu'elles s'affichent
+      // aussi quand on lit le .md sur GitHub ; l'application les sert sous /help/.
+      const src = /^(https?:|\/)/.test(rawSrc) ? rawSrc : `/help/${rawSrc.replace(/^\.\//, '')}`
       blocks.push(
         <figure key={key++} className="mt-3 mb-1">
           <a href={src} target="_blank" rel="noreferrer" title={alt}
