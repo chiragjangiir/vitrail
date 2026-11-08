@@ -212,6 +212,13 @@ def _exec_entrypoint(
     shim.chmod(0o755)
     path = f"{tmp_path}:/usr/bin:/bin"
     env = {"PATH": path}
+    if not with_python:
+        # Un `python` système peut exister dans /usr/bin (runner GitHub) : sans ce leurre
+        # qui ÉCHOUE, le script le trouverait et lirait le plafond, et le cas « plafond
+        # illisible » ne serait exercé que sur certaines machines.
+        fake = tmp_path / "python"
+        fake.write_text("#!/bin/sh\nexit 1\n")
+        fake.chmod(0o755)
     if with_python:
         # ⚠️ Le leurre reste EN TÊTE : l'interpréteur vit dans le même répertoire que les
         # vrais `uvicorn` et `celery`, qui masqueraient le leurre et feraient échouer les
@@ -222,8 +229,12 @@ def _exec_entrypoint(
         env["WEB_CONCURRENCY"] = env_value
     if budget is not None:
         env["CMS_DB_CONNECTION_BUDGET"] = budget
+    # cwd NEUTRE : `python -c` met le répertoire courant dans sys.path. Lancé depuis
+    # backend/, un `python` système (/usr/bin, présent sur le runner GitHub) importait
+    # `app` et lisait le plafond — le cas « plafond illisible » n'était alors plus exercé.
     return subprocess.run(
         ["sh", str(ENTRYPOINT), cmd], capture_output=True, text=True, env=env,
+        cwd=tmp_path,
     )
 
 
