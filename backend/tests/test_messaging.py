@@ -243,7 +243,7 @@ async def test_status_lists_own_identities(client: AsyncClient, db_session, org,
     import app.api.v1.endpoints.messaging as ep
 
     async def fake_botname():
-        return "SignflowJeanineBot"
+        return "ExampleSignageBot"
 
     monkeypatch.setattr(ep, "get_bot_username", fake_botname)
     ident = await _linked_identity(db_session, org, user)
@@ -254,7 +254,7 @@ async def test_status_lists_own_identities(client: AsyncClient, db_session, org,
     assert resp.status_code == 200
     data = resp.json()
     assert data["configured"] is True
-    assert data["bot_username"] == "SignflowJeanineBot"
+    assert data["bot_username"] == "ExampleSignageBot"
     assert [i["id_identity"] for i in data["identities"]] == [ident.id_identity]
 
 

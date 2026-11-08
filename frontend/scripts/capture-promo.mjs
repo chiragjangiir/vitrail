@@ -68,11 +68,11 @@ const SHOTS = [
       await p.getByTestId('serie-paste-toggle').click()
       await p.getByTestId('serie-paste-area').fill([
         'Produit;Prix;Prix barré',
-        'Dyson V15 Detect Absolute;499,00;599,00',
-        'Dyson V12 Slim;399,00;499,00',
-        'Dyson Airwrap Complete;499,00;549,00',
-        'Dyson Purifier Cool;;599,00',
-        'Dyson Supersonic;329,00;399,00',
+        'Tarte aux pommes;12,90;15,90',
+        'Pain au levain 1 kg;5,40;6,20',
+        'Coffret café moulu;18,00;22,00',
+        'Confiture artisanale;;7,50',
+        'Panier petit-déjeuner;24,00;29,00',
       ].join('\n'))
       await p.getByTestId('serie-paste-apply').click()
       await p.waitForTimeout(1500)
