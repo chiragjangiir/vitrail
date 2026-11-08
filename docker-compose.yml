@@ -79,6 +79,8 @@ services:
       dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-signflow}:${POSTGRES_PASSWORD:-signflow}@postgres:5432/${POSTGRES_DB:-signflow}
+      # Rôle soumis à la RLS : sans lui, le backend refuse de démarrer (session.py).
+      DATABASE_APP_URL: postgresql+asyncpg://signflow_app:${POSTGRES_APP_PASSWORD:-signflow_app_secret}@postgres:5432/${POSTGRES_DB:-signflow}
       DATABASE_WORKER_URL: postgresql+asyncpg://signflow_worker:${POSTGRES_WORKER_PASSWORD:-signflow_worker_secret}@postgres:5432/${POSTGRES_DB:-signflow}
       REDIS_URL: redis://redis:6379/0
       MINIO_ENDPOINT: minio:9000
@@ -157,6 +159,8 @@ services:
       dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-signflow}:${POSTGRES_PASSWORD:-signflow}@postgres:5432/${POSTGRES_DB:-signflow}
+      # Rôle soumis à la RLS : sans lui, le backend refuse de démarrer (session.py).
+      DATABASE_APP_URL: postgresql+asyncpg://signflow_app:${POSTGRES_APP_PASSWORD:-signflow_app_secret}@postgres:5432/${POSTGRES_DB:-signflow}
       DATABASE_WORKER_URL: postgresql+asyncpg://signflow_worker:${POSTGRES_WORKER_PASSWORD:-signflow_worker_secret}@postgres:5432/${POSTGRES_DB:-signflow}
       REDIS_URL: redis://redis:6379/0
       CMS_JWT_SECRET: ${CMS_JWT_SECRET:-changeme}
@@ -213,6 +217,8 @@ services:
       dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-signflow}:${POSTGRES_PASSWORD:-signflow}@postgres:5432/${POSTGRES_DB:-signflow}
+      # Rôle soumis à la RLS : sans lui, le backend refuse de démarrer (session.py).
+      DATABASE_APP_URL: postgresql+asyncpg://signflow_app:${POSTGRES_APP_PASSWORD:-signflow_app_secret}@postgres:5432/${POSTGRES_DB:-signflow}
       DATABASE_WORKER_URL: postgresql+asyncpg://signflow_worker:${POSTGRES_WORKER_PASSWORD:-signflow_worker_secret}@postgres:5432/${POSTGRES_DB:-signflow}
       REDIS_URL: redis://redis:6379/0
       CMS_JWT_SECRET: ${CMS_JWT_SECRET:-changeme}
@@ -243,6 +249,8 @@ services:
       target: screenshot
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-signflow}:${POSTGRES_PASSWORD:-signflow}@postgres:5432/${POSTGRES_DB:-signflow}
+      # Rôle soumis à la RLS : sans lui, le backend refuse de démarrer (session.py).
+      DATABASE_APP_URL: postgresql+asyncpg://signflow_app:${POSTGRES_APP_PASSWORD:-signflow_app_secret}@postgres:5432/${POSTGRES_DB:-signflow}
       DATABASE_WORKER_URL: postgresql+asyncpg://signflow_worker:${POSTGRES_WORKER_PASSWORD:-signflow_worker_secret}@postgres:5432/${POSTGRES_DB:-signflow}
       REDIS_URL: redis://redis:6379/0
       CMS_JWT_SECRET: ${CMS_JWT_SECRET:-changeme}
@@ -266,6 +274,8 @@ services:
       dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-signflow}:${POSTGRES_PASSWORD:-signflow}@postgres:5432/${POSTGRES_DB:-signflow}
+      # Rôle soumis à la RLS : sans lui, le backend refuse de démarrer (session.py).
+      DATABASE_APP_URL: postgresql+asyncpg://signflow_app:${POSTGRES_APP_PASSWORD:-signflow_app_secret}@postgres:5432/${POSTGRES_DB:-signflow}
       DATABASE_WORKER_URL: postgresql+asyncpg://signflow_worker:${POSTGRES_WORKER_PASSWORD:-signflow_worker_secret}@postgres:5432/${POSTGRES_DB:-signflow}
       REDIS_URL: redis://redis:6379/0
       SIGNFLOW_TZ: ${SIGNFLOW_TZ:-UTC}
