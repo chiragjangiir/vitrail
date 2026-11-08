@@ -1,3 +1,5 @@
+<p align="center"><img src="frontend/public/brand/vitrail-logo.svg" alt="Vitrail" width="96"></p>
+
 # Vitrail
 
 **Vitrail** is a free and open-source **digital signage platform**: a multi-tenant web CMS plus

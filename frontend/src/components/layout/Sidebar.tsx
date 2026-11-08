@@ -366,8 +366,10 @@ export default function Sidebar() {
       className="w-60 shrink-0 h-screen flex flex-col bg-sidebar text-white overflow-y-auto border-r border-white/5 shadow-[10px_0_30px_rgba(0,0,0,0.5)] relative z-20"
       aria-label="Main navigation"
     >
-      {/* Marque : texte seul tant que le projet n'a pas de logo. */}
+      {/* Marque : logo Vitrail (panneaux de vitrail = zones d'un écran) + nom. */}
       <div className="flex items-center gap-3 px-5 h-16 shrink-0 border-b border-white/5">
+        {/* eslint-disable-next-line @next/next/no-img-element -- SVG statique, rien à optimiser */}
+        <img src="/brand/vitrail-logo.svg" alt="" aria-hidden width={32} height={32} className="shrink-0" />
         <span className="font-semibold text-white tracking-wide">Vitrail</span>
       </div>
 

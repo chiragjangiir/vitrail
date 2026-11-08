@@ -179,8 +179,10 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-canvas px-4">
       <div className="w-full max-w-sm">
-        {/* Marque : texte seul tant que le projet n'a pas de logo. */}
+        {/* Marque : logo Vitrail + nom. */}
         <div className="flex items-center justify-center gap-3 mb-8">
+          {/* eslint-disable-next-line @next/next/no-img-element -- SVG statique, rien à optimiser */}
+          <img src="/brand/vitrail-logo.svg" alt="" aria-hidden width={48} height={48} />
           <span className="text-xl font-semibold text-gray-900">Vitrail</span>
         </div>
 
