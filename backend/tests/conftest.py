@@ -78,6 +78,23 @@ def _build_schema_with_alembic() -> None:
         # pgvector est posé par init.sql en réel ; la base de test ne le joue pas, et il
         # doit exister AVANT la migration qui crée cms_doc_chunks (§XXVII).
         conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS vector")
+        # Les rôles `signflow_app` (soumis à la RLS) et `signflow_worker` (BYPASSRLS) sont
+        # créés en réel par `docker/postgres/init.sh`, que ne joue PAS une base vierge
+        # (CI, contributeur) : les migrations y échouaient dès 0002 sur leurs GRANT. Mêmes
+        # attributs que init.sh ; rôles de CLUSTER, donc créés une fois et réutilisés.
+        # Mots de passe : mêmes valeurs (et mêmes variables) que init.sh, car des tests se
+        # connectent sous ces rôles.
+        roles = (
+            ("signflow_app", "LOGIN",
+             os.environ.get("POSTGRES_APP_PASSWORD", "signflow_app_secret")),
+            ("signflow_worker", "BYPASSRLS LOGIN",
+             os.environ.get("POSTGRES_WORKER_PASSWORD", "signflow_worker_secret")),
+        )
+        for role, attrs, pwd in roles:
+            conn.exec_driver_sql(
+                f"DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{role}') "
+                f"THEN CREATE ROLE {role} {attrs} PASSWORD '{pwd}'; END IF; END $$"
+            )
     admin.dispose()
 
     cfg = Config(str(root / "alembic.ini"))
