@@ -40,7 +40,7 @@ and nothing phones home.
 cp .env.example .env            # fill in the secrets (see the comments in the file)
 docker compose up -d
 make dev-init                   # migrations + MinIO bucket (first run only)
-docker compose exec -T backend python3 /app/scripts/bootstrap.py   # first organisation + admin
+docker compose exec -T backend python3 /app/scripts/bootstrap.py   # first organisation + admin (prints the credentials)
 ```
 
 The base `docker-compose.yml` publishes **no ports** for postgres, redis, backend or frontend.
@@ -53,14 +53,22 @@ share a machine with other services.
 
 ## Installing a server
 
-`install-ubuntu.sh` installs a server from source on a fresh Ubuntu machine. It clones the repo,
-generates a `.env` with random secrets, starts the containers, runs the migrations, and sets up
-a systemd service and an nginx front on port 8080.
+`install-ubuntu.sh` installs a server from source on a fresh Ubuntu machine (tested on
+Ubuntu 24.04, 4 vCPU / 8 GB):
 
-Known limitations of this path, all being worked on:
-- it serves plain **HTTP**; to add TLS, put the stack behind a reverse proxy (see
-  `deploy/caddy/Caddyfile.example`);
-- `bootstrap.py` (first organisation and administrator) is run by hand after the install.
+```bash
+curl -fsSL https://raw.githubusercontent.com/edkahall/vitrail/main/install-ubuntu.sh -o install-vitrail.sh
+sudo bash install-vitrail.sh
+```
+
+It installs Docker if needed, clones the repo into `/opt/signflow`, generates a `.env` with
+random secrets, builds and starts the containers, runs the migrations, sets up a systemd service
+and an nginx front on port 8080, then creates the first organisation and administrator. The
+administrator's credentials and 2FA secret are printed **once** at the end: note them.
+
+Known limitation: it serves plain **HTTP**, and port 8080 is only opened to private networks.
+For access over the Internet, put the stack behind a reverse proxy with TLS (see
+`deploy/caddy/Caddyfile.example`).
 
 To create a **super-admin** (the platform role that manages organisations), run this on the
 server; shell access is the only requirement:

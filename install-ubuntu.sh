@@ -353,10 +353,10 @@ check_endpoint() {
 
 check_endpoint "GET /health"    "http://localhost:${BACKEND_PORT}/health" "200"
 check_endpoint "GET /players"   "$API/players/"   "401"
-check_endpoint "GET /media"     "$API/media"      "401"
-check_endpoint "GET /templates" "$API/templates"  "401"
-check_endpoint "GET /playlists" "$API/playlists"  "401"
-check_endpoint "GET /schedules" "$API/schedules"  "401"
+check_endpoint "GET /media"     "$API/media/"     "401"
+check_endpoint "GET /templates" "$API/templates/" "401"
+check_endpoint "GET /playlists" "$API/playlists/" "401"
+check_endpoint "GET /schedules" "$API/schedules/" "401"
 
 [[ $FAIL -eq 0 ]] && ok "Smoke test 6/6 OK" || warn "$FAIL endpoint(s) en échec"
 
