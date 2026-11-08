@@ -18,7 +18,7 @@ hauteur + bezels haut/bas. Les bezels par cellule sont acceptés mais la positio
 Données terrain (bureau riri/fifi, 2026-06-11) : dalle 528 mm, bezel 4,5 mm/côté → joint
 intérieur 9 mm → fraction cachée ≈ 0.845 % par couture. Le `gap_scale` (slider de fine-tune,
 défaut 1.0) élargit/réduit les joints (Ed a préféré une légère sur-compensation à l'œil).
-Cf. EVOLUTIONS.md « Video Wall » et [[project-walltest-4k-office]].
+Cf. EVOLUTIONS.md « Video Wall ».
 """
 
 from __future__ import annotations

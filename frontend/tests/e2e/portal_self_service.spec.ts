@@ -5,8 +5,8 @@ import { test, expect } from '@playwright/test'
 
 const BASE = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'
 
-const ADV_USER = { id_user: 9, id_org: 1, email: 'buyer@dyson.com', full_name: 'Jane Buyer', avatar_url: null, totp_enabled: false, locale: 'en', is_active: true, id_advertiser: 1, last_login_at: null, created_at: new Date().toISOString() }
-const BRANDING = { org_name: 'Acme Retail', advertiser_name: 'Dyson', primary_color: '#4875B4', report_title: 'Acme Media Network', logo_url: null }
+const ADV_USER = { id_user: 9, id_org: 1, email: 'buyer@brightwell.com', full_name: 'Jane Buyer', avatar_url: null, totp_enabled: false, locale: 'en', is_active: true, id_advertiser: 1, last_login_at: null, created_at: new Date().toISOString() }
+const BRANDING = { org_name: 'Acme Retail', advertiser_name: 'Brightwell', primary_color: '#4875B4', report_title: 'Acme Media Network', logo_url: null }
 const SITES = [
   { id_site: 1, site_name: 'Lille Centre', latitude: 50.63, longitude: 3.06 },
   { id_site: 2, site_name: 'Paris Sud', latitude: null, longitude: null },
@@ -15,7 +15,7 @@ const DRAFT = {
   id_campaign: 42, id_advertiser: 1, campaign_name: 'Promo V16', status: 'draft',
   starts_on: '2026-08-01', ends_on: '2026-08-15', daily_hours: null,
   sov_percent: 15, pricing_model: 'sov', price_amount: null, price_currency: 'EUR',
-  cpm_rate: null, priority: 50, advertiser_name: 'Dyson', creative_count: 0,
+  cpm_rate: null, priority: 50, advertiser_name: 'Brightwell', creative_count: 0,
   target_player_count: 2, approval_request: null,
   targets: [{ id_target: 1, target_type: 'site', target_id: 1 }],
 }

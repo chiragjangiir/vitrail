@@ -9,7 +9,7 @@ Tout se fait dans UNE transaction (rollback complet en cas d'erreur).
 
 Usage (local) :
   MOVE_SRC_ORG=1 MOVE_DEST_NAME=Test MOVE_DEST_SLUG=test \
-    docker compose -p cms_kahall exec -T \
+    docker compose -p signflow exec -T \
       -e MOVE_SRC_ORG -e MOVE_DEST_NAME -e MOVE_DEST_SLUG \
       backend python3 - < backend/scripts/move_org.py
 

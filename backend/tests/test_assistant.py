@@ -406,11 +406,11 @@ async def test_intent_campaign_status(db_session):
     org = CmsOrganization(org_name="OrgCS", org_slug="org-cs-assist")
     db_session.add(org)
     await db_session.flush()
-    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Dyson")
+    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Brightwell")
     db_session.add(adv)
     await db_session.flush()
     live = CmsCampaign(
-        id_org=org.id_org, id_advertiser=adv.id_advertiser, campaign_name="Été Dyson",
+        id_org=org.id_org, id_advertiser=adv.id_advertiser, campaign_name="Été Brightwell",
         status="approved", starts_on=date.today() - timedelta(days=2),
         ends_on=date.today() + timedelta(days=5), sov_percent=20.0)
     draft = CmsCampaign(
@@ -419,7 +419,7 @@ async def test_intent_campaign_status(db_session):
         sov_percent=10.0)
     db_session.add_all([live, draft])
     await db_session.flush()
-    m = CmsMedia(id_org=org.id_org, media_name="spot-dyson", media_type="video",
+    m = CmsMedia(id_org=org.id_org, media_name="spot-brightwell", media_type="video",
                  storage_key=f"k/{_uuid.uuid4().hex}", checksum_sha256="c" * 64,
                  duration_ms=15_000)
     db_session.add(m)
@@ -436,16 +436,16 @@ async def test_intent_campaign_status(db_session):
     res = await query_tenant_data(db_session, org.id_org, "campaign_status")
     assert res["count"] == 2
     by_name = {c["name"]: c for c in res["campaigns"]}
-    assert by_name["Été Dyson"]["status"] == "live"
+    assert by_name["Été Brightwell"]["status"] == "live"
     assert by_name["Rentrée"]["status"] == "draft"
 
     # Détail d'une campagne (résolution ILIKE partielle)
     res = await query_tenant_data(db_session, org.id_org, "campaign_status",
-                                  {"campaign": "dyson"})
-    assert res["campaign"] == "Été Dyson" and res["status"] == "live"
-    assert res["advertiser"] == "Dyson" and res["sov_percent_sold"] == 20.0
+                                  {"campaign": "brightwell"})
+    assert res["campaign"] == "Été Brightwell" and res["status"] == "live"
+    assert res["advertiser"] == "Brightwell" and res["sov_percent_sold"] == 20.0
     assert res["targets"] == ["toute l'organisation"]
-    assert res["creatives"] == [{"media": "spot-dyson", "status": "active",
+    assert res["creatives"] == [{"media": "spot-brightwell", "status": "active",
                                  "approval_status": "pending", "weight": 1}]
 
     unknown = await query_tenant_data(db_session, org.id_org, "campaign_status",
@@ -472,11 +472,11 @@ async def test_intent_campaign_report_permission_gate(db_session):
     org = CmsOrganization(org_name="OrgCR", org_slug="org-cr-assist")
     db_session.add(org)
     await db_session.flush()
-    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Nissan")
+    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Corvane")
     db_session.add(adv)
     await db_session.flush()
     camp = CmsCampaign(
-        id_org=org.id_org, id_advertiser=adv.id_advertiser, campaign_name="Nissan Q3",
+        id_org=org.id_org, id_advertiser=adv.id_advertiser, campaign_name="Corvane Q3",
         status="approved", starts_on=date.today() - timedelta(days=1),
         ends_on=date.today() + timedelta(days=7), sov_percent=15.0,
         pricing_model="flat", price_amount=900)
@@ -509,17 +509,17 @@ async def test_intent_campaign_report_permission_gate(db_session):
 
     # Sans id_user (contexte inconnu) ou sans la permission → refus
     res = await query_tenant_data(db_session, org.id_org, "campaign_report",
-                                  {"campaign": "Nissan"})
+                                  {"campaign": "Corvane"})
     assert "error" in res and "campaigns:report" in res["error"]
     res = await query_tenant_data(db_session, org.id_org, "campaign_report",
-                                  {"campaign": "Nissan"}, id_user=viewer.id_user)
+                                  {"campaign": "Corvane"}, id_user=viewer.id_user)
     assert "error" in res and "campaigns:report" in res["error"]
 
     # Avec la permission → chiffres du rapport (0 passage, montant flat présent)
     res = await query_tenant_data(db_session, org.id_org, "campaign_report",
-                                  {"campaign": "Nissan"}, id_user=reporter.id_user)
+                                  {"campaign": "Corvane"}, id_user=reporter.id_user)
     assert res["intent"] == "campaign_report"
-    assert res["campaign"]["campaign_name"] == "Nissan Q3"
+    assert res["campaign"]["campaign_name"] == "Corvane Q3"
     assert res["totals"]["plays"] == 0
     assert res["sov"]["sold_pct"] == 15.0
     assert res["amount"] == {"model": "flat", "amount": 900.0, "currency": "EUR",

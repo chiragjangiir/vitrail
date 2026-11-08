@@ -87,10 +87,10 @@ async def _scene(db: AsyncSession, org: CmsOrganization):
     """Campagne approuvée (SOV 20 %, CPM 5) ciblant un player + PoP :
     6 passages créatif (5 signés, 27 s) + 54 passages « maison » (30 s) hier/aujourd'hui."""
     player = CmsPlayer(id_org=org.id_org, player_name="P-report", player_os="linux")
-    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Dyson")
+    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Brightwell")
     db.add_all([player, adv])
     await db.flush()
-    creative = CmsMedia(id_org=org.id_org, media_name="spot-dyson", media_type="video",
+    creative = CmsMedia(id_org=org.id_org, media_name="spot-brightwell", media_type="video",
                         storage_key=f"t/{uuid.uuid4().hex}.mp4", checksum_sha256="c",
                         transcode_status="done", duration_ms=27_000)
     home = CmsMedia(id_org=org.id_org, media_name="maison", media_type="video",
@@ -99,7 +99,7 @@ async def _scene(db: AsyncSession, org: CmsOrganization):
     db.add_all([creative, home])
     await db.flush()
     camp = CmsCampaign(
-        id_org=org.id_org, id_advertiser=adv.id_advertiser, campaign_name="Été Dyson",
+        id_org=org.id_org, id_advertiser=adv.id_advertiser, campaign_name="Été Brightwell",
         status="approved", starts_on=date.today() - timedelta(days=1),
         ends_on=date.today() + timedelta(days=7),
         sov_percent=20.0, pricing_model="sov", price_amount=1500, cpm_rate=5.0,
@@ -138,8 +138,8 @@ async def test_build_campaign_report_aggregates(db_session, org):
     camp, player, creative = await _scene(db_session, org)
     report = await build_campaign_report(db_session, camp, TZ)
 
-    assert report["campaign"]["campaign_name"] == "Été Dyson"
-    assert report["campaign"]["advertiser_name"] == "Dyson"
+    assert report["campaign"]["campaign_name"] == "Été Brightwell"
+    assert report["campaign"]["advertiser_name"] == "Brightwell"
     t = report["totals"]
     assert t["plays"] == 6 and t["signed_plays"] == 5
     assert t["airtime_ms"] == 6 * 27_000
@@ -156,7 +156,7 @@ async def test_build_campaign_report_aggregates(db_session, org):
     assert report["per_player"][0]["id_player"] == player.id_player
     assert report["per_player"][0]["plays"] == 6
     assert report["per_creative"] == [{
-        "id_media": creative.id_media, "media_name": "spot-dyson",
+        "id_media": creative.id_media, "media_name": "spot-brightwell",
         "plays": 6, "airtime_ms": 6 * 27_000}]
     assert len(report["per_day"]) == 2  # hier + aujourd'hui
     assert sum(d["plays"] for d in report["per_day"]) == 6
@@ -197,7 +197,7 @@ async def test_report_site_hierarchy_and_pdf_levels(client: AsyncClient, db_sess
     p2 = CmsPlayer(id_org=org.id_org, player_name="P2", player_os="linux", id_site=s1.id_site)
     p3 = CmsPlayer(id_org=org.id_org, player_name="P3", player_os="linux", id_site=s2.id_site)
     p4 = CmsPlayer(id_org=org.id_org, player_name="P4", player_os="linux")  # sans site
-    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Nissan")
+    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Corvane")
     db_session.add_all([p1, p2, p3, p4, adv])
     await db_session.flush()
     creative = CmsMedia(id_org=org.id_org, media_name="spot", media_type="video",
@@ -270,7 +270,7 @@ async def test_campaign_share_link_public_view(client: AsyncClient, db_session, 
     camp, *_ = await _scene(db_session, org)
 
     r = await client.post(f"/api/v1/campaigns/{camp.id_campaign}/share", headers=headers,
-                          json={"label": "Lien Dyson"})
+                          json={"label": "Lien Brightwell"})
     assert r.status_code == 201, r.text
     share = r.json()
     assert share["url"].startswith("/share/")
@@ -282,7 +282,7 @@ async def test_campaign_share_link_public_view(client: AsyncClient, db_session, 
     assert view["report_type"] == "campaign"
     assert view["dashboard"] is None
     assert view["campaign_report"]["totals"]["plays"] == 6
-    assert view["campaign_report"]["campaign"]["campaign_name"] == "Été Dyson"
+    assert view["campaign_report"]["campaign"]["campaign_name"] == "Été Brightwell"
 
     # Listé côté campagne + accès journalisé.
     r = await client.get(f"/api/v1/campaigns/{camp.id_campaign}/shares", headers=headers)

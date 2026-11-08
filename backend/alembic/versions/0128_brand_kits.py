@@ -9,7 +9,7 @@ Create Date: 2026-08-08 00:00:00.000000
 
   **Deux rattachements possibles, jamais les deux** : `id_advertiser IS NULL` = la charte de
   l'ORGANISATION (le retailer) ; `id_advertiser` renseigné = la charte d'un ANNONCEUR. Un visuel
-  fait pour un annonceur prend la sienne, sinon celle de l'org — Dyson n'a pas les couleurs du
+  fait pour un annonceur prend la sienne, sinon celle de l'org — Brightwell n'a pas les couleurs du
   magasin. Au plus UNE charte de chaque côté : deux index UNIQUE partiels le garantissent
   (l'unicité vit dans la base, pas dans une garde applicative qu'un second chemin d'écriture
   contournerait).

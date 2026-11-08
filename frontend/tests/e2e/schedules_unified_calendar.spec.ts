@@ -36,9 +36,9 @@ const EVENT = {
 }
 
 const CAMPAIGN = {
-  id_campaign: 7, campaign_name: 'Dyson Push', status: 'live',
+  id_campaign: 7, campaign_name: 'Brightwell Push', status: 'live',
   starts_on: iso(weekAgo), ends_on: iso(weekAhead),
-  advertiser_name: 'Dyson', sov_percent: 20,
+  advertiser_name: 'Brightwell', sov_percent: 20,
 }
 
 async function mockAuthAndNavigate(page: import('@playwright/test').Page, url: string) {
@@ -113,20 +113,20 @@ test.describe('Unified schedules calendar', () => {
     // Vue « All » : les 3 familles sont visibles (programme + event + campagne).
     await expect(page.getByText('Morning Loop').first()).toBeVisible()
     await expect(page.getByText('Flash Promo').first()).toBeVisible()
-    await expect(page.getByText('Dyson Push').first()).toBeVisible()
+    await expect(page.getByText('Brightwell Push').first()).toBeVisible()
 
     // Filtre « Campaigns » : seule la campagne reste sur le calendrier.
     // (scope <main> : la sidebar a aussi un bouton replié « Campaigns »)
     const main = page.getByRole('main')
     await main.getByRole('button', { name: 'Campaigns', exact: true }).click()
-    await expect(page.getByText('Dyson Push').first()).toBeVisible()
+    await expect(page.getByText('Brightwell Push').first()).toBeVisible()
     // (la vignette latérale garde la liste des programmes — on vérifie le calendrier)
     await expect(page.getByTitle(/Flash Promo/).first()).not.toBeVisible()
 
     // Filtre « Events » : l'event revient, la campagne disparaît.
     await main.getByRole('button', { name: 'Events', exact: true }).click()
     await expect(page.getByText('Flash Promo').first()).toBeVisible()
-    await expect(page.getByTitle(/Dyson Push/).first()).not.toBeVisible()
+    await expect(page.getByTitle(/Brightwell Push/).first()).not.toBeVisible()
   })
 
   test('target_filter_propagates_to_all_queries', async ({ page }) => {

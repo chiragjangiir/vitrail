@@ -12,7 +12,7 @@ const APPROVAL = {
   submitted_by: 2, submitted_at: '2026-07-10T10:00:00Z', due_date: null,
   notes: 'Please review', reviewed_by: null, reviewed_at: null, published_at: null,
   created_at: '2026-07-10T10:00:00Z', updated_at: '2026-07-10T10:00:00Z',
-  resource_name: 'Dyson Summer', submitted_by_name: 'Sales Sam', reviewed_by_name: null,
+  resource_name: 'Brightwell Summer', submitted_by_name: 'Sales Sam', reviewed_by_name: null,
 }
 
 const DASHBOARD = { pending_review: 1, changes_requested: 0, approved: 0, rejected: 0, published: 0, urgent: 0 }
@@ -56,9 +56,9 @@ function mockApprovalRoutes(page: import('@playwright/test').Page, opts?: {
   const detail = opts?.detail ?? {
     ...APPROVAL,
     comments: [{ id_comment: 1, id_request: 1, id_user: 2, comment_text: 'Please review', action: 'submitted', created_at: '2026-07-10T10:00:00Z', user_name: 'Sales Sam' }],
-    creatives: [{ id_creative: 10, media_name: 'spot-dyson', media_type: 'video', duration_ms: 27000, approval_status: 'pending', preview_url: 'http://127.0.0.1:9/spot.mp4', thumbnail_url: null }],
+    creatives: [{ id_creative: 10, media_name: 'spot-brightwell', media_type: 'video', duration_ms: 27000, approval_status: 'pending', preview_url: 'http://127.0.0.1:9/spot.mp4', thumbnail_url: null }],
     campaign: {
-      advertiser_name: 'Dyson', starts_on: '2026-07-11', ends_on: '2026-07-18',
+      advertiser_name: 'Brightwell', starts_on: '2026-07-11', ends_on: '2026-07-18',
       daily_hours: null, sov_percent: 25, priority: 50, pricing_model: 'sov',
       price_amount: 500, price_currency: 'EUR', cpm_rate: null,
       targets: [{ target_type: 'player', name: 'NUC' }],
@@ -109,7 +109,7 @@ test.describe('Approvals queue (§21 C1)', () => {
     await mockAuthAndNavigate(page, `${BASE}/approvals`)
 
     // Ligne de la demande + compteur du pill
-    await expect(page.locator('td', { hasText: 'Dyson Summer' })).toBeVisible()
+    await expect(page.locator('td', { hasText: 'Brightwell Summer' })).toBeVisible()
     await expect(page.locator('td', { hasText: 'Sales Sam' })).toBeVisible()
     const pendingPill = page.getByRole('button', { name: /pending review/i })
     await expect(pendingPill).toContainText('1')
@@ -118,7 +118,7 @@ test.describe('Approvals queue (§21 C1)', () => {
     const filtered = page.waitForRequest((r) => r.url().includes('/approvals/?status=pending_review'))
     await pendingPill.click()
     await filtered
-    await expect(page.locator('td', { hasText: 'Dyson Summer' })).toBeVisible()
+    await expect(page.locator('td', { hasText: 'Brightwell Summer' })).toBeVisible()
   })
 
   test('drawer_timeline_approve_and_reject_requires_comment', async ({ page }) => {
@@ -126,15 +126,15 @@ test.describe('Approvals queue (§21 C1)', () => {
     await mockApprovalRoutes(page, { onAction: (a, b) => actions.push([a, b]) })
     await mockAuthAndNavigate(page, `${BASE}/approvals`)
 
-    await page.locator('td', { hasText: 'Dyson Summer' }).click()
-    const drawer = page.getByRole('dialog', { name: 'Dyson Summer' })
+    await page.locator('td', { hasText: 'Brightwell Summer' }).click()
+    const drawer = page.getByRole('dialog', { name: 'Brightwell Summer' })
     await expect(drawer).toBeVisible()
     await expect(drawer.locator('text=Please review')).toBeVisible()
     await expect(drawer.locator('text=Sales Sam').first()).toBeVisible()
 
     // Le reviewer VOIT ce qu'il approuve : lecteur vidéo inline + badge pending + hint
     await expect(drawer.locator('video')).toBeVisible()
-    await expect(drawer.locator('text=spot-dyson')).toBeVisible()
+    await expect(drawer.locator('text=spot-brightwell')).toBeVisible()
     await expect(drawer.locator('text=Approving the request also approves pending creatives.')).toBeVisible()
     // ... et les paramètres commerciaux + cible nommée + occupation projetée
     await expect(drawer.locator('text=25 %')).toBeVisible()
@@ -169,17 +169,17 @@ test.describe('Approvals queue (§21 C1)', () => {
     await mockApprovalRoutes(page, { rows: [APPROVAL, OLD], onAction: (a, b) => actions.push([a, b]) })
     await mockAuthAndNavigate(page, `${BASE}/approvals`)
 
-    await expect(page.locator('td', { hasText: 'Dyson Summer' })).toBeVisible()
+    await expect(page.locator('td', { hasText: 'Brightwell Summer' })).toBeVisible()
     await expect(page.locator('td', { hasText: 'Old Promo' })).toBeVisible()
 
     // Recherche client-side sur le nom de ressource
     await page.getByPlaceholder('Search…').fill('old')
-    await expect(page.locator('td', { hasText: 'Dyson Summer' })).toHaveCount(0)
+    await expect(page.locator('td', { hasText: 'Brightwell Summer' })).toHaveCount(0)
     await expect(page.locator('td', { hasText: 'Old Promo' })).toBeVisible()
     await page.getByPlaceholder('Search…').fill('')
 
     // Poubelle : absente sur la ligne active, présente sur la terminée
-    const activeRow = page.locator('tr', { hasText: 'Dyson Summer' })
+    const activeRow = page.locator('tr', { hasText: 'Brightwell Summer' })
     const oldRow = page.locator('tr', { hasText: 'Old Promo' })
     await expect(activeRow.getByTitle('Delete request')).toHaveCount(0)
     page.on('dialog', (d) => d.accept())
@@ -190,17 +190,17 @@ test.describe('Approvals queue (§21 C1)', () => {
 
   test('campaign_drawer_submit_for_approval_then_badge', async ({ page }) => {
     const CAMPAIGN = {
-      id_campaign: 1, id_advertiser: 1, campaign_name: 'Dyson Summer', status: 'draft',
+      id_campaign: 1, id_advertiser: 1, campaign_name: 'Brightwell Summer', status: 'draft',
       starts_on: '2026-07-01', ends_on: '2026-07-31', daily_hours: null,
       sov_percent: 20, pricing_model: 'sov', price_amount: null, price_currency: 'EUR',
-      cpm_rate: null, priority: 50, advertiser_name: 'Dyson', creative_count: 0,
+      cpm_rate: null, priority: 50, advertiser_name: 'Brightwell', creative_count: 0,
       target_player_count: 0, approval_request: null,
       targets: [{ id_target: 1, target_type: 'org', target_id: null }],
     }
     await mockApprovalRoutes(page)
     for (const [glob, body] of [
       ['**/api/v1/campaigns/', JSON.stringify([CAMPAIGN])],
-      ['**/api/v1/advertisers/', JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Dyson', id_folder: null }])],
+      ['**/api/v1/advertisers/', JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Brightwell', id_folder: null }])],
       ['**/api/v1/sites', '[]'], ['**/api/v1/player-groups/', '[]'],
       ['**/api/v1/site-groups/', '[]'], ['**/api/v1/players/', '[]'],
       ['**/api/v1/campaigns/inventory**', '[]'],
@@ -214,8 +214,8 @@ test.describe('Approvals queue (§21 C1)', () => {
     }
     await mockAuthAndNavigate(page, `${BASE}/campaigns`)
 
-    await page.locator('td', { hasText: 'Dyson Summer' }).click()
-    const drawer = page.getByRole('dialog', { name: 'Dyson Summer' })
+    await page.locator('td', { hasText: 'Brightwell Summer' }).click()
+    const drawer = page.getByRole('dialog', { name: 'Brightwell Summer' })
     await expect(drawer.getByRole('button', { name: 'Publish' })).toBeVisible()
 
     // Soumettre pour approbation → POST /approvals/ + badge « Pending review »,

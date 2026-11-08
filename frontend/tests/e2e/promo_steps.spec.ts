@@ -39,7 +39,7 @@ const TEMPLATES = {
   resolutions: { '16:9': ['fhd', '4k'] },
 }
 
-async function setup(page: Page, { advertisers = [{ id_advertiser: 7, advertiser_name: 'Dyson' }] } = {}) {
+async function setup(page: Page, { advertisers = [{ id_advertiser: 7, advertiser_name: 'Brightwell' }] } = {}) {
   await page.goto(`${BASE}/login`)
   await page.evaluate((u) => {
     const b64url = (o: unknown) =>

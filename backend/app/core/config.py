@@ -24,9 +24,7 @@ class Settings(BaseSettings):
     # RECOMMANDÉE (on proscrit une release cassée), les notes et un flag sécurité,
     # et il se sonde sans identifiants registre. Un build source ("dev") n'a pas
     # de version comparable ⇒ la cloche reste muette (cas de la prod SaaS).
-    SIGNFLOW_UPDATE_MANIFEST_URL: str = (
-        "https://raw.githubusercontent.com/edkahall/signflow-install/main/versions.json"
-    )
+    SIGNFLOW_UPDATE_MANIFEST_URL: str = ""  # vide = cloche de mise à jour désactivée (opt-in)
     # Interrupteur : true = self-hosted (défaut, le client/intégrateur exploite son
     # serveur). Mettre à false sur une prod multi-tenant qu'on exploite nous-mêmes
     # pour ne pas notifier les org-admins locataires d'une MAJ qu'ils ne font pas.
@@ -111,7 +109,7 @@ class Settings(BaseSettings):
     # écran : elle déclenche une rotation. Auto-refresh proactif des players online
     # (check_player_health) + grâce-à-la-reconnexion sur le WS pour les players qui
     # étaient offline pendant leur fenêtre de refresh. Manuel = uniquement révocation
-    # délibérée par un admin. cf. CLAUDE.md / [[project-player-token-policy]].
+    # délibérée par un admin. cf. CLAUDE.md.
     CMS_PLAYER_TOKEN_EXPIRE_DAYS: int = 60
     # Players online : on fait tourner le token quand il reste ≤ N jours avant expiration.
     CMS_PLAYER_TOKEN_REFRESH_DAYS: int = 20

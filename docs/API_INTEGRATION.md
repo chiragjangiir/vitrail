@@ -1,43 +1,44 @@
-# Guide d'intégration API — SignFlow CMS
+# API integration guide — Vitrail CMS
 
-> Pour un intégrateur/développeur tiers. Ce guide est le **chemin d'entrée** : la référence
-> exhaustive de tous les endpoints est le **Swagger auto-généré** de votre instance :
-> `https://votre-serveur/api/docs` (ReDoc : `/api/redoc`, schéma brut : `/api/openapi.json`).
-> La doc interactive peut être coupée par l'exploitant (`CMS_DOCS_ENABLED=false`).
+🇫🇷 [Version française](API_INTEGRATION.fr.md)
 
-## 1. Conventions générales
+> For a third-party integrator/developer. This guide is the **entry point**: the exhaustive
+> reference of all endpoints is the **auto-generated Swagger** of your instance:
+> `https://votre-serveur/api/docs` (ReDoc: `/api/redoc`, raw schema: `/api/openapi.json`).
+> The interactive documentation can be disabled by the operator (`CMS_DOCS_ENABLED=false`).
 
-- **Base URL** : `https://votre-serveur/api/v1` — toute l'API vit sous ce préfixe.
-  Exception : le healthcheck est `GET /health` (hors `/api/v1`).
-- **Auth** : en-tête `Authorization: Bearer <jeton>` — JWT utilisateur ou clé API selon la surface.
-- **Trailing slash** : les endpoints « collection » sont déclarés avec un slash final
-  (ex. `GET /api/v1/players/`). Sans lui, FastAPI répond **307 Redirect** — et derrière un
-  reverse-proxy la redirection peut pointer vers une URL interne inutilisable. **Gardez le `/` final.**
-- **Erreurs** : format FastAPI standard `{"detail": "..."}` (le `detail` peut être un objet,
-  ex. les erreurs d'import de campagne `{"detail": {"errors": [...]}}` ou le 402 plafond BYOK).
-- **Multi-tenant** : chaque ressource appartient à une organisation (RLS PostgreSQL).
-  Une ressource d'une autre organisation répond **404** (jamais 403) — l'existence même
-  d'une ressource étrangère n'est pas révélée.
-- **Rate limiting** : garde-fou global **600 requêtes/min/IP** (configurable côté serveur,
-  `429` au-delà). Le login a son propre anti-brute-force : **10 échecs / 5 min** par IP et
-  par compte → `429`. Ce sont des filets anti-flood, pas des quotas métier.
-- **Pagination** : **pas de pagination standardisée** sur toutes les listes. La plupart des
-  endpoints de liste renvoient le tableau complet de l'organisation ; quelques-uns acceptent
-  `offset`/`limit` (ex. `GET /media/?offset=0&limit=500`, max 2000). Vérifiez chaque endpoint
-  dans le Swagger.
-- **Codes usuels** : `401` jeton/clé invalide ou expiré · `403` permission refusée (RBAC),
-  compte démo (`demo_blocked`), licence expirée (`licence_readonly`) · `404` introuvable ou
-  hors organisation · `409` quota licence (players) · `422` corps invalide · `429` rate limit.
+## 1. General conventions
 
-## 2. Authentification utilisateur (JWT)
+- **Base URL**: `https://votre-serveur/api/v1` — the whole API lives under this prefix.
+  Exception: the healthcheck is `GET /health` (outside `/api/v1`).
+- **Auth**: `Authorization: Bearer <jeton>` header — user JWT or API key depending on the surface.
+- **Trailing slash**: "collection" endpoints are declared with a trailing slash
+  (e.g. `GET /api/v1/players/`). Without it, FastAPI responds **307 Redirect** — and behind a
+  reverse proxy the redirect may point to an unusable internal URL. **Keep the trailing `/`.**
+- **Errors**: standard FastAPI format `{"detail": "..."}` (`detail` may be an object,
+  e.g. campaign import errors `{"detail": {"errors": [...]}}` or the BYOK spending-cap 402).
+- **Multi-tenant**: every resource belongs to an organisation (PostgreSQL RLS).
+  A resource from another organisation responds **404** (never 403) — the very existence
+  of a foreign resource is not revealed.
+- **Rate limiting**: global safeguard of **600 requests/min/IP** (configurable server-side,
+  `429` beyond that). Login has its own anti-brute-force: **10 failures / 5 min** per IP and
+  per account → `429`. These are anti-flood safety nets, not business quotas.
+- **Pagination**: **no standardised pagination** across all lists. Most list endpoints return
+  the organisation's complete array; a few accept `offset`/`limit`
+  (e.g. `GET /media/?offset=0&limit=500`, max 2000). Check each endpoint in the Swagger.
+- **Common codes**: `401` invalid or expired token/key · `403` permission denied (RBAC),
+  demo account (`demo_blocked`), expired licence (`licence_readonly`) · `404` not found or
+  outside the organisation · `409` licence quota (players) · `422` invalid body · `429` rate limit.
 
-| Endpoint | Rôle |
+## 2. User authentication (JWT)
+
+| Endpoint | Role |
 |---|---|
-| `POST /api/v1/auth/login` | email + mot de passe (+ TOTP) → access + refresh tokens |
-| `POST /api/v1/auth/refresh` | refresh token → nouvel access token |
-| `POST /api/v1/auth/revoke` | révoque un refresh token (logout) |
-| `POST /api/v1/auth/totp/setup` | génère secret TOTP + QR + 10 codes de secours |
-| `POST /api/v1/auth/totp/verify` | confirme le secret et active le 2FA |
+| `POST /api/v1/auth/login` | email + password (+ TOTP) → access + refresh tokens |
+| `POST /api/v1/auth/refresh` | refresh token → new access token |
+| `POST /api/v1/auth/revoke` | revokes a refresh token (logout) |
+| `POST /api/v1/auth/totp/setup` | generates TOTP secret + QR + 10 backup codes |
+| `POST /api/v1/auth/totp/verify` | confirms the secret and enables 2FA |
 
 ```bash
 curl -X POST https://votre-serveur/api/v1/auth/login \
@@ -49,52 +50,52 @@ curl https://votre-serveur/api/v1/users/me \
   -H "Authorization: Bearer <access_token>"
 ```
 
-- **Durées** (configurables serveur) : access token **15 min**, refresh token **7 jours**.
-  Au `401` sur l'access token, appelez `POST /auth/refresh` avec le refresh token.
-- **2FA TOTP** : obligatoire pour `CMS_SUPER_ADMIN` et `CMS_ORG_ADMIN` (et selon la politique
-  de l'organisation). Passez `totp_code` (ou `backup_code`) dans le corps du login. Un code
-  TOTP est **à usage unique** dans sa fenêtre (anti-rejeu). Si le 2FA est requis mais non
-  enrôlé, le login répond `403` avec `{"force_2fa_setup": true, "enrolment_token": "..."}` :
-  ce jeton (10 min) n'ouvre QUE `/auth/totp/setup` et `/auth/totp/verify`.
-- Les droits sont portés par le RBAC (`module:opération`) — un `403` liste la permission
-  manquante dans `detail`.
+- **Lifetimes** (configurable server-side): access token **15 min**, refresh token **7 days**.
+  On a `401` on the access token, call `POST /auth/refresh` with the refresh token.
+- **TOTP 2FA**: mandatory for `CMS_SUPER_ADMIN` and `CMS_ORG_ADMIN` (and depending on the
+  organisation's policy). Pass `totp_code` (or `backup_code`) in the login body. A TOTP code is
+  **single-use** within its window (anti-replay). If 2FA is required but not enrolled, login
+  responds `403` with `{"force_2fa_setup": true, "enrolment_token": "..."}`:
+  this token (10 min) opens ONLY `/auth/totp/setup` and `/auth/totp/verify`.
+- Rights are carried by RBAC (`module:opération`) — a `403` lists the missing permission
+  in `detail`.
 
-**Pour une intégration machine, préférez les clés API ci-dessous** : elles sont révocables,
-scopées à une seule surface, et ne passent pas par le 2FA.
+**For a machine integration, prefer the API keys below**: they are revocable, scoped to a
+single surface, and do not go through 2FA.
 
-## 3. Clés API — les 4 préfixes
+## 3. API keys — the 4 prefixes
 
-Toutes sont stockées hachées (SHA-256), la **valeur en clair n'est renvoyée qu'à la création**,
-et se passent en `Authorization: Bearer <clé>`. Chaque clé n'ouvre QUE sa surface (scope unique).
+All are stored hashed (SHA-256), the **plaintext value is returned only at creation**, and they
+are passed as `Authorization: Bearer <clé>`. Each key opens ONLY its own surface (single scope).
 
-| Préfixe | Usage | Création (UI) | Endpoints de gestion (org-admin) | Expiration |
+| Prefix | Use | Creation (UI) | Management endpoints (org-admin) | Expiry |
 |---|---|---|---|---|
-| `sfr_` | Exports BI CSV (§5) | Rapports → Executive Dashboard → clés BI | `GET/POST /analytics/bi-keys`, `DELETE /analytics/bi-keys/{id}` | optionnelle (`expires_in_days`, max 3650 ; sinon permanente) |
-| `sfi_` | Import de campagnes retail media | Campagnes → Importer (JSON) → « Clés d'import par API » | `GET/POST /campaigns/import-keys`, `DELETE /campaigns/import-keys/{id}` | optionnelle (idem) |
-| `sfk_` | Clé **opérateur** de provisioning (installeur terrain) | Réglages → Players → Provisioning → clé opérateur | `GET/POST /orgs/{id_org}/provisioning-keys`, `POST .../{id}/revoke`, `DELETE .../{id}` | **obligatoire** (défaut 90 j, max 730) |
-| `sfp_` | **Token de provisioning player** (usage machine, consommé à l'enregistrement) | Réglages → Players → Provisioning (ou généré dans un payload) | `GET/POST /orgs/{id_org}/provisioning-tokens`, `POST .../{id}/revoke`, `DELETE .../{id}` | optionnelle + `max_uses` |
+| `sfr_` | BI CSV exports (§5) | Reports → Executive Dashboard → BI keys | `GET/POST /analytics/bi-keys`, `DELETE /analytics/bi-keys/{id}` | optional (`expires_in_days`, max 3650; otherwise permanent) |
+| `sfi_` | Retail media campaign import | Campaigns → Import (JSON) → "API import keys" | `GET/POST /campaigns/import-keys`, `DELETE /campaigns/import-keys/{id}` | optional (same) |
+| `sfk_` | Provisioning **operator** key (field installer) | Settings → Players → Provisioning → operator key | `GET/POST /orgs/{id_org}/provisioning-keys`, `POST .../{id}/revoke`, `DELETE .../{id}` | **mandatory** (default 90 d, max 730) |
+| `sfp_` | **Player provisioning token** (machine use, consumed at registration) | Settings → Players → Provisioning (or generated in a payload) | `GET/POST /orgs/{id_org}/provisioning-tokens`, `POST .../{id}/revoke`, `DELETE .../{id}` | optional + `max_uses` |
 
-- La révocation (`DELETE` sur `sfr_`/`sfi_`, `POST .../revoke` sur `sfk_`/`sfp_`) est
-  immédiate ; `last_used_at` est tenu à jour pour l'audit.
-- Particularité `sfr_` : acceptée **aussi en query** `?api_key=sfr_...` (voir §5).
-- `sfp_` n'est pas une clé d'API à proprement parler : c'est le jeton à usage limité que le
-  player échange contre son JWT machine via `POST /players/register` (voir §6).
+- Revocation (`DELETE` on `sfr_`/`sfi_`, `POST .../revoke` on `sfk_`/`sfp_`) is
+  immediate; `last_used_at` is kept up to date for auditing.
+- `sfr_` specificity: also accepted **in the query string** `?api_key=sfr_...` (see §5).
+- `sfp_` is not an API key strictly speaking: it is the limited-use token that the player
+  exchanges for its machine JWT via `POST /players/register` (see §6).
 
-## 4. Exports BI (CSV) — clés `sfr_`
+## 4. BI exports (CSV) — `sfr_` keys
 
-Trois flux CSV stables pour Power BI / Tableau / Excel / Metabase. En-têtes de colonnes
-**snake_case anglais, contractuels** (jamais renommés ; les colonnes nouvelles s'ajoutent en fin).
+Three stable CSV feeds for Power BI / Tableau / Excel / Metabase. Column headers are
+**English snake_case and contractual** (never renamed; new columns are appended at the end).
 
-| Flux | Chemin | Contenu |
+| Feed | Path | Content |
 |---|---|---|
-| Proof of Play brut | `GET /api/v1/analytics/export/pop.csv` | une ligne par diffusion (horodatage UTC, player, site, média, durée, signé, `screen_off`, `covered`) |
-| Métriques réseau | `GET /api/v1/analytics/export/network-metrics.csv` | rollup quotidien (uptime, conformité, alertes, health score) — côté JWT, **réservé org-admin** |
-| Performance contenu | `GET /api/v1/analytics/export/content.csv` | agrégat par média (diffusions, durée, portée players/sites) |
+| Raw Proof of Play | `GET /api/v1/analytics/export/pop.csv` | one row per play (UTC timestamp, player, site, media, duration, signed, `screen_off`, `covered`) |
+| Network metrics | `GET /api/v1/analytics/export/network-metrics.csv` | daily rollup (uptime, compliance, alerts, health score) — with a JWT, **org-admin only** |
+| Content performance | `GET /api/v1/analytics/export/content.csv` | aggregate per media (plays, duration, player/site reach) |
 
-**Paramètres** : `?from=YYYY-MM-DD&until=YYYY-MM-DD` (défaut : 30 derniers jours ; max 366 jours).
+**Parameters**: `?from=YYYY-MM-DD&until=YYYY-MM-DD` (default: last 30 days; max 366 days).
 
-**Auth** : JWT utilisateur (`reports:read`, comptes démo refusés) **ou** clé `sfr_`, en Bearer
-ou en query — les connecteurs BI web ne posent pas toujours d'en-tête :
+**Auth**: user JWT (`reports:read`, demo accounts refused) **or** `sfr_` key, as Bearer
+or in the query string — web BI connectors do not always set a header:
 
 ```bash
 curl "https://votre-serveur/api/v1/analytics/export/pop.csv?from=2026-07-01&until=2026-07-31" \
@@ -103,36 +104,38 @@ curl "https://votre-serveur/api/v1/analytics/export/pop.csv?from=2026-07-01&unti
 curl "https://votre-serveur/api/v1/analytics/export/pop.csv?api_key=sfr_XXXXXXXX"
 ```
 
-Notes : un utilisateur JWT scopé par la gouvernance §XVIII ne voit que son périmètre dans
-`pop.csv` et `content.csv` ; la clé `sfr_` appartient à l'organisation et n'est pas restreinte.
-Dans `pop.csv`, les lignes `screen_off=true` ou `covered=true` sont exportées (flux de preuves
-brutes) mais doivent être exclues de vos totaux d'antenne ; `content.csv` les exclut déjà.
+(The second form is for Power BI "Web", Excel, etc.)
 
-## 5. Import de campagnes (retail media) — clés `sfi_`
+Notes: a JWT user scoped by governance §XVIII only sees their own perimeter in
+`pop.csv` and `content.csv`; the `sfr_` key belongs to the organisation and is not restricted.
+In `pop.csv`, rows with `screen_off=true` or `covered=true` are exported (raw proof feed) but
+must be excluded from your airtime totals; `content.csv` already excludes them.
 
-Deux endpoints, mêmes corps JSON (« ordre d'insertion ») :
+## 5. Campaign import (retail media) — `sfi_` keys
 
-- `POST /api/v1/campaigns/import/dry-run` — valide sans rien créer (cibles résolues, occupation SOV)
-- `POST /api/v1/campaigns/import` — crée annonceur (si nouveau) + campagne **draft** + créatifs
-  téléchargés en tâche de fond ; la publication reste manuelle dans le CMS.
+Two endpoints, same JSON body ("insertion order"):
 
-Auth : JWT `campaigns:create` **ou** clé `sfi_` en Bearer. Le format complet du JSON, le
-schéma champ par champ et les exemples sont dans **`docs/FORMAT_IMPORT_CAMPAGNE.md`** — ce
-guide ne les duplique pas.
+- `POST /api/v1/campaigns/import/dry-run` — validates without creating anything (resolved targets, SOV occupancy)
+- `POST /api/v1/campaigns/import` — creates the advertiser (if new) + a **draft** campaign +
+  creatives downloaded in the background; publishing remains manual in the CMS.
 
-## 6. Provisioning des players — `sfk_` et `sfp_`
+Auth: JWT `campaigns:create` **or** `sfi_` key as Bearer. The full JSON format, the
+field-by-field schema and the examples are in **`docs/FORMAT_IMPORT_CAMPAGNE.md`** — this
+guide does not duplicate them.
 
-Surface utilisée par l'installeur terrain (§XXIX). La clé opérateur `sfk_` (ou un JWT
-org-admin) donne accès uniquement à :
+## 6. Player provisioning — `sfk_` and `sfp_`
 
-| Endpoint | Rôle |
+Surface used by the field installer (§XXIX). The `sfk_` operator key (or an org-admin JWT)
+gives access only to:
+
+| Endpoint | Role |
 |---|---|
-| `GET /api/v1/provisioning/whoami` | identifie l'organisation de la clé |
-| `POST /api/v1/orgs/{id_org}/provisioning-payload` | génère un **payload** : token `sfp_` + backend_url + config réseau/options (`id_player` = ré-attache à un player existant) |
-| `POST /api/v1/orgs/{id_org}/provisioning-batch` | lot : N payloads (`per_machine`) ou 1 token partagé `max_uses=N` (`shared`) |
-| `GET /api/v1/provisioning/players/{id_player}/status` | poll du passage online après la pose |
+| `GET /api/v1/provisioning/whoami` | identifies the key's organisation |
+| `POST /api/v1/orgs/{id_org}/provisioning-payload` | generates a **payload**: `sfp_` token + backend_url + network config/options (`id_player` = re-attach to an existing player) |
+| `POST /api/v1/orgs/{id_org}/provisioning-batch` | batch: N payloads (`per_machine`) or 1 shared token `max_uses=N` (`shared`) |
+| `GET /api/v1/provisioning/players/{id_player}/status` | polls for the player coming online after installation |
 
-Le device consomme ensuite son token `sfp_` sur l'endpoint **public** :
+The device then consumes its `sfp_` token on the **public** endpoint:
 
 ```bash
 curl -X POST https://votre-serveur/api/v1/players/register \
@@ -142,38 +145,38 @@ curl -X POST https://votre-serveur/api/v1/players/register \
 # → {"id_player": 42, "player_token": "<JWT player 60 j>", "expires_at": "..."}
 ```
 
-Le `player_token` retourné est le JWT machine du player (renouvelé automatiquement ensuite).
-La création des clés `sfk_` et des tokens `sfp_` reste réservée au JWT org-admin.
+The returned `player_token` is the player's machine JWT (valid 60 days, then renewed
+automatically). Creating `sfk_` keys and `sfp_` tokens remains reserved to the org-admin JWT.
 
-## 7. Webhooks sortants (notifications §XXII)
+## 7. Outgoing webhooks (notifications §XXII)
 
-Le CMS **émet** des webhooks (il n'en reçoit pas). Configuration : Réglages → Notifications —
-un **canal** (`channel_type: "webhook"`, config `{url, secret}`) + des **règles** qui lient un
-type d'événement à un canal. Gestion par API (org-admin) : `GET/POST/PUT/DELETE
+The CMS **sends** webhooks (it does not receive any). Configuration: Settings → Notifications —
+a **channel** (`channel_type: "webhook"`, config `{url, secret}`) + **rules** that link an
+event type to a channel. Management via API (org-admin): `GET/POST/PUT/DELETE
 /api/v1/notifications/channels[...]`, `/rules[...]`, `POST /channels/{id}/test`, `GET /log`,
 `GET /event-types`.
 
-**Événements émis** : `player_offline`, `player_storage_full`, `deployment_failed`,
+**Events emitted**: `player_offline`, `player_storage_full`, `deployment_failed`,
 `feed_error`, `campaign_started`, `campaign_ended`, `campaign_underserved`,
 `approval_requested`, `approval_approved`, `approval_rejected`,
 `approval_changes_requested`, `licence_expiring`.
 
-**Payload** (POST JSON, `Content-Type: application/json`) :
+**Payload** (JSON POST, `Content-Type: application/json`):
 
 ```json
 {"event": "player_offline", "subject": "…", "body": "…",
  "context": {"player_name": "…", "...": "…"}, "source": "signflow"}
 ```
 
-`context` porte les champs bruts propres à l'événement ; `subject`/`body` sont des textes prêts
-à afficher. Livraison : 1 essai synchrone puis 4 réessais (~15 min, uniquement sur 5xx/408/429
-ou erreur réseau — jamais sur un autre 4xx). Journal consultable via `GET /notifications/log`.
+`context` carries the raw fields specific to the event; `subject`/`body` are ready-to-display
+texts. Delivery: 1 synchronous attempt then 4 retries (~15 min, only on 5xx/408/429 or network
+error — never on another 4xx). Log available via `GET /notifications/log`.
 
-**Signature HMAC** — chaque canal a un secret `whsec_...` (généré côté serveur, visible dans la
-config du canal, rotation via `rotate_secret: true` au PUT). En-têtes envoyés :
+**HMAC signature** — each channel has a `whsec_...` secret (generated server-side, visible in the
+channel config, rotated via `rotate_secret: true` on PUT). Headers sent:
 `X-SignFlow-Signature` (`sha256=<hex>`), `X-SignFlow-Timestamp` (epoch), `X-SignFlow-Event`,
-`X-SignFlow-Attempt`. La signature couvre `"{timestamp}." + corps brut`. Vérification de
-référence :
+`X-SignFlow-Attempt`. The signature covers `"{timestamp}." + raw body`. Reference
+verification:
 
 ```python
 import hmac, hashlib, time
@@ -189,19 +192,21 @@ def signflow_webhook_is_authentic(secret, headers, raw_body, tolerance=300):
     return hmac.compare_digest(expected, sig)   # jamais `==`
 ```
 
-⚠️ Signez le corps **brut reçu** (jamais le JSON re-sérialisé) et comparez avec
-`compare_digest`. Les canaux créés avant l'introduction de la signature peuvent ne pas avoir
-de secret : ils reçoivent alors le POST **sans** en-têtes de signature (un secret leur est
-attribué à leur première modification).
+(A timestamp that is too old, or dated in the future, is treated as a replay; never compare with
+`==`.)
 
-## 8. Ce qui n'existe pas encore
+⚠️ Sign the **raw body as received** (never the re-serialised JSON) and compare with
+`compare_digest`. Channels created before the signature was introduced may have no secret:
+they then receive the POST **without** signature headers (a secret is assigned to them on their
+first modification).
 
-- **API publique « PaaS §6.3 »** (OAuth M2M client_credentials, webhooks HMAC configurables
-  par app, Developer Portal) : **non livrée** — prévue Phase 4. Les clés `sfr_`/`sfi_`/`sfk_`
-  ci-dessus sont les seules surfaces machine disponibles.
-- **Webhooks entrants** : aucun endpoint n'accepte de push externe (les feeds sont tirés par
-  le serveur).
-- **Pagination standardisée** : pas d'enveloppe commune (`total`, `next`...) ; `offset`/`limit`
-  seulement là où le Swagger les montre.
-- **Versionnement d'API** : `/api/v1` unique, pas de header de version ni de changelog d'API
-  publié — les colonnes CSV des exports BI sont le seul contrat de stabilité explicite.
+## 8. What does not exist yet
+
+- **Public "PaaS §6.3" API** (OAuth M2M client_credentials, per-app configurable HMAC webhooks,
+  Developer Portal): **not delivered** — planned for Phase 4. The `sfr_`/`sfi_`/`sfk_` keys
+  above are the only machine surfaces available.
+- **Incoming webhooks**: no endpoint accepts external pushes (feeds are pulled by the server).
+- **Standardised pagination**: no common envelope (`total`, `next`...); `offset`/`limit`
+  only where the Swagger shows them.
+- **API versioning**: a single `/api/v1`, no version header and no published API changelog —
+  the BI export CSV columns are the only explicit stability contract.

@@ -10,7 +10,7 @@ Create Date: 2026-07-12 18:00:00.000000
   est une information interne (arbitrage EVOLUTIONS, demande Ed 2026-07-11).
 - `campaign_creative_max_duration_s` (défaut 30, NULL = pas de limite) : durée
   maximale d'un créatif de campagne — garde-fou « créatif long × boucle courte »
-  (cas Nissan 90 s sur boucle 80 s = 46 % servis pour 15 % vendus ; décision Ed
+  (cas Corvane 90 s sur boucle 80 s = 46 % servis pour 15 % vendus ; décision Ed
   2026-07-12 : limite fixe réglable plutôt que formule dynamique). Appliquée à
   l'ajout : CMS, upload portail, import JSON.
 """

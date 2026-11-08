@@ -170,15 +170,15 @@ async def test_advertiser_kind_and_soft_delete_excluded(
     token = await _make_user(client, db_session, org, [("campaigns", "read")])
     headers = {"Authorization": f"Bearer {token}"}
 
-    db_session.add(CmsAdvertiser(id_org=org.id_org, advertiser_name="Dyson France"))
+    db_session.add(CmsAdvertiser(id_org=org.id_org, advertiser_name="Brightwell France"))
     db_session.add(CmsAdvertiser(
-        id_org=org.id_org, advertiser_name="Dyson Legacy", is_deleted=True))
+        id_org=org.id_org, advertiser_name="Brightwell Legacy", is_deleted=True))
     await db_session.commit()
 
-    resp = await client.get("/api/v1/search", params={"q": "Dyson"}, headers=headers)
+    resp = await client.get("/api/v1/search", params={"q": "Brightwell"}, headers=headers)
     assert resp.status_code == 200, resp.text
     labels = [i["label"] for i in _items(resp.json(), "advertiser")]
-    assert labels == ["Dyson France"]  # le soft-deleted ne remonte pas
+    assert labels == ["Brightwell France"]  # le soft-deleted ne remonte pas
 
 
 async def test_href_carries_query_for_local_prefill(

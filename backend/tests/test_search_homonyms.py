@@ -298,7 +298,7 @@ async def test_campaigns_are_told_apart_by_their_advertiser(
     """« Soldes été » chez deux annonceurs : c'est le nom de l'annonceur qui tranche."""
     token = await _token(client, db_session, org, [("campaigns", "read")])
 
-    a1 = CmsAdvertiser(id_org=org.id_org, advertiser_name="Dyson")
+    a1 = CmsAdvertiser(id_org=org.id_org, advertiser_name="Brightwell")
     a2 = CmsAdvertiser(id_org=org.id_org, advertiser_name="Nespresso")
     db_session.add_all([a1, a2])
     await db_session.flush()
@@ -315,7 +315,7 @@ async def test_campaigns_are_told_apart_by_their_advertiser(
     r = await client.get("/api/v1/search", params={"q": "Soldes WXY"},
                          headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 200, r.text
-    assert sorted(i["sublabel"] for i in _items(r.json(), "campaign")) == ["Dyson", "Nespresso"]
+    assert sorted(i["sublabel"] for i in _items(r.json(), "campaign")) == ["Brightwell", "Nespresso"]
 
 
 # ── Le chemin lisible est partagé, il ne peut pas diverger ─────────────────────

@@ -944,7 +944,7 @@ export default function MediaPage() {
           </button>
           {/* Le nom seul ne suffit pas : deux dossiers homonymes sous deux parents
               differents donnaient ici deux lignes IDENTIQUES a la meme indentation
-              (3 cas reels en prod). On affiche donc le chemin complet du serveur sous
+              (cas fréquent en pratique). On affiche donc le chemin complet du serveur sous
               le nom des qu'il y a un parent — c'est ce qui permet de choisir. */}
           {folders.map((f) => (
             <button

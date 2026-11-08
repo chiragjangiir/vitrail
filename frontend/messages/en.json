@@ -128,7 +128,7 @@
     "demo_caps_3": "Explain the product — the full user guide is built into its knowledge.",
     "demo_caps_4": "Also reachable from Telegram (the “Jeanine” assistant), with each user's own permissions.",
     "demo_ex_1": "“Broadcast the promo video on the entrance screen until 6pm”",
-    "demo_ex_2": "“How did the Dyson campaign deliver yesterday?”",
+    "demo_ex_2": "“How did the Brightwell campaign deliver yesterday?”",
     "demo_ex_3": "“Turn off the screens of the Bordeaux store tonight”",
     "demo_note": "Demo account: the assistant is disabled to avoid AI usage. On a real account it responds live, powered by your organization's own AI keys (BYOK).",
     "demo_placeholder": "Disabled on a demo account"

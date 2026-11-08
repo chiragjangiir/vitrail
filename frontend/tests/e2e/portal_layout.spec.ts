@@ -45,7 +45,7 @@ async function openPortal(page: import('@playwright/test').Page, height: number)
       body: JSON.stringify({ access_token: TOKEN, refresh_token: 'r', token_type: 'bearer', locale: 'en' }) }))
   await page.route('**/api/v1/portal/branding', (r) =>
     r.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ org_name: 'Acme', advertiser_name: 'Dyson', primary_color: '#4875B4', report_title: null, logo_url: null }) }))
+      body: JSON.stringify({ org_name: 'Acme', advertiser_name: 'Brightwell', primary_color: '#4875B4', report_title: null, logo_url: null }) }))
   await page.route('**/api/v1/portal/overview', (r) =>
     r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
       campaigns: { total: 6, active: 3, visual: 3, audio: 3 },

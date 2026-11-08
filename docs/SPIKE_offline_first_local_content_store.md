@@ -1,37 +1,39 @@
-# SPIKE — Players offline-first / Local Content Store (download-then-play)
+# SPIKE — Offline-first players / Local Content Store (download-then-play)
 
-> Spike de design (2026-06-07). Cadre l'épopée d'`EVOLUTIONS.md § « Players offline-first / Local Content Store »` dans le **code réel** et tranche les décisions d'archi **avant de coder**. Même démarche que `SPIKE_scheduling_targeting_core.md`.
+🇫🇷 [Version française](SPIKE_offline_first_local_content_store.fr.md)
+
+> Design spike (2026-06-07). Frames the epic from `EVOLUTIONS.md § « Players offline-first / Local Content Store »` in the **actual code** and settles the architecture decisions **before coding**. Same approach as `SPIKE_scheduling_targeting_core.md`.
 >
-> **Verdict : GO**, par phases, en commençant par le **store + download manager mono-player (Linux/RPi)** avec **repli streaming gracieux** (zéro régression). Q5 (quarantaine/purge) déjà livré (migr 0031).
+> **Verdict: GO**, in phases, starting with the **store + single-player download manager (Linux/RPi)** with a **graceful streaming fallback** (zero regression). Q5 (quarantine/purge) already delivered (migration 0031).
 
 ---
 
-## 1. Objectif
+## 1. Goal
 
-Passer les players **Electron** (linux / rpi / windows) du modèle **streaming** (chaque média lu depuis MinIO via URL signée, octets en cache HTTP Chromium) au modèle **download-then-play** (octets téléchargés dans un **store local sur disque**, diffusion depuis le disque).
+Move the **Electron** players (linux / rpi / windows) from the **streaming** model (each media read from MinIO via a signed URL, bytes in the Chromium HTTP cache) to the **download-then-play** model (bytes downloaded into a **local on-disk store**, playback from disk).
 
-**Pourquoi :**
-- **Résilience offline** (le player tient une coupure réseau au-delà du cache HTTP volatil).
-- **Sync LAN robuste** : un mur ne doit pas dépendre d'un fetch réseau à chaque frontière d'item.
-- **Règle les seeks de contention de l'AOpen** (mur synchronisé → 4 players re-fetchent au même instant à chaque frontière ; cf. note terrain mur 4 écrans). Avec un store local, plus de fetch aux frontières.
-- **Fondation Q4** = preuve de distribution (utile Retail Media).
+**Why:**
+- **Offline resilience** (the player survives a network outage beyond the volatile HTTP cache).
+- **Robust LAN sync**: a video wall must not depend on a network fetch at every item boundary.
+- **Fixes the contention seeks on the Windows player** (synchronized wall → 4 players re-fetch at the same instant at every boundary; see field note on the 4-screen wall). With a local store, no more fetches at boundaries.
+- **Foundation for Q4** = proof of distribution (useful for Retail Media).
 
-## 2. État actuel (vérifié dans le code, 2026-06-07)
+## 2. Current state (checked in the code, 2026-06-07)
 
-| Brique | Réalité code |
+| Building block | Reality in code |
 |---|---|
-| Payload serveur | `ws._resolve_sync_payload` → items avec **`url`** (`get_signed_url(storage_key, 86400)` = 24 h), **`checksum_sha256`**, `duration`, sous-titres (`url` signée), audio baskets (`url`). Variante rendition résolue par `_resolve_variant_key` (storage_key de la rendition). |
-| Intégrité | **`checksum_sha256` déjà dans le payload** par item → vérification de download **gratuite**. `file_size_bytes` existe sur `cms_media` + renditions (`file_meta`) → exposable pour QoS/disque. |
-| Manifeste offline | `player.js::saveSync(payload)` persiste le **manifeste** (localStorage) ; `loadSync()` au boot → le player rejoue le **programme** hors-ligne, mais **pas les octets** (les `url` MinIO signées sont mortes hors-ligne / après 24 h). |
-| Lecture média | `player.js` : `video.src = media.url` (stream direct MinIO). **Précache** double-buffer (`precacheNext`/`clearPreload`, conteneur caché) = réchauffe le cache HTTP du suivant. |
-| Position / resync | `main.js::lastSyncState` `{id_playlist,currentIndex,currentOffsetMs,syncedAt}` → reprise gracieuse wall-clock. |
-| Purge Q5 | `main.js` handler `player:purge_media` → `session.clearCache()` (**cache HTTP**, best-effort). `_blockedMedia` (payload + offline) → `playCurrentItem` saute les ids bloqués même offline. |
-| Stockage | `app.getPath('userData')` (config.json, display_config.json, capabilities.json, logs/). **Pas de store de contenu.** |
-| Capabilities / heartbeat | `capabilities` (decode + display_modes) fusionnées dans `player:status` → le backend **remplace** le dict (pattern à réutiliser pour l'inventaire Q4 : un seul objet). |
+| Server payload | `ws._resolve_sync_payload` → items with **`url`** (`get_signed_url(storage_key, 86400)` = 24 h), **`checksum_sha256`**, `duration`, subtitles (signed `url`), audio baskets (`url`). Rendition variant resolved by `_resolve_variant_key` (storage_key of the rendition). |
+| Integrity | **`checksum_sha256` already in the payload** per item → download verification **for free**. `file_size_bytes` exists on `cms_media` + renditions (`file_meta`) → can be exposed for QoS/disk. |
+| Offline manifest | `player.js::saveSync(payload)` persists the **manifest** (localStorage); `loadSync()` at boot → the player replays the **program** offline, but **not the bytes** (signed MinIO `url`s are dead offline / after 24 h). |
+| Media playback | `player.js`: `video.src = media.url` (direct MinIO stream). Double-buffer **precache** (`precacheNext`/`clearPreload`, hidden container) = warms up the HTTP cache for the next item. |
+| Position / resync | `main.js::lastSyncState` `{id_playlist,currentIndex,currentOffsetMs,syncedAt}` → graceful wall-clock resume. |
+| Q5 purge | `main.js` handler `player:purge_media` → `session.clearCache()` (**HTTP cache**, best-effort). `_blockedMedia` (payload + offline) → `playCurrentItem` skips blocked ids even offline. |
+| Storage | `app.getPath('userData')` (config.json, display_config.json, capabilities.json, logs/). **No content store.** |
+| Capabilities / heartbeat | `capabilities` (decode + display_modes) merged into `player:status` → the backend **replaces** the dict (pattern to reuse for the Q4 inventory: a single object). |
 
-**Conclusion** : le manifeste + checksums + file_size + précache + position existent déjà. Ce qui manque = **les octets sur disque** et **un download manager**. Le changement est **surtout côté player** ; le serveur change **peu** (exposer `file_size`, et plus tard un set épinglé + alertes).
+**Conclusion**: manifest + checksums + file_size + precache + position already exist. What is missing = **bytes on disk** and **a download manager**. The change is **mostly on the player side**; the server changes **little** (expose `file_size`, and later a pinned set + alerts).
 
-## 3. Architecture cible
+## 3. Target architecture
 
 ```
 ┌─ main.js (Node) ──────────────────────────────────────────────┐
@@ -60,40 +62,42 @@ Passer les players **Electron** (linux / rpi / windows) du modèle **streaming**
 └───────────────────────────────────────────────────────────────┘
 ```
 
-**Principe de non-régression** : tant qu'un octet n'est pas en cache local vérifié, le renderer **streame** (`media.url`). Le store se remplit en fond ; au sync suivant, les items prêts basculent sur `signflow://`. **Le player streaming actuel ne casse jamais.**
+(Diagram, in English: **ContentStore** — files named by checksum `<sha256>.<ext>`; `index.json` mapping `id_media|variant_key` to `{checksum,size,last_used,pinned,status}`; atomic write `.part` → fsync → rename; checksum verified after download (otherwise rejected + re-downloaded). **DownloadManager** — queue (pinned first, look-ahead next); resumable HTTP range, N concurrent, token-bucket (Q3); allowed windows = `TimeRule` from the scheduling core (Q3). **`signflow://` protocol** — serves local bytes to the renderer WITH Range support (video seek for sync); 404 if not cached yet. **Renderer `resolveSrc(media)`** — local ready → `signflow://media/<checksum>`, otherwise `media.url` (graceful STREAMING FALLBACK); precache unchanged but points to the local copy when ready; LAN: readiness barrier per fingerprint + index guard (Q1).)
 
-## 4. Décisions de conception à trancher (avec reco)
+**Non-regression principle**: as long as a byte is not in the verified local cache, the renderer **streams** (`media.url`). The store fills up in the background; at the next sync, ready items switch to `signflow://`. **The current streaming player never breaks.**
 
-1. **Mécanisme de service local des octets au renderer** →
-   **Reco : `protocol.handle('signflow', …)` (Electron ≥ 25) renvoyant un `fs.ReadStream`** (ou `registerFileProtocol` en repli). Gère le **Range** nativement (indispensable au seek vidéo de la sync), pas de port réseau (vs serveur localhost), pas de galère `file://`+CORS. *Alternative écartée : serveur HTTP localhost (un port de plus, sécurité) ; `file://` (Range/seek capricieux sous Chromium).*
-2. **Nommage du store** →
-   **Reco : content-addressed (`<checksum_sha256>.<ext>`)** + `index.json` (mapping id_media/variant_key → checksum). Dédup automatique (même octet partagé entre playlists), immutable, intégrité triviale, une rendition ré-encodée = nouveau checksum = nouveau fichier (l'ancien s'évince). *Alternative écartée : nommage par id_media (re-DL silencieux si le contenu change sous le même id).*
-3. **Set épinglé (jamais évincé)** →
-   **Reco P0 : tout le manifeste courant est épinglé** (simple). **P1+ : le serveur calcule un `pinned:[…]`** (programme courant + look-ahead schedules/events) envoyé dans le payload → le cache manager protège ce set et évince le reste LRU. *Le noyau scheduling fournit déjà le « qui+quand » pour le look-ahead.*
-4. **Changements serveur P0** →
-   **Reco : minimal** — ajouter **`file_size_bytes`** par item au payload (planning disque + token-bucket Q3). Le reste du payload est déjà suffisant (url + checksum). Pas de migration. (Le `pinned`, les alertes disque, l'inventaire viennent en P1/P4.)
-5. **Cible matérielle & ordre** →
-   **Reco : Linux/RPi d'abord** (store fichier Node trivial, parc domicile NUC/RPi + bureau riri/fifi pour la sync), **puis Windows (AOpen)** (même code Node, valide le gain anti-seek), **puis Android** (MediaCodec + scoped storage, store via OkHttp + `FileProvider`/protocole WebView — chantier distinct), **ChromeOS = Cache API/Service Worker** (modèle différent, à la construction du PWA).
+## 4. Design decisions to settle (with recommendation)
 
-## 5. Plan de phasage
+1. **Mechanism for serving local bytes to the renderer** →
+   **Rec: `protocol.handle('signflow', …)` (Electron ≥ 25) returning an `fs.ReadStream`** (or `registerFileProtocol` as a fallback). Handles **Range** natively (essential for the video seek used by sync), no network port (vs a localhost server), no `file://`+CORS hassle. *Rejected alternative: localhost HTTP server (one more port, security); `file://` (Range/seek unreliable under Chromium).*
+2. **Store naming** →
+   **Rec: content-addressed (`<checksum_sha256>.<ext>`)** + `index.json` (mapping id_media/variant_key → checksum). Automatic dedup (same bytes shared across playlists), immutable, trivial integrity, a re-encoded rendition = new checksum = new file (the old one is evicted). *Rejected alternative: naming by id_media (silent re-download if content changes under the same id).*
+3. **Pinned set (never evicted)** →
+   **Rec P0: the whole current manifest is pinned** (simple). **P1+: the server computes a `pinned:[…]`** (current program + schedules/events look-ahead) sent in the payload → the cache manager protects this set and evicts the rest LRU. *The scheduling core already provides the "who+when" for look-ahead.*
+4. **P0 server changes** →
+   **Rec: minimal** — add **`file_size_bytes`** per item to the payload (disk planning + Q3 token-bucket). The rest of the payload is already sufficient (url + checksum). No migration. (`pinned`, disk alerts and inventory come in P1/P4.)
+5. **Target hardware & order** →
+   **Rec: Linux/RPi first** (trivial Node file store, NUC/RPi test fleet + Intel test players for sync), **then Windows** (same Node code, validates the anti-seek gain), **then Android** (MediaCodec + scoped storage, store via OkHttp + `FileProvider`/WebView protocol — separate workstream), **ChromeOS = Cache API/Service Worker** (different model, to be built with the PWA).
 
-- **P0 — Store + download mono-player (Linux/RPi)** *(cœur, livrable autonome)*
-  `ContentStore` + `DownloadManager` (séquentiel, sans QoS) + protocole `signflow://` + `resolveSrc` avec **repli streaming** + **purge Q5 = vraie suppression fichier** + IPC `cache:status` minimal. **Critère** : couper le réseau après remplissage → le player continue ; mur NUC+RPi sans re-fetch aux frontières.
-- **P1 — Cache manager / éviction (Q2)** : watermarks 85/70 %, LRU sur non-épinglé, `pinned` serveur, **alerte serveur « disque insuffisant pour la playlist assignée »** (pas de drop silencieux). Réutilise le canal d'alerte decode-health.
-- **P2 — Barrière sync-readiness LAN (Q1)** : signalement `ready_for <empreinte>` sur le canal LAN (UDP `sync_lan.js`/`LanSyncController`), le maître ne lance `switch_at`/wall-clock que quand tous les membres attendus sont prêts ; **garde d'index** (n'avance N+1 que si tous l'ont) ; **timeout/dégradé** (slave éteint ne gèle pas le mur → alerte « désynchronisé »). Validation parc bureau (riri/fifi) + domicile.
-- **P3 — QoS / fenêtres download (Q3)** : fenêtres = `TimeRule` du noyau scheduling, plafond bande passante (token-bucket), N concurrents, look-ahead programmes à venir, downloads résumables (HTTP range), bypass urgence. Préserve la ligne client aux heures d'ouverture.
-- **P4 — Inventaire UI (Q4)** : le player remonte `{cache:[{id,checksum,size,last_used,status}], disk_free}` dans le heartbeat (même objet capabilities) → UI par player (disque, prêt/partiel/manquant) + vue inverse par playlist/campagne (preuve de distribution).
-- **Portage** : Windows (P0 rejoué), puis Android (store natif), puis ChromeOS (Service Worker).
+## 5. Phasing plan
 
-## 6. Points durs / risques
+- **P0 — Store + single-player download (Linux/RPi)** *(core, standalone deliverable)*
+  `ContentStore` + `DownloadManager` (sequential, no QoS) + `signflow://` protocol + `resolveSrc` with **streaming fallback** + **Q5 purge = actual file deletion** + minimal `cache:status` IPC. **Criterion**: cut the network after filling → the player keeps going; NUC+RPi wall with no re-fetch at boundaries.
+- **P1 — Cache manager / eviction (Q2)**: 85/70% watermarks, LRU on non-pinned, server `pinned`, **server alert "insufficient disk for the assigned playlist"** (no silent drop). Reuses the decode-health alert channel.
+- **P2 — LAN sync-readiness barrier (Q1)**: `ready_for <fingerprint>` signaling on the LAN channel (UDP `sync_lan.js`/`LanSyncController`), the master only fires `switch_at`/wall-clock when all expected members are ready; **index guard** (only advances to N+1 if everyone has it); **timeout/degraded mode** (a powered-off slave doesn't freeze the wall → "desynchronized" alert). Validation on the test fleets.
+- **P3 — QoS / download windows (Q3)**: windows = `TimeRule` from the scheduling core, bandwidth cap (token-bucket), N concurrent, look-ahead of upcoming programs, resumable downloads (HTTP range), emergency bypass. Preserves the customer's line during opening hours.
+- **P4 — Inventory UI (Q4)**: the player reports `{cache:[{id,checksum,size,last_used,status}], disk_free}` in the heartbeat (same capabilities object) → per-player UI (disk, ready/partial/missing) + reverse view per playlist/campaign (proof of distribution).
+- **Porting**: Windows (P0 replayed), then Android (native store), then ChromeOS (Service Worker).
 
-- **Seek vidéo via `signflow://`** : valider que le Range fonctionne pour le `currentTime` de la sync LAN (sinon nudge/seek cassé). → tester tôt en P0.
-- **Atomicité** : ne jamais servir un `.part`. Écriture `.part` → checksum → `rename`. Un crash en cours = re-DL.
-- **Usure carte SD (RPi)** : le store sur SD use le flash. → privilégier SSD USB (déjà le cas RPi SSD chiffré LUKS) ou limiter la réécriture (content-addressed aide : pas de re-DL si checksum identique).
-- **Disque AOpen 4 Go RAM / stockage limité** : watermarks + alerte indispensables (P1).
-- **Empreinte LAN (Q1)** : liste de membres **autoritative** (devrait-être-là vs online) — réutiliser l'appartenance groupe serveur, pas l'auto-découverte UDP seule.
-- **Transition de parc** : P0 doit coexister avec des players encore en streaming (déploiement progressif) → le serveur n'impose rien, le player bascule local **quand** il a l'octet.
+## 6. Hard points / risks
+
+- **Video seek via `signflow://`**: validate that Range works for the LAN sync `currentTime` (otherwise nudge/seek breaks). → test early in P0.
+- **Atomicity**: never serve a `.part`. Write `.part` → checksum → `rename`. A crash mid-way = re-download.
+- **SD card wear (RPi)**: a store on SD wears the flash. → prefer a USB SSD (already the case for the LUKS-encrypted RPi SSD) or limit rewrites (content-addressing helps: no re-download if the checksum is identical).
+- **Windows player with 4 GB RAM / limited storage**: watermarks + alert essential (P1).
+- **LAN fingerprint (Q1)**: **authoritative** member list (should-be-there vs online) — reuse server group membership, not UDP auto-discovery alone.
+- **Fleet transition**: P0 must coexist with players still streaming (progressive rollout) → the server imposes nothing, the player switches to local **when** it has the bytes.
 
 ## 7. Verdict
 
-**GO.** L'épopée est bien cadrée, le payload porte déjà checksum + (bientôt) file_size, le pattern capabilities/scheduling/quarantaine est réutilisable. Le risque est **maîtrisé par le repli streaming** (P0 ne peut pas régresser). Démarrer par **P0 sur Linux/RPi**, valider le mur NUC+RPi (anti-seek), puis dérouler P1→P4 et le portage.
+**GO.** The epic is well framed, the payload already carries checksum + (soon) file_size, the capabilities/scheduling/quarantine pattern is reusable. The risk is **contained by the streaming fallback** (P0 cannot regress). Start with **P0 on Linux/RPi**, validate the NUC+RPi wall (anti-seek), then roll out P1→P4 and the porting.

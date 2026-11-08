@@ -1,51 +1,53 @@
-# SignFlow Player — Linux
+# Vitrail Player — Linux
 
-Player Electron pour **Debian 12 / Ubuntu x86, X11** (machine dédiée au kiosk — lightdm devient
-le display manager).
+🇫🇷 [Version française](README.fr.md)
+
+Electron player for **Debian 12 / Ubuntu x86, X11** (machine dedicated to the kiosk — lightdm becomes
+the display manager).
 
 ## Installation
 
-- **Terrain (recommandé)** : `docs/RUNBOOK_POSE_PLAYER.md` — canal `signflow-provision` SSH
-  (une commande sur une machine déjà en service).
-- **Manuelle locale** : `sudo bash install.sh [username] [backend_url]` (utilisateur par
-  défaut : `signflow`, doit exister). Idempotent. Non-interactif : `SF_NTP_ROLE=client|server|none`,
+- **Field (recommended)**: `docs/RUNBOOK_POSE_PLAYER.md` — `signflow-provision` SSH channel
+  (one command on a machine already in service).
+- **Local manual install**: `sudo bash install.sh [username] [backend_url]` (default
+  user: `signflow`, must exist). Idempotent. Non-interactive: `SF_NTP_ROLE=client|server|none`,
   `SF_NTP_SERVER=<ip>`, `SF_HW_DECODE=auto|on|off`.
 
-## Décisions techniques à connaître
+## Technical decisions to know
 
-- **X11 + openbox + lightdm**, autologin (`autologin-session=openbox` obligatoire + groupe
-  `autologin` — exigence PAM Debian). **Autostart UNIQUE via `~/.config/openbox/autostart`**,
-  jamais de `.desktop` XDG en plus : les deux se déclenchent sur certaines sessions → double
-  lancement d'Electron → course sur le SingletonLock Chromium. L'autostart purge aussi un
-  `Singleton*` périmé (reste après coupure de courant).
-- **Coupure de sortie vidéo = `xrandr --output X --off/--auto`** — ⚠️ jamais
-  `xset dpms force off` : validé HW (NUC, 2026-07-06), le DPMS off **gèle Electron/Chromium**
-  (Xorg+Intel) — main+renderer figés, WS morte, pas de reprise au rallumage, même déclenché
-  hors process. La fonction est **idempotente** (garde `_videoOutputOn`) et applique
-  **directement** le mode forcé au rallumage (jamais `--auto` quand une consigne existe :
-  `--auto` = mode préféré EDID, ex. 4K sur une TV → double changement de mode → l'écran perd
-  le signal).
-- **Redémarrage** : `app.relaunch(); app.exit(0)` (openbox ne relance pas un process quitté),
-  pas `app.quit()`. Après relaunch, sudo est bloqué (`PR_SET_NO_NEW_PRIVS` hérité) → reboot via
-  D-Bus logind, fuseau via polkit/timedated, NTP via l'unité systemd `signflow-ntp-apply.service`.
-- **VA-API Electron sur Intel/Linux = impossible** (mesuré : Chromium reste en décodage
-  software malgré les flags) — ne pas re-tenter ; `capabilities.json` garde
-  `hw_decode_active:false` par défaut, c'est l'état réel. La voie de décodage HW est **mpv**
-  (`display_config.video_renderer=mpv`, `src/mpv_controller.js`, dépendance dure `wmctrl` pour
-  le z-order) quand la chaîne VA-API est détectée à l'install.
-- NTP : chrony (le LAN sync exige des horloges alignées) — une machine serveur, les autres
-  clientes ; re-pilotable depuis le CMS.
-- Pare-feu : UDP 7778 (LAN sync) + 7779 (trigger VOD) autorisés si UFW actif.
+- **X11 + openbox + lightdm**, autologin (`autologin-session=openbox` mandatory + `autologin`
+  group — Debian PAM requirement). **SINGLE autostart via `~/.config/openbox/autostart`**,
+  never an additional XDG `.desktop`: both fire on some sessions → Electron launched
+  twice → race on the Chromium SingletonLock. The autostart also purges a stale
+  `Singleton*` (left over after a power cut).
+- **Video output off = `xrandr --output X --off/--auto`** — ⚠️ never
+  `xset dpms force off`: validated on hardware, DPMS off **freezes Electron/Chromium**
+  (Xorg+Intel) — main+renderer frozen, WS dead, no recovery when turned back on, even when triggered
+  out of process. The function is **idempotent** (`_videoOutputOn` guard) and applies the forced
+  mode **directly** when turning back on (never `--auto` when a setting exists:
+  `--auto` = EDID preferred mode, e.g. 4K on a TV → double mode change → the screen loses
+  the signal).
+- **Restart**: `app.relaunch(); app.exit(0)` (openbox does not relaunch an exited process),
+  not `app.quit()`. After relaunch, sudo is blocked (inherited `PR_SET_NO_NEW_PRIVS`) → reboot via
+  D-Bus logind, timezone via polkit/timedated, NTP via the systemd unit `signflow-ntp-apply.service`.
+- **VA-API in Electron on Intel/Linux = impossible** (measured: Chromium stays in software
+  decoding despite the flags) — do not retry; `capabilities.json` keeps
+  `hw_decode_active:false` by default, which is the real state. The HW decoding path is **mpv**
+  (`display_config.video_renderer=mpv`, `src/mpv_controller.js`, hard dependency on `wmctrl` for
+  z-order) when the VA-API chain is detected at install time.
+- NTP: chrony (LAN sync requires aligned clocks) — one server machine, the others
+  clients; can be re-driven from the CMS.
+- Firewall: UDP 7778 (LAN sync) + 7779 (VOD trigger) allowed if UFW is active.
 
 ## Config
 
-`~/.config/signflow-player/config.json` — répertoire **dérivé du `name` de `package.json`**
-(`app.getPath('userData')` ; ici le paquet s'appelle `signflow-player`). Clés : `backend_url`,
-`player_token` (`sfp_…` de provisioning, remplacé par un JWT à l'enregistrement).
-`capabilities.json` (GPU/VA-API/mpv) vit au même endroit.
+`~/.config/signflow-player/config.json` — directory **derived from the `name` in `package.json`**
+(`app.getPath('userData')`; here the package is called `signflow-player`). Keys: `backend_url`,
+`player_token` (provisioning `sfp_…`, replaced by a JWT on registration).
+`capabilities.json` (GPU/VA-API/mpv) lives in the same place.
 
-## Logs / diagnostic
+## Logs / diagnostics
 
-- `/var/log/signflow-player.log` (stdout/stderr Electron via l'autostart openbox, logrotate
-  10 M ×3 copytruncate — vu 144 Mo sans borne) ; log applicatif borné dans `userData/logs/player.log`.
-- Crash renderer : relaunch auto, sauf uptime < 60 s (anti-boucle).
+- `/var/log/signflow-player.log` (Electron stdout/stderr via the openbox autostart, logrotate
+  10 M ×3 copytruncate — seen at 144 MB unbounded); bounded application log in `userData/logs/player.log`.
+- Renderer crash: automatic relaunch, except when uptime < 60 s (anti-loop).

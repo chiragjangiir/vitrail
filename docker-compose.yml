@@ -99,7 +99,7 @@ services:
       # Cloche « MAJ serveur disponible » : le backend sonde ce manifeste public et
       # compare à SIGNFLOW_VERSION. Coupe la cloche sur une prod multi-tenant qu'on
       # exploite (BELL=false) ; un build source ("dev") est muet de toute façon.
-      SIGNFLOW_UPDATE_MANIFEST_URL: ${SIGNFLOW_UPDATE_MANIFEST_URL:-https://raw.githubusercontent.com/edkahall/signflow-install/main/versions.json}
+      SIGNFLOW_UPDATE_MANIFEST_URL: ${SIGNFLOW_UPDATE_MANIFEST_URL:-}
       SIGNFLOW_UPDATE_BELL: ${SIGNFLOW_UPDATE_BELL:-true}
       MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-}
       # https pour les URLs pré-signées publiques (MinIO derrière un proxy TLS, ex. Caddy).

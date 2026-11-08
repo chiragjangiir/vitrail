@@ -75,10 +75,10 @@ async def org(db_session: AsyncSession) -> CmsOrganization:
 
 @pytest_asyncio.fixture
 async def data(db_session: AsyncSession, org: CmsOrganization) -> dict:
-    """2 annonceurs (Dyson / Nissan) avec 1 campagne chacun."""
+    """2 annonceurs (Brightwell / Corvane) avec 1 campagne chacun."""
     d0 = date.today()
-    adv_a = CmsAdvertiser(id_org=org.id_org, advertiser_name=f"Dyson-{uuid.uuid4().hex[:6]}")
-    adv_b = CmsAdvertiser(id_org=org.id_org, advertiser_name=f"Nissan-{uuid.uuid4().hex[:6]}")
+    adv_a = CmsAdvertiser(id_org=org.id_org, advertiser_name=f"Brightwell-{uuid.uuid4().hex[:6]}")
+    adv_b = CmsAdvertiser(id_org=org.id_org, advertiser_name=f"Corvane-{uuid.uuid4().hex[:6]}")
     db_session.add_all([adv_a, adv_b])
     await db_session.flush()
     camp_a = CmsCampaign(id_org=org.id_org, id_advertiser=adv_a.id_advertiser,
@@ -219,7 +219,7 @@ async def org_admin_headers(db_session: AsyncSession, org: CmsOrganization) -> d
 async def test_invite_list_revoke_portal_user(
     client: AsyncClient, org_admin_headers: dict, data: dict, db_session: AsyncSession,
 ) -> None:
-    email = f"buyer-{uuid.uuid4().hex[:6]}@dyson.com"
+    email = f"buyer-{uuid.uuid4().hex[:6]}@brightwell.com"
     r = await client.post(
         f"/api/v1/advertisers/{data['adv_a']}/users",
         headers=org_admin_headers, json={"email": email, "full_name": "Jane Buyer"},
@@ -407,7 +407,7 @@ async def test_portal_branding_and_users_me(
     assert r.status_code == 200
     body = r.json()
     assert body["org_name"] == org.org_name
-    assert body["advertiser_name"] and "Dyson" in body["advertiser_name"]
+    assert body["advertiser_name"] and "Brightwell" in body["advertiser_name"]
     assert body["primary_color"].startswith("#")
 
     # users/me expose id_advertiser (redirect par rôle côté front)

@@ -1,47 +1,49 @@
-# SPIKE — Noyau Scheduling & Targeting (bloc retours clients, item 1)
+# SPIKE — Scheduling & Targeting core (customer feedback block, item 1)
 
-> **But du spike** : passer du cadrage conceptuel (EVOLUTIONS.md § « Médiathèque & Programmation », items 3+4) à un **design technique prêt à coder**. Vérifier que le noyau (a) éval de règle TZ-aware + (b) résolution de cible **s'emboîte** avec les trois consommateurs : item-rules (item 4), Gouvernance §XVIII Phase 2, Retail Media (Phase 3).
+🇫🇷 [Version française](SPIKE_scheduling_targeting_core.fr.md)
+
+> **Goal of the spike**: move from the conceptual framing (EVOLUTIONS.md § « Médiathèque & Programmation », items 3+4) to a **technical design ready to code**. Check that the core (a) TZ-aware rule evaluation + (b) target resolution **fits together** with the three consumers: item-rules (item 4), Governance §XVIII Phase 2, Retail Media (Phase 3).
 >
-> **Verdict du spike : GO.** Le noyau est petit, les trois consommateurs s'y emboîtent proprement, et les frottements (vocabulaire de cible divergent, fenêtres overnight, multi-TZ) sont identifiés et tranchés ci-dessous. Date : 2026-06-03.
+> **Spike verdict: GO.** The core is small, the three consumers fit into it cleanly, and the friction points (divergent target vocabulary, overnight windows, multi-TZ) are identified and settled below. Date: 2026-06-03.
 
 ---
 
-## 1. Inventaire de l'existant (ce qu'on factorise)
+## 1. Inventory of the existing code (what we factor out)
 
-### 1.1 Éval de règle temporelle — **dupliquée 2×, partielle**
+### 1.1 Time rule evaluation — **duplicated 2×, partial**
 
-| Lieu | Forme |
+| Location | Form |
 |---|---|
-| `ws.py::_rule_matches(rule, now)` (l.173) | logique `always/weekly/date_range`, commentaire explicite « dupliquée pour éviter la dépendance circulaire » |
-| `schedules.py` (preview des règles) | même logique, copie |
-| `ws.py::_build_basket_items` (l.205) | fenêtre de validité des items de panier — **encore une** comparaison horaire ad hoc |
+| `ws.py::_rule_matches(rule, now)` (l.173) | `always/weekly/date_range` logic, explicit comment "duplicated to avoid the circular dependency" |
+| `schedules.py` (rule preview) | same logic, copy |
+| `ws.py::_build_basket_items` (l.205) | validity window of basket items — **yet another** ad hoc time comparison |
 
-Vocabulaire commun = `cms_schedule_rules` : `rule_type ∈ {always, weekly, date_range}`, `days_of_week` (0=Lun…6=Dim = `datetime.weekday()`), `time_start/time_end`, `date_from/date_to`. Heure courante via `ws.py::_local_now()` → `SIGNFLOW_TZ`, **datetime naïf**.
+Common vocabulary = `cms_schedule_rules`: `rule_type ∈ {always, weekly, date_range}`, `days_of_week` (0=Mon…6=Sun = `datetime.weekday()`), `time_start/time_end`, `date_from/date_to`. Current time via `ws.py::_local_now()` → `SIGNFLOW_TZ`, **naive datetime**.
 
-**Bug latent confirmé** : aucune des copies ne gère une **fenêtre overnight** (`time_start > time_end`, ex. 22:00→02:00). La logique `current_time < time_start → False` exclut tout l'intervalle du soir. À corriger **dans le noyau** (un seul endroit).
+**Latent bug confirmed**: none of the copies handles an **overnight window** (`time_start > time_end`, e.g. 22:00→02:00). The logic `current_time < time_start → False` excludes the whole evening interval. To be fixed **in the core** (a single place).
 
-### 1.2 Résolution de cible — **3 vocabulaires divergents**
+### 1.2 Target resolution — **3 divergent vocabularies**
 
-| Consommateur | Stockage | `target_type` | Résolveur |
+| Consumer | Storage | `target_type` | Resolver |
 |---|---|---|---|
-| Schedules | `cms_schedule_targets` (table) | `player` \| **`player_group`** | inline `ws.py::_resolve_sync_payload` (l.775-793) : player direct + via `CmsPlayerGroupMember` |
+| Schedules | `cms_schedule_targets` (table) | `player` \| **`player_group`** | inline `ws.py::_resolve_sync_payload` (l.775-793): direct player + via `CmsPlayerGroupMember` |
 | Events | `cms_events.target_config` (JSONB) | `org` \| `player` \| **`group`** | inline `ws.py` (l.753-768) |
-| Gouvernance | `cms_governance_assignments` (table) | `player` \| **`group`** \| **`site`** | `governance.py::node_players` (l.233) : player + group + site → `set[int]` |
-| Tags §XVII | `cms_player_tag_filters` | — (axe **réception**, pas ciblage) | `ws.py::_filter_items_by_tags` (l.105) : filtre **par item**, pas résolution de cible |
+| Governance | `cms_governance_assignments` (table) | `player` \| **`group`** \| **`site`** | `governance.py::node_players` (l.233): player + group + site → `set[int]` |
+| Tags §XVII | `cms_player_tag_filters` | — (**reception** axis, not targeting) | `ws.py::_filter_items_by_tags` (l.105): filters **per item**, not target resolution |
 
-→ Trois mots pour « groupe » (`player_group`/`group`), un seul résolveur riche (gouvernance, qui fait déjà player+group+site mais **pas tags**). **Aucun ne résout une expression de tags.**
+→ Three words for "group" (`player_group`/`group`), a single rich resolver (governance, which already does player+group+site but **not tags**). **None of them resolves a tag expression.**
 
-### 1.3 Pas de colonne timezone
+### 1.3 No timezone column
 
-Ni `cms_players` ni `cms_sites` n'ont de TZ → aujourd'hui tout est `SIGNFLOW_TZ` global. Le noyau doit être **paramétré par TZ** (défaut `SIGNFLOW_TZ`) avec un hook forward-compat `site.timezone` (multi-pays = plus tard, hors spike).
+Neither `cms_players` nor `cms_sites` has a TZ → today everything is global `SIGNFLOW_TZ`. The core must be **parameterized by TZ** (default `SIGNFLOW_TZ`) with a forward-compatible `site.timezone` hook (multi-country = later, out of the spike's scope).
 
 ---
 
-## 2. Design du noyau
+## 2. Core design
 
-Deux services purs, sans I/O DB pour la **logique** (testables unitairement), + de fines fonctions de **chargement** côté endpoints.
+Two pure services, with no DB I/O in the **logic** (unit-testable), + thin **loading** functions on the endpoint side.
 
-### 2.1 `services/scheduling.py` — éval de règle TZ-aware
+### 2.1 `services/scheduling.py` — TZ-aware rule evaluation
 
 ```python
 from dataclasses import dataclass
@@ -73,19 +75,19 @@ def rules_active_at(rules: list[TimeRule], now_local: datetime) -> bool:
     return any(rule_active_at(r, now_local) for r in rules)
 ```
 
-Règle overnight (le fix) : si `time_start` et `time_end` sont posés **et** `time_start > time_end`, le créneau est `[time_start, 24h[ ∪ [0h, time_end]`. Pour `weekly` avec overnight, `days_of_week` désigne le jour de **début** du créneau (décision : simple et suffisant pour le cas « bar ouvert 22h-2h »).
+Overnight rule (the fix): if `time_start` and `time_end` are set **and** `time_start > time_end`, the slot is `[time_start, 24h[ ∪ [0h, time_end]`. For `weekly` with overnight, `days_of_week` designates the **start** day of the slot (decision: simple and sufficient for the "bar open 10pm-2am" case).
 
-Adaptateurs ORM (dans le module, pas dans la logique pure) :
+ORM adapters (in the module, not in the pure logic):
 ```python
 def time_rule_from_schedule(r: CmsScheduleRule) -> TimeRule: ...
 def time_rule_from_item_rule(r: CmsPlaylistItemRule) -> TimeRule: ...
 ```
 
-`ws.py::_rule_matches` et la preview de `schedules.py` deviennent des appels à `rule_active_at(time_rule_from_schedule(r), now)`. **La duplication disparaît.**
+`ws.py::_rule_matches` and the `schedules.py` preview become calls to `rule_active_at(time_rule_from_schedule(r), now)`. **The duplication disappears.**
 
-### 2.2 `services/targeting.py` — résolution de cible étendue
+### 2.2 `services/targeting.py` — extended target resolution
 
-Vocabulaire canonique unique : **`player | group | site | tags`** (+ `org` = sucre = tout l'org).
+Single canonical vocabulary: **`player | group | site | tags`** (+ `org` = sugar = the whole org).
 
 ```python
 @dataclass(frozen=True)
@@ -102,19 +104,19 @@ async def player_matches_target(db, id_org: int, id_player: int, target: Target)
     Évite de matérialiser tout l'org pour 'org'/'tags'. Cache les groupes/site/tags du player."""
 ```
 
-- `group` accepte aussi l'alias **`player_group`** (compat `cms_schedule_targets` existant — **zéro migration de données**, le résolveur normalise).
-- `tags` réutilise la **mécanique inverse** de `_filter_items_by_tags` mais appliquée au **profil tags du player** (les `cms_player_tag_filters` + tags hérités) vs une `tag_expr` de cible. ⚠️ Sémantique à NE PAS confondre :
-  - **Tags §XVII actuels = filtre de réception** (« ce player n'accepte que les items `lang=fr` »).
-  - **Tags comme cible (nouveau) = sélection d'audience** (« cette campagne vise les players taggés `region=PACA` »).
-  - Les deux lisent la même taxonomie mais répondent à deux questions. Le noyau expose `player_has_tags(db, id_player, tag_expr)` partagé.
+- `group` also accepts the alias **`player_group`** (compatibility with the existing `cms_schedule_targets` — **zero data migration**, the resolver normalizes).
+- `tags` reuses the **reverse mechanism** of `_filter_items_by_tags` but applied to the **player's tag profile** (the `cms_player_tag_filters` + inherited tags) vs a target `tag_expr`. ⚠️ Semantics NOT to be confused:
+  - **Current §XVII tags = reception filter** ("this player only accepts items `lang=fr`").
+  - **Tags as a target (new) = audience selection** ("this campaign targets players tagged `region=PACA`").
+  - Both read the same taxonomy but answer two questions. The core exposes a shared `player_has_tags(db, id_player, tag_expr)`.
 
-`players_for_target` pour `group/site` = extraction directe de `governance.node_players` (à déplacer/partager — la gouvernance l'importera au lieu de l'inverse).
+`players_for_target` for `group/site` = direct extraction of `governance.node_players` (to be moved/shared — governance will import it instead of the reverse).
 
 ---
 
-## 3. Item 4 — `cms_playlist_item_rules` (le 1er consommateur)
+## 3. Item 4 — `cms_playlist_item_rules` (the 1st consumer)
 
-### 3.1 Modèle (migration 0029)
+### 3.1 Model (migration 0029)
 
 ```
 cms_playlist_item_rules
@@ -132,11 +134,11 @@ cms_playlist_item_rules
   created_at     TIMESTAMPTZ DEFAULT now()
 ```
 
-`scope` reste volontairement `default|player|player_group` (et **pas** `site/tags`) en P1/P2 : un item-rule est une exception locale au niveau d'une playlist, le ciblage riche (site/tags) vit au niveau schedule/campagne. (Si besoin plus tard, le `Target` du noyau est déjà prêt.)
+`scope` deliberately stays `default|player|player_group` (and **not** `site/tags`) in P1/P2: an item-rule is a local exception at the level of a playlist, rich targeting (site/tags) lives at the schedule/campaign level. (If needed later, the core's `Target` is already ready.)
 
-### 3.2 Algorithme de résolution (dans `ws.py`, là où on filtre déjà par tags)
+### 3.2 Resolution algorithm (in `ws.py`, where we already filter by tags)
 
-Emplacement : **après** `_filter_items_by_tags` (l.943), **avant** le wall-clock (l.945) — même couche logique (« quels items ce player voit maintenant »).
+Location: **after** `_filter_items_by_tags` (l.943), **before** the wall-clock (l.945) — same logical layer ("which items this player sees now").
 
 ```
 pour chaque item retenu :
@@ -149,65 +151,67 @@ pour chaque item retenu :
         gardé SSI rules_active_at(groupe, local_now())   # heure LOCALE
 ```
 
-« le plus spécifique l'emporte » = si une règle `player` existe pour cet item+player, elle **remplace** les règles `default` (override, pas union). Sinon `player_group`, sinon `default`.
+(In English: for each retained item, if it has no rules it is PERPETUAL and kept; otherwise take the most specific rule set present — player > player_group (of the player) > default — and keep the item IF AND ONLY IF `rules_active_at(that set, local_now())`, in LOCAL time.)
 
-**P1** = uniquement `scope=default` (récurrence + validité ; couvre ~90 % : « cet item ne joue que Sam/Dim 9-18h »). **P2** = override `player`/`player_group`. Le modèle porte déjà `scope` dès P1 → P2 = pur ajout d'UI + d'une branche de résolution.
+"The most specific wins" = if a `player` rule exists for this item+player, it **replaces** the `default` rules (override, not union). Otherwise `player_group`, otherwise `default`.
 
-### 3.3 Les 3 primitives temporelles restent distinctes (à matérialiser dans l'UI)
+**P1** = only `scope=default` (recurrence + validity; covers ~90%: "this item only plays Sat/Sun 9am-6pm"). **P2** = `player`/`player_group` override. The model already carries `scope` from P1 → P2 = a pure addition of UI + one resolution branch.
 
-| Primitive | Sémantique | Stockage | Existant ? |
+### 3.3 The 3 time primitives stay distinct (to make explicit in the UI)
+
+| Primitive | Semantics | Storage | Exists? |
 |---|---|---|---|
-| **Embargo** | instant **absolu UTC** (lancement mondial synchronisé) | `cms_media.not_before_utc` / `embargo_event_id` | ✅ |
-| **Règle par item** | **heure locale** wall-clock (fenêtre récurrente d'un item) | `cms_playlist_item_rules` | 🆕 item 4 |
-| **Schedule** | dayparting heure locale (programme→players) | `cms_schedule_rules` | ✅ |
+| **Embargo** | **absolute UTC** instant (synchronized global launch) | `cms_media.not_before_utc` / `embargo_event_id` | ✅ |
+| **Per-item rule** | **local time** wall-clock (recurring window of an item) | `cms_playlist_item_rules` | 🆕 item 4 |
+| **Schedule** | local-time dayparting (program→players) | `cms_schedule_rules` | ✅ |
 
-Embargo = `effective_embargo > now_utc` (l.916, **inchangé**, comparaison UTC). Règle par item = `rule_active_at(..., local_now())` (**locale**). Ne **jamais** fusionner ces deux comparaisons.
-
----
-
-## 4. Emboîtement avec Gouvernance §XVIII Phase 2 (la vérif clé du spike)
-
-Le moteur Phase 2 = **compiled-schedule multi-couches** : pour un player, empiler les couches qui le visent (par nœud de gouvernance), résoudre budgets/préemption, produire le programme effectif. La question du spike : **le noyau le porte-t-il sans dupliquer ?**
-
-**Oui.** Décomposition :
-
-1. **« quelles couches visent ce player »** = `targeting.player_matches_target` appliqué aux assignations de chaque nœud du sous-arbre. → noyau (b).
-2. **« cette couche est-elle active maintenant »** = `scheduling.rules_active_at` sur la fenêtre de la couche (les `cms_delegation_rules` de type `time_window` portent déjà `time_start/end` ; à exprimer en `TimeRule`). → noyau (a).
-3. **budgets / préemption / position-lock** = **delta propre à la gouvernance** (PAS dans le noyau) : compteurs `time_budget`/`item_count`/`frequency_cap`, bandes de priorité, immutabilité par couche. Le noyau fournit les **prédicats** (qui + quand), la gouvernance fournit l'**arbitrage** (combien + qui gagne).
-
-→ **Modèle mental validé** : *la gouvernance EST le moteur de couches ; une item-rule est une couche dégénérée (1 playlist, 1 fenêtre, pas de budget) ; un schedule est une couche ; une campagne Retail Media est une couche + monétisation.* Tous consomment les deux mêmes prédicats. Le noyau est la frontière correcte.
-
-**Conséquence d'ordonnancement** : faire noyau (3) + item-rules (4) **avant** le Sprint 2.7 dé-risque réellement le gros sprint — la Phase 2 n'aura plus qu'à écrire l'arbitrage (budgets/préemption), pas la résolution qui/quand.
+Embargo = `effective_embargo > now_utc` (l.916, **unchanged**, UTC comparison). Per-item rule = `rule_active_at(..., local_now())` (**local**). **Never** merge these two comparisons.
 
 ---
 
-## 5. Réutilisation Retail Media (Phase 3) — confirmation
+## 4. Fit with Governance §XVIII Phase 2 (the key check of the spike)
 
-Une campagne = `Target` (where) + `list[TimeRule]` (flight `date_range` + dayparts `weekly`) + créatif (média). **100 % du « où + quand » = le noyau.** Le delta Retail Media (à NE PAS confondre avec du reuse) : Share-of-Voice/rotation/fréquence (moteur d'**insertion** %, pas du on/off), inventaire/booking/anti-survente, annonceur+facturation+PoP Merkle (`cms_proof_of_play` ✅), validation créatifs (Approval §XXI ✅), pacing. Tables `cms_campaigns/_creatives/_targets` déjà miroir de schedule_targets. → en figeant le `Target` canonique maintenant, `cms_campaign_targets` s'y aligne « gratuitement ».
+The Phase 2 engine = **multi-layer compiled schedule**: for a player, stack the layers that target it (per governance node), resolve budgets/preemption, produce the effective program. The spike's question: **does the core support it without duplication?**
+
+**Yes.** Breakdown:
+
+1. **"which layers target this player"** = `targeting.player_matches_target` applied to the assignments of each node in the subtree. → core (b).
+2. **"is this layer active now"** = `scheduling.rules_active_at` on the layer's window (`cms_delegation_rules` of type `time_window` already carry `time_start/end`; to be expressed as `TimeRule`). → core (a).
+3. **budgets / preemption / position-lock** = **governance-specific delta** (NOT in the core): `time_budget`/`item_count`/`frequency_cap` counters, priority bands, per-layer immutability. The core provides the **predicates** (who + when), governance provides the **arbitration** (how much + who wins).
+
+→ **Mental model validated**: *governance IS the layer engine; an item-rule is a degenerate layer (1 playlist, 1 window, no budget); a schedule is a layer; a Retail Media campaign is a layer + monetization.* All consume the same two predicates. The core is the right boundary.
+
+**Ordering consequence**: doing core (3) + item-rules (4) **before** Sprint 2.7 genuinely de-risks the big sprint — Phase 2 will only have to write the arbitration (budgets/preemption), not the who/when resolution.
 
 ---
 
-## 6. Plan d'implémentation (post-spike)
+## 5. Retail Media reuse (Phase 3) — confirmation
 
-| Étape | Contenu | Migration | Tests |
+A campaign = `Target` (where) + `list[TimeRule]` (`date_range` flight + `weekly` dayparts) + creative (media). **100% of the "where + when" = the core.** The Retail Media delta (NOT to be confused with reuse): Share-of-Voice/rotation/frequency (a % **insertion** engine, not on/off), inventory/booking/anti-overselling, advertiser+billing+Merkle PoP (`cms_proof_of_play` ✅), creative validation (Approval §XXI ✅), pacing. Tables `cms_campaigns/_creatives/_targets` already mirror schedule_targets. → by freezing the canonical `Target` now, `cms_campaign_targets` aligns with it "for free".
+
+---
+
+## 6. Implementation plan (post-spike)
+
+| Step | Content | Migration | Tests |
 |---|---|---|---|
-| **N1** ✅ | `services/scheduling.py` (TimeRule + `rule_active_at` **avec overnight** + adaptateurs). Rebranché `ws._rule_matches` + `schedules._rule_matches` + `ws._local_now`. **Bonus** : `current-schedule` corrigé (UTC naïf → `local_now()`). | — | ✅ 11 tests purs (always/weekly/date_range/**overnight**/bornes incluses) |
-| **N2** ✅ | `services/targeting.py` (`Target`, `players_for_target(s)`, `player_matches_target`, `player_has_tags`). Rebranché `governance.node_players` + `schedules._resolve_player_ids`. Alias `player_group`→`group` (zéro migration). | — | ✅ 8 tests (player/group/site/tags/org, alias, garde org, sens inverse) |
+| **N1** ✅ | `services/scheduling.py` (TimeRule + `rule_active_at` **with overnight** + adapters). Re-wired `ws._rule_matches` + `schedules._rule_matches` + `ws._local_now`. **Bonus**: `current-schedule` fixed (naive UTC → `local_now()`). | — | ✅ 11 pure tests (always/weekly/date_range/**overnight**/inclusive bounds) |
+| **N2** ✅ | `services/targeting.py` (`Target`, `players_for_target(s)`, `player_matches_target`, `player_has_tags`). Re-wired `governance.node_players` + `schedules._resolve_player_ids`. Alias `player_group`→`group` (zero migration). | — | ✅ 8 tests (player/group/site/tags/org, alias, org guard, reverse direction) |
 
-> **N1+N2 livrés le 2026-06-03** : +19 tests, **230 passed**. Reste I1 (item-rules P1, migr 0029) → I2.
-| **I1** | item-rules **P1** : migration 0029, CRUD `cms_playlist_item_rules` (scope=default), résolution dans `ws.py` (après tags, avant wall-clock), UI éditeur playlist (badge « règle » + drawer fenêtre/validité), `sync_ready` impacté (un item time-boxé ⇒ contenu effectif variable ⇒ warning LAN). | **0029** | item perpétuel gardé, item hors-fenêtre retiré, embargo≠règle |
-| **I2** | item-rules **P2** : override `player`/`player_group` (spécificité), UI override par cible. | — | override gagne sur default, fallback en cascade |
+> **N1+N2 delivered on 2026-06-03**: +19 tests, **230 passed**. Remaining: I1 (item-rules P1, migr 0029) → I2.
+| **I1** | item-rules **P1**: migration 0029, CRUD `cms_playlist_item_rules` (scope=default), resolution in `ws.py` (after tags, before wall-clock), playlist editor UI ("rule" badge + window/validity drawer), `sync_ready` impacted (a time-boxed item ⇒ variable effective content ⇒ LAN warning). | **0029** | perpetual item kept, out-of-window item removed, embargo≠rule |
+| **I2** | item-rules **P2**: `player`/`player_group` override (specificity), per-target override UI. | — | override wins over default, cascading fallback |
 
-**Effort** : N1+N2 = petit (factorisation + 1 fix overnight + 1 résolveur tags). I1 = petit sprint. I2 = ajout incrémental.
+**Effort**: N1+N2 = small (factoring + 1 overnight fix + 1 tags resolver). I1 = small sprint. I2 = incremental addition.
 
 ---
 
-## 7. Points d'honnêteté / décisions à acter
+## 7. Honesty points / decisions to record
 
-1. **Synchro LAN ↔ règles divergentes** : deux players d'un même mur sous des item-rules/cibles différentes ont un **contenu effectif différent** sur certains créneaux → **pas frame-synchronisables** alors. OK magasins séparés ; **à interdire/avertir sur un mur d'images** (le `sync_ready` doit lever un warning si une playlist ciblant un `lan_sync_group` contient des item-rules non-`default`).
-2. **Lisibilité UI** : deux niveaux de programmation (schedule **et** item) — l'éditeur doit rendre l'**intersection** lisible (« cet item joue Sam/Dim 9-18h, **dans la limite** du programme matin »).
-3. **Vocabulaire de cible** : on **garde** `cms_schedule_targets.target_type='player_group'` en base (zéro migration), le noyau normalise via alias. Acté.
-4. **Multi-TZ** : hors spike. Noyau paramétré par TZ (défaut `SIGNFLOW_TZ`), hook `site.timezone` à brancher le jour du multi-pays sans retoucher la logique.
-5. **Overnight `weekly`** : `days_of_week` = jour de **début** du créneau (le créneau peut déborder sur le lendemain). Acté (suffit au cas réel).
+1. **LAN sync ↔ divergent rules**: two players of the same wall under different item-rules/targets have **different effective content** on some slots → **not frame-synchronizable** then. OK for separate stores; **to be forbidden/warned on a video wall** (`sync_ready` must raise a warning if a playlist targeting a `lan_sync_group` contains non-`default` item-rules).
+2. **UI readability**: two scheduling levels (schedule **and** item) — the editor must make the **intersection** readable ("this item plays Sat/Sun 9am-6pm, **within** the morning program").
+3. **Target vocabulary**: we **keep** `cms_schedule_targets.target_type='player_group'` in the database (zero migration), the core normalizes via alias. Recorded.
+4. **Multi-TZ**: out of the spike's scope. Core parameterized by TZ (default `SIGNFLOW_TZ`), `site.timezone` hook to wire in the day multi-country arrives, without touching the logic.
+5. **Overnight `weekly`**: `days_of_week` = **start** day of the slot (the slot may spill into the next day). Recorded (sufficient for the real case).
 
-> **Décision attendue avant de coder** : valider le séquençage N1→N2→I1(P1)→I2(P2) et la convention overnight (point 5). Le reste est tranché.
+> **Decision expected before coding**: validate the N1→N2→I1(P1)→I2(P2) sequencing and the overnight convention (point 5). The rest is settled.

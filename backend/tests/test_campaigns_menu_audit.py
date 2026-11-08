@@ -111,7 +111,7 @@ def _h(user: CmsUser) -> dict:
 
 @pytest_asyncio.fixture
 async def advertiser(db_session: AsyncSession, org) -> CmsAdvertiser:
-    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Dyson-like")
+    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Brightwell-like")
     db_session.add(adv)
     await db_session.commit()
     await db_session.refresh(adv)

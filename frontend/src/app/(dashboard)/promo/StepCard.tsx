@@ -10,7 +10,7 @@ import { ChevronDown, ChevronRight, Check } from 'lucide-react'
  * « génial, mais pas du tout intuitif ; un user tout neuf risque d'être complètement perdu »).
  *
  * 🔑 LE POINT QUI FAIT TOUT LE TRAVAIL EST LA VALEUR REPLIÉE. Une étape fermée n'est pas un
- * tiroir vide : elle AFFICHE ce qu'elle contient (« Dyson », « Éclat · 16:9 · FHD »). L'écran
+ * tiroir vide : elle AFFICHE ce qu'elle contient (« Brightwell », « Éclat · 16:9 · FHD »). L'écran
  * se lit donc en cinq lignes au lieu de vingt contrôles, et on retrouve d'un coup d'œil pour
  * quelle marque et dans quel format on travaille. Sans ça, replier reviendrait à cacher.
  *

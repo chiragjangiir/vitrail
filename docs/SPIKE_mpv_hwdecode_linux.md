@@ -1,58 +1,60 @@
-# SPIKE — Décodage HW Intel/Linux via mpv, activable par player
+# SPIKE — Intel/Linux HW decoding via mpv, enabled per player
 
-> Statut : **DESIGN** (2026-06-09). Fait suite à la note `EVOLUTIONS.md § Décodage HW Intel/Linux via mpv`
-> et au verdict `[[project-decode-capabilities]]` : **VA-API inaccessible dans Electron stock sur
-> Intel/Linux** (frame pool non allouable, NE PAS re-tenter les flags — cf. `vaapi_profiles.js`),
-> alors que **mpv décode le 4K H.264 en HW VAAPI** sur le même hardware. Déclencheur : remontée
-> client possible (vidéo lourde sur parc Intel). But : offrir le décodage HW **en option activable
-> par player**, sans casser la chaîne Chromium existante.
+🇫🇷 [Version française](SPIKE_mpv_hwdecode_linux.fr.md)
 
-## 1. Contrainte de départ
+> Status: **DESIGN** (2026-06-09). Follows up on the note `EVOLUTIONS.md § Décodage HW Intel/Linux via mpv`
+> and the verdict: **VA-API is unreachable in stock Electron on
+> Intel/Linux** (frame pool cannot be allocated, DO NOT retry the flags — see `vaapi_profiles.js`),
+> whereas **mpv decodes 4K H.264 in HW VAAPI** on the same hardware. Trigger: a possible customer
+> request (heavy video on an Intel fleet). Goal: offer HW decoding **as an option enabled per
+> player**, without breaking the existing Chromium pipeline.
 
-| Player | Décodage vidéo | Voie HW |
+## 1. Starting constraint
+
+| Player | Video decoding | HW path |
 |--------|----------------|---------|
-| RPi 4/5 | HW | V4L2 (cage, déjà câblé) |
-| Windows | HW | D3D11 (par défaut) |
-| **Intel/Linux (NUC, riri, fifi)** | **SW (~FHD30)** | **VAAPI — mais SEULEMENT hors Electron → mpv** |
+| RPi 4/5 | HW | V4L2 (cage, already wired) |
+| Windows | HW | D3D11 (default) |
+| **Intel/Linux (NUC and Intel test players)** | **SW (~FHD30)** | **VAAPI — but ONLY outside Electron → mpv** |
 
-mpv (`--hwdec=vaapi --vo=gpu`) joue le 4K H.264 fluide sur ce HW (`intel_gpu_top` : moteur Video ~70 %).
-Le player-linux tourne sous **X11 + openbox + lightdm** (≠ RPi sous cage/Wayland). C'est important :
-le z-order de deux fenêtres X11 se pilote (openbox/wmctrl/`_NET_WM_STATE_ABOVE`).
+mpv (`--hwdec=vaapi --vo=gpu`) plays 4K H.264 smoothly on this HW (`intel_gpu_top`: Video engine ~70%).
+player-linux runs under **X11 + openbox + lightdm** (≠ RPi under cage/Wayland). This matters:
+the z-order of two X11 windows can be controlled (openbox/wmctrl/`_NET_WM_STATE_ABOVE`).
 
-## 2. Surface d'intégration actuelle (ce que mpv doit reprendre)
+## 2. Current integration surface (what mpv must take over)
 
-Tout est aujourd'hui attaché à l'élément `<video>` du renderer (`player-linux/src/renderer/player.js`) :
+Everything is currently attached to the renderer's `<video>` element (`player-linux/src/renderer/player.js`):
 
-| Fonction | Couplage `<video>` actuel | Équivalent mpv |
+| Function | Current `<video>` coupling | mpv equivalent |
 |----------|---------------------------|----------------|
-| Lecture vidéo | `createElement('video')`, `src`, `autoplay` | `loadfile <path|url>` via IPC |
-| Source offline-first | `signflow://<cache_key>` (protocole Electron) | **chemin disque** `contentStore.fileFor(key).path` OU URL MinIO http (mpv lit les deux) |
-| LAN sync — report | `_activeVideo.currentTime` | propriété mpv `time-pos` (IPC `get_property`) |
-| LAN sync — nudge | `_activeVideo.playbackRate = 1.05/0.95` | propriété mpv `speed` |
-| LAN sync — resync dur | `_activeVideo.currentTime = …` | commande mpv `seek <t> absolute` |
-| Fin d'item | `video.onended` → `scheduleAdvance` | événement mpv `end-file` |
-| Mute contenu | `video.muted` | propriété mpv `mute` |
-| Sortie audio (Windows) | `setSinkId` | mpv `--audio-device` |
-| Sous-titres §7 | `<track>` WebVTT injectés | mpv `sub-add <url>` (WebVTT supporté) |
-| Overlay maintenance | lit `_activeVideo.currentTime/duration` | `time-pos` / `duration` mpv |
-| Précache #2a | double-buffer `<video>` caché | **non mappable** sur 1 instance mpv (cf. limites v1) |
-| Résolution jouée (overlay) | `videoWidth×videoHeight` | propriétés mpv `dwidth/dheight` |
+| Video playback | `createElement('video')`, `src`, `autoplay` | `loadfile <path|url>` via IPC |
+| Offline-first source | `signflow://<cache_key>` (Electron protocol) | **disk path** `contentStore.fileFor(key).path` OR MinIO http URL (mpv reads both) |
+| LAN sync — report | `_activeVideo.currentTime` | mpv property `time-pos` (IPC `get_property`) |
+| LAN sync — nudge | `_activeVideo.playbackRate = 1.05/0.95` | mpv property `speed` |
+| LAN sync — hard resync | `_activeVideo.currentTime = …` | mpv command `seek <t> absolute` |
+| End of item | `video.onended` → `scheduleAdvance` | mpv event `end-file` |
+| Content mute | `video.muted` | mpv property `mute` |
+| Audio output (Windows) | `setSinkId` | mpv `--audio-device` |
+| Subtitles §7 | injected WebVTT `<track>` | mpv `sub-add <url>` (WebVTT supported) |
+| Maintenance overlay | reads `_activeVideo.currentTime/duration` | mpv `time-pos` / `duration` |
+| Precache #2a | hidden double-buffer `<video>` | **not mappable** onto 1 mpv instance (see v1 limits) |
+| Played resolution (overlay) | `videoWidth×videoHeight` | mpv properties `dwidth/dheight` |
 
-Images, PDF, pages web, templates, barre de statut, **overlay** = restent rendus par **Chromium**.
-mpv ne reprend QUE la vidéo.
+Images, PDF, web pages, templates, status bar, **overlay** = remain rendered by **Chromium**.
+mpv ONLY takes over video.
 
-## 3. Architecture retenue — **Option A** (mpv fenêtre sœur + IPC)
+## 3. Chosen architecture — **Option A** (mpv sibling window + IPC)
 
-Rappel des pistes de la note EVOLUTIONS :
-- **(A) mpv fenêtre X11 plein écran pilotée par Electron en IPC** ← **RETENUE**
-- (B) mpv `--vo=gpu` hors-écran → dma-buf réinjecté dans Chromium (propre mais interop GL/EGL lourde, hors budget)
-- (C) player vidéo pur non-Electron (perd templates/images/web — trop limitant pour le parc actuel)
+Reminder of the options from the EVOLUTIONS note:
+- **(A) fullscreen mpv X11 window driven by Electron over IPC** ← **CHOSEN**
+- (B) offscreen mpv `--vo=gpu` → dma-buf re-injected into Chromium (clean but heavy GL/EGL interop, out of budget)
+- (C) pure non-Electron video player (loses templates/images/web — too limiting for the current fleet)
 
-**Pourquoi A** : préserve 100 % de la chaîne Chromium (templates, images, web, sous-titres des
-autres types, overlay) ; mpv n'intercepte que les items vidéo ; le coût est le **z-order** entre
-2 fenêtres (le seul vrai risque, isolé en Phase 0).
+**Why A**: preserves 100% of the Chromium pipeline (templates, images, web, subtitles of the
+other types, overlay); mpv only intercepts video items; the cost is the **z-order** between
+2 windows (the only real risk, isolated in Phase 0).
 
-### 3.1 Schéma de fonctionnement
+### 3.1 How it works
 
 ```
 ┌─ openbox (X11) ───────────────────────────────────────────┐
@@ -66,25 +68,27 @@ autres types, overlay) ; mpv n'intercepte que les items vidéo ; le coût est le
         main.js  ──spawn + JSON IPC (socket UNIX)──► mpv --idle
 ```
 
-- Item **vidéo** → main: `loadfile`, puis remonte mpv au-dessus (`wmctrl`/`_NET_WM_STATE_ABOVE` ou
+(Diagram: the Electron window (kiosk, fullscreen) renders UI, images, web, templates, overlay and status, with its z-order controlled; the mpv window (fullscreen, `--no-border`) renders HW VAAPI video and is raised ABOVE during a video item, lowered for image/web/template/overlay.)
+
+- **Video** item → main: `loadfile`, then raises mpv on top (`wmctrl`/`_NET_WM_STATE_ABOVE` or
   `mpv --ontop` + Electron `setAlwaysOnTop(false)`).
-- Item **non-vidéo** → main: redescend mpv (Electron repasse au-dessus), Chromium rend l'item.
-- **Overlay** demandé → redescendre mpv le temps de l'affichage (limite v1, cf. §6).
+- **Non-video** item → main: lowers mpv (Electron goes back on top), Chromium renders the item.
+- **Overlay** requested → lower mpv for the duration of the display (v1 limit, see §6).
 
-### 3.2 Le toggle (activable par player)
+### 3.2 The toggle (enabled per player)
 
-- Clé `display_config.video_renderer` : `'auto' | 'chromium' | 'mpv'`. **Défaut `auto` = chromium**
-  (comportement actuel inchangé). `mpv` = route la vidéo vers mpv.
-- **Garde de capacité** : l'UI n'offre l'option `mpv` que si le player a remonté
-  `capabilities.mpv_vaapi = true` (détecté à l'install : binaire mpv présent + `vainfo` liste un
-  profil H.264/HEVC decode). Sinon option grisée + tooltip « mpv/VAAPI indisponible ».
-- **Gating plateforme** : proposé **uniquement** sur `player_os = linux-x64` (Intel). RPi (V4L2) et
-  Windows (D3D11) gardent Chromium — pas de toggle.
-- Cohérent avec `gpu_enabled` (commit `1d82f6f`) : même mécanique display_config + garde plateforme front.
+- Key `display_config.video_renderer`: `'auto' | 'chromium' | 'mpv'`. **Default `auto` = chromium**
+  (current behavior unchanged). `mpv` = routes video to mpv.
+- **Capability guard**: the UI only offers the `mpv` option if the player has reported
+  `capabilities.mpv_vaapi = true` (detected at install: mpv binary present + `vainfo` lists an
+  H.264/HEVC decode profile). Otherwise the option is greyed out + tooltip "mpv/VAAPI unavailable".
+- **Platform gating**: offered **only** on `player_os = linux-x64` (Intel). RPi (V4L2) and
+  Windows (D3D11) keep Chromium — no toggle.
+- Consistent with `gpu_enabled` (commit `1d82f6f`): same display_config mechanism + front-end platform guard.
 
-## 4. Découpage renderer — abstraction `VideoSurface`
+## 4. Renderer split — `VideoSurface` abstraction
 
-Pour ne pas dupliquer toute la logique de lecture/sync, on introduit une abstraction côté renderer :
+To avoid duplicating all the playback/sync logic, we introduce an abstraction on the renderer side:
 
 ```
 VideoSurface (interface)
@@ -96,79 +100,81 @@ API : load(src, {seekMs, subtitles, muted}), play(), pause(), get currentTime(),
       on('ready'|'ended'|'error', cb), release()
 ```
 
-`reportPlaybackPos`, le nudge LAN, `onLanSwitch`, l'overlay et `_getContentFP` parlent à
-`VideoSurface` au lieu de `_activeVideo` directement. **`_activeVideo` devient
-`_activeSurface`** ; `HtmlVideoSurface` garde exactement le code actuel (refactor mécanique, testable
-sans mpv). Le choix d'implémentation se fait à `playCurrentItem` selon `video_renderer` + type d'item.
+(`HtmlVideoSurface` wraps the current `<video>` — default behavior, zero regression; `MpvSurface` is an IPC proxy to mpv via `window.signflow.mpv.*` exposed by the preload.)
 
-> Bénéfice transverse : cette abstraction rendrait aussi le portage futur (autre moteur) trivial,
-> et clarifie le renderer (aujourd'hui `_activeVideo` est touché en ~15 endroits).
+`reportPlaybackPos`, the LAN nudge, `onLanSwitch`, the overlay and `_getContentFP` talk to
+`VideoSurface` instead of `_activeVideo` directly. **`_activeVideo` becomes
+`_activeSurface`**; `HtmlVideoSurface` keeps exactly the current code (mechanical refactor, testable
+without mpv). The implementation is chosen in `playCurrentItem` based on `video_renderer` + item type.
 
-## 5. Points faciles (mpv > Electron)
+> Cross-cutting benefit: this abstraction would also make a future port (another engine) trivial,
+> and clarifies the renderer (today `_activeVideo` is touched in ~15 places).
 
-- **offline-first** : mpv lit le **chemin disque** du cache directement (`fileFor().path`) → pas de
-  `signflow://`, pas de souci de Range. Repli URL MinIO http si non caché. **Plus simple** qu'Electron.
-- **Sous-titres** : `sub-add` WebVTT natif mpv.
-- **Audio dual** : vidéo dans mpv, **paniers audio restent dans Electron (Web Audio)** → les deux se
-  mixent au niveau PipeWire/Pulse. Le routage sortie = `--audio-device` mpv.
-- **Décodage** : `--hwdec=vaapi --vo=gpu --gpu-context=x11egl` (à figer en Phase 0).
+## 5. Easy points (mpv > Electron)
 
-## 6. Limites assumées v1 (à documenter dans la matrice)
+- **offline-first**: mpv reads the cache **disk path** directly (`fileFor().path`) → no
+  `signflow://`, no Range issues. Fallback to the MinIO http URL if not cached. **Simpler** than Electron.
+- **Subtitles**: native mpv WebVTT `sub-add`.
+- **Dual audio**: video in mpv, **audio baskets stay in Electron (Web Audio)** → the two
+  mix at the PipeWire/Pulse level. Output routing = mpv `--audio-device`.
+- **Decoding**: `--hwdec=vaapi --vo=gpu --gpu-context=x11egl` (to be frozen in Phase 0).
 
-1. **UI Electron non composée sur la vidéo mpv** (fenêtres séparées) : overlay maintenance,
-   barre de statut, écran de repli. Parades : l'overlay **redescend mpv** le temps de l'affichage ;
-   l'indicateur **« Reconnecting » est doublé via l'OSD natif mpv** (`show-text`, visible par-dessus
-   la vidéo) — ✅ implémenté. Reste : un écran de repli "no content" en mpv mode passerait derrière
-   (rare, le contenu mpv couvre).
-2. **Transitions / précache #2a** : 1 instance mpv → pas de double-buffer vidéo→vidéo ; petit gap au
-   changement d'item (loadfile). Option future : 2e instance mpv préchargée.
-3. **Templates avec vidéo intégrée** (vidéo DANS un template HTML) : restent en Chromium (mpv ne gère
-   que la vidéo plein écran). Le toggle ne s'applique qu'aux items vidéo plein écran.
-4. **Intel/Linux x64 uniquement.**
+## 6. Accepted v1 limits (to document in the matrix)
 
-## 7. Plan par phases
+1. **Electron UI not composited over the mpv video** (separate windows): maintenance overlay,
+   status bar, fallback screen. Mitigations: the overlay **lowers mpv** for the duration of the display;
+   the **"Reconnecting" indicator is duplicated via the native mpv OSD** (`show-text`, visible on top of
+   the video) — ✅ implemented. Remaining: a "no content" fallback screen in mpv mode would end up behind
+   (rare, the mpv content covers it).
+2. **Transitions / precache #2a**: 1 mpv instance → no video→video double-buffer; small gap on
+   item change (loadfile). Future option: a 2nd preloaded mpv instance.
+3. **Templates with embedded video** (video INSIDE an HTML template): stay in Chromium (mpv only handles
+   fullscreen video). The toggle only applies to fullscreen video items.
+4. **Intel/Linux x64 only.**
 
-| Phase | Contenu | Où valider |
+## 7. Phased plan
+
+| Phase | Content | Where to validate |
 |-------|---------|-----------|
-| **0 — PoC (jetable)** ✅ **PASSÉE 2026-06-09 (riri, UHD600 Gemini Lake)** | Lever les 3 inconnues AVANT toute intégration. **(a) décode** ✅ mpv joue H.264 1080p en VAAPI (`Using hardware decoding (vaapi)`, dmabuf EGL ; HEVC+VP9 aussi dispo). **(c) IPC** ✅ 6/6 via `mpv-poc-ipc.mjs` : loadfile/hwdec-current=vaapi/dwidth+dheight+codec/time-pos/`speed` (nudge LAN)/`seek` (resync LAN). **(b) z-order** ✅ avec **raise explicite `wmctrl -a <titre>`** sur la fenêtre cible à chaque bascule. **Scripts** : `player-linux/scripts/mpv-poc.sh <video>` + `mpv-poc-ipc.mjs` + `mpv-poc-zorder.sh` (confirmation lente étiquetée). Prérequis : `sudo apt install -y mpv socat wmctrl`. Lancer en session graphique avec `DISPLAY=:0` (depuis SSH OK, pas besoin de XAUTHORITY pour le user qui possède la session). | **riri/fifi** (scripts jetables) |
-| **1 — Détection + toggle** | `install.sh` : `apt install mpv` + détection `vainfo` decode → `capabilities.mpv_vaapi`. Backend remonte la capa. Front : option `video_renderer=mpv` (garde capa + os) + i18n. | local + riri |
-| **2 — Rendu mpv (sans LAN)** ✅ **FAIT + VALIDÉ HW (riri, 2026-06-09)** | `mpv_controller.js` (process mpv `--idle` + IPC JSON + raise/lower wmctrl + cleanup orphelin) ; main.js wiring (ipcMain + résolution `signflow://`→disque + lifecycle) ; preload bridge ; renderer = branche mpv dans `renderItem` (mode `video_renderer=mpv`), `mpvHide()` pour les items non-vidéo. **Approche pragmatique** : pas de classe `VideoSurface` formelle — branche mpv vs `<video>` dans `renderItem` (l'avance reste timer-driven → mpv = simple surface d'affichage, régression nulle sur le chemin Chromium). **Validé** : vidéo routée vers mpv, `hwdec-current=vaapi`, moteur GPU Video (VCS) ~28%, cache offline résolu, plein écran fluide au-dessus du kiosk, mpv CPU ~5%. Commit `4fb68e1`. | **riri** ✅ |
-| **3 — LAN sync** ✅ **CODÉ (commit `f6f5196`)**, ⏳ valider HW | Re-câblé via abstraction renderer (`videoActive`/`videoOffsetMs`/`setVideoRate`/`seekVideoMs` → `<video>` ou mpv) : poll `time-pos` ~250ms extrapolé, nudge `speed`, resync `seek`. `onLanSwitch` #2b déjà agnostique. **À valider** : mur riri+fifi en mpv + LAN, drift via `[LAN] Rate nudge`. | riri/fifi (mur) |
-| **4 — Finitions** ✅ **CODÉ (commit `f6f5196`)**, ⏳ valider HW | Overlay redescend mpv puis re-remonte ; résolution jouée + position = dims/time-pos mpv ; **repli `<video>` Chromium si mpv KO** (`renderVideoChromium`). Transitions fade non appliquées à mpv (cut, limite assumée). | parc |
+| **0 — PoC (throwaway)** ✅ **PASSED 2026-06-09 (Intel test player, UHD600 Gemini Lake)** | Clear the 3 unknowns BEFORE any integration. **(a) decode** ✅ mpv plays H.264 1080p in VAAPI (`Using hardware decoding (vaapi)`, dmabuf EGL; HEVC+VP9 also available). **(c) IPC** ✅ 6/6 via `mpv-poc-ipc.mjs`: loadfile/hwdec-current=vaapi/dwidth+dheight+codec/time-pos/`speed` (LAN nudge)/`seek` (LAN resync). **(b) z-order** ✅ with an **explicit raise `wmctrl -a <titre>`** on the target window at each switch. **Scripts**: `player-linux/scripts/mpv-poc.sh <video>` + `mpv-poc-ipc.mjs` + `mpv-poc-zorder.sh` (slow labeled confirmation). Prerequisite: `sudo apt install -y mpv socat wmctrl`. Run in a graphical session with `DISPLAY=:0` (from SSH is fine, no XAUTHORITY needed for the user who owns the session). | **Intel test players** (throwaway scripts) |
+| **1 — Detection + toggle** | `install.sh`: `apt install mpv` + `vainfo` decode detection → `capabilities.mpv_vaapi`. Backend reports the capability. Front: option `video_renderer=mpv` (capability + OS guard) + i18n. | local + Intel test player |
+| **2 — mpv rendering (without LAN)** ✅ **DONE + HW VALIDATED (Intel test player, 2026-06-09)** | `mpv_controller.js` (mpv `--idle` process + JSON IPC + wmctrl raise/lower + orphan cleanup); main.js wiring (ipcMain + `signflow://`→disk resolution + lifecycle); preload bridge; renderer = mpv branch in `renderItem` (mode `video_renderer=mpv`), `mpvHide()` for non-video items. **Pragmatic approach**: no formal `VideoSurface` class — mpv vs `<video>` branch in `renderItem` (advance stays timer-driven → mpv = a simple display surface, zero regression on the Chromium path). **Validated**: video routed to mpv, `hwdec-current=vaapi`, GPU Video engine (VCS) ~28%, offline cache resolved, smooth fullscreen above the kiosk, mpv CPU ~5%. Commit `4fb68e1`. | **Intel test player** ✅ |
+| **3 — LAN sync** ✅ **CODED (commit `f6f5196`)**, ⏳ validate on HW | Re-wired via renderer abstraction (`videoActive`/`videoOffsetMs`/`setVideoRate`/`seekVideoMs` → `<video>` or mpv): `time-pos` poll ~250ms extrapolated, `speed` nudge, `seek` resync. `onLanSwitch` #2b already agnostic. **To validate**: wall of two Intel players in mpv + LAN, drift via `[LAN] Rate nudge`. | two Intel test players (wall) |
+| **4 — Finishing touches** ✅ **CODED (commit `f6f5196`)**, ⏳ validate on HW | Overlay lowers mpv then raises it again; played resolution + position = mpv dims/time-pos; **fallback to Chromium `<video>` if mpv fails** (`renderVideoChromium`). Fade transitions not applied to mpv (cut, accepted limit). | fleet |
 
-> Règle projet respectée : **le chemin Chromium par défaut reste intact** (régression nulle tant
-> que `video_renderer != mpv`). RPi/Windows non touchés.
+> Project rule respected: **the default Chromium path stays intact** (zero regression as long
+> as `video_renderer != mpv`). RPi/Windows untouched.
 
-## 8. Risques & parades
+## 8. Risks & mitigations
 
-| Risque | Parade |
+| Risk | Mitigation |
 |--------|--------|
-| **Z-order kiosk** | ✅ **RÉSOLU en Phase 0** : le player-linux n'est PAS always-on-top (`fullscreen:true` simple sous Openbox) → pas de bataille. Mécanisme retenu = **raise explicite `wmctrl -a <titre-fenêtre>`** sur la cible à chaque bascule (mpv reçoit un `--title` unique). ⚠️ **NE PAS se fier à la propriété mpv `ontop`** (`_NET_WM_STATE_ABOVE`) : elle ne restacke pas une fenêtre déjà mappée une fois le kiosk repassé devant. Dépendance runtime : `wmctrl` (à installer via install.sh). |
-| mpv absent / VAAPI KO sur un player | garde de capacité (option non offerte) + repli runtime sur `<video>` si spawn mpv échoue |
-| Drift LAN moins fin via IPC (latence socket) | `time-pos` mpv est précis ; IPC UNIX socket <1ms ; garder la même dead-zone/nudge |
-| 2e chemin de rendu à maintenir | abstraction `VideoSurface` isole le coût ; chromium reste la référence |
+| **Kiosk z-order** | ✅ **RESOLVED in Phase 0**: player-linux is NOT always-on-top (plain `fullscreen:true` under Openbox) → no fight. Chosen mechanism = **explicit raise `wmctrl -a <titre-fenêtre>`** on the target at each switch (mpv gets a unique `--title`). ⚠️ **DO NOT rely on the mpv `ontop` property** (`_NET_WM_STATE_ABOVE`): it does not restack an already-mapped window once the kiosk has come back to the front. Runtime dependency: `wmctrl` (to install via install.sh). |
+| mpv missing / VAAPI failing on a player | capability guard (option not offered) + runtime fallback to `<video>` if spawning mpv fails |
+| Coarser LAN drift via IPC (socket latency) | mpv `time-pos` is accurate; UNIX socket IPC <1ms; keep the same dead-zone/nudge |
+| A 2nd rendering path to maintain | the `VideoSurface` abstraction isolates the cost; Chromium remains the reference |
 
 ## 9. Verdict
 
-**✅ CHANTIER VALIDÉ SUR HW (riri+fifi, UHD600, 2026-06-09).** Phases 0→4 livrées et validées :
-décodage HW VAAPI (VCS ~28%), sync LAN via mpv (drift ~50ms = skew NTP, comme Chromium),
-**reboot serveur DOWN → boot-cache offline en mpv HW + sync LAN sans serveur + audio OK**, mode mpv
-remonte `hw_decode_active=true` (badge « Matériel » + lève le plafond rendition → **4K sur écran 4K**),
-repli Chromium si mpv KO, overlay + « Reconnecting » via OSD mpv. Activable par player
-(`display_config.video_renderer=mpv`, gardé `mpv_vaapi`+linux-x64). Commits `ec3232c`→`e44469d`.
-**Reste optionnel** : transitions fade sur mpv (cut pour l'instant), doc matrice « best practices »,
-validation 4K réelle (écran 4K requis ; riri/fifi = écrans 1080).
+**✅ WORKSTREAM VALIDATED ON HW (two Intel test players, UHD600, 2026-06-09).** Phases 0→4 delivered and validated:
+HW VAAPI decoding (VCS ~28%), LAN sync via mpv (drift ~50ms = NTP skew, same as Chromium),
+**server reboot DOWN → offline boot-cache in mpv HW + LAN sync without server + audio OK**, mpv mode
+reports `hw_decode_active=true` ("Hardware" badge + lifts the rendition cap → **4K on a 4K screen**),
+Chromium fallback if mpv fails, overlay + "Reconnecting" via mpv OSD. Enabled per player
+(`display_config.video_renderer=mpv`, guarded by `mpv_vaapi`+linux-x64). Commits `ec3232c`→`e44469d`.
+**Optional remainder**: fade transitions on mpv (cut for now), "best practices" matrix doc,
+real 4K validation (4K screen required; the test players have 1080 screens).
 
-### (historique) Phase 0
-**GO sur Option A — Phase 0 ✅ PASSÉE SUR HW (riri, UHD600, 2026-06-09).** Les 3 inconnues sont
-levées : décode VAAPI réel, IPC complet (dont nudge `speed` + resync `seek`), z-order fiable via
-`wmctrl -a`. Le reste est du câblage encadré par l'abstraction `VideoSurface`. **Prochaine étape =
-Phase 1** (détection mpv/VAAPI à l'install → `capabilities.mpv_vaapi` + dépendances `mpv socat wmctrl`
-dans install.sh ; toggle front `video_renderer` gardé capa+os).
+### (history) Phase 0
+**GO on Option A — Phase 0 ✅ PASSED ON HW (Intel test player, UHD600, 2026-06-09).** The 3 unknowns are
+cleared: real VAAPI decode, full IPC (including `speed` nudge + `seek` resync), reliable z-order via
+`wmctrl -a`. The rest is wiring framed by the `VideoSurface` abstraction. **Next step =
+Phase 1** (mpv/VAAPI detection at install → `capabilities.mpv_vaapi` + dependencies `mpv socat wmctrl`
+in install.sh; front-end toggle `video_renderer` guarded by capability+OS).
 
-**Dépendances runtime confirmées** (Debian 12) : `mpv` (0.35.1 stock OK), `socat` (IPC depuis bash),
-`wmctrl` (raise z-order). À ajouter dans `install.sh`.
+**Confirmed runtime dependencies** (Debian 12): `mpv` (stock 0.35.1 OK), `socat` (IPC from bash),
+`wmctrl` (z-order raise). To add to `install.sh`.
 
-**Décision produit à confirmer** : accepte-t-on les limites v1 (overlay/transitions, §6) en échange du
-décodage HW, ou faut-il viser l'option B (dma-buf, sans limites mais gros interop GL) ? Recommandation :
-**A avec limites documentées** — l'overlay est ponctuel et les transitions vidéo→vidéo rares en signage.
+**Product decision to confirm**: do we accept the v1 limits (overlay/transitions, §6) in exchange for
+HW decoding, or should we aim for option B (dma-buf, no limits but heavy GL interop)? Recommendation:
+**A with documented limits** — the overlay is occasional and video→video transitions are rare in signage.

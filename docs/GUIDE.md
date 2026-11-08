@@ -133,8 +133,7 @@ play it locally. Three resources size independently:
 | 200–500 | 16 vCPU · 64 GB RAM · 1–2 TB; consider external S3 storage | 1 GPU (T4/L4 class) | 300–500 Mbps, or a CDN |
 | 500–1000 | several app servers, managed PostgreSQL and Redis, S3 + CDN | dedicated GPU node | CDN strongly recommended |
 
-Detailed formulas and three costed scenarios: [`guide-infrastructure.html`](guide-infrastructure.html)
-(in French).
+Detailed formulas and three costed scenarios: [`guide-infrastructure.md`](guide-infrastructure.md).
 
 **Do I need a graphics card?** No. Without a GPU, videos are encoded on the CPU: fine for a
 few videos a week, slow for many large or 4K videos. Vitrail detects and uses an **NVIDIA**
@@ -233,7 +232,7 @@ own credentials. A token can enrol several players and can expire.
 **Installing many players**: the `signflow-provision` tool enrols a device remotely over SSH
 (Linux, Raspberry Pi), WinRM (Windows) or ADB (Android), in one command. See
 [`installer/README.md`](../installer/README.md) and the field runbook
-[`RUNBOOK_POSE_PLAYER.md`](RUNBOOK_POSE_PLAYER.md) (in French).
+[`RUNBOOK_POSE_PLAYER.md`](RUNBOOK_POSE_PLAYER.md).
 
 **Checking a player**: it is **online** in **Players**, it appears only once (re-enrolling an
 existing device needs the re-attach option, otherwise you get a duplicate), and the screen

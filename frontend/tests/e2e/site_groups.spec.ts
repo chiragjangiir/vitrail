@@ -135,7 +135,7 @@ test.describe('Site groups (S6)', () => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
     })
     await page.route('**/api/v1/advertisers/', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Dyson', id_folder: null }]) })
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Brightwell', id_folder: null }]) })
     })
     await page.route('**/api/v1/sites', async (route) => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })

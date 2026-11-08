@@ -136,12 +136,12 @@ indépendamment :
 | 200–500 | 16 vCPU · 64 Go RAM · 1–2 To ; envisager un stockage S3 externe | 1 GPU (classe T4/L4) | 300–500 Mbps, ou un CDN |
 | 500–1000 | plusieurs serveurs d'application, PostgreSQL et Redis managés, S3 + CDN | nœud GPU dédié | CDN fortement recommandé |
 
-Formules détaillées et trois scénarios chiffrés : [`guide-infrastructure.html`](guide-infrastructure.html).
+Formules détaillées et trois scénarios chiffrés : [`guide-infrastructure.fr.md`](guide-infrastructure.fr.md).
 
 **Faut-il une carte graphique ?** Non. Sans GPU, les vidéos sont encodées par le processeur :
 c'est très bien pour quelques vidéos par semaine, lent pour beaucoup de vidéos lourdes ou en
 4K. Vitrail détecte et utilise automatiquement un GPU **NVIDIA** (NVENC) ou un iGPU **Intel**
-(QSV/VAAPI), dès que le GPU est rendu visible à Docker : voir [`GPU_ENCODE.md`](GPU_ENCODE.md).
+(QSV/VAAPI), dès que le GPU est rendu visible à Docker : voir [`GPU_ENCODE.md`](GPU_ENCODE.fr.md).
 La page **Réglages → Serveur** indique l'encodeur utilisé et les vitesses réellement mesurées.
 
 **Stockage des players** : prévoyez 2 à 3 fois le volume de contenu diffusé par chaque écran,
@@ -230,13 +230,13 @@ identifiants. Un jeton peut enrôler plusieurs players et expirer.
 | **Linux** (Debian 12) | mini-PC, NUC ; le meilleur choix pour la 4K et les murs d'images | sur une machine dédiée à l'écran : `sudo git clone --depth 1 https://github.com/edkahall/vitrail /opt/signflow`, puis `sudo bash /opt/signflow/player-linux/install.sh signflow https://cms.example.com` (session kiosque, connexion automatique, démarrage auto), puis placer le jeton `sfp_` dans `player_token` de `~signflow/.config/signflow-player/config.json` et redémarrer — ou laisser `signflow-provision` tout faire |
 | **Raspberry Pi** 4/5 (Raspberry Pi OS) | écrans Full HD économiques, players audio seuls | idem avec `player-rpi/install.sh` : un assistant à l'écran demande l'adresse du serveur et le jeton ; ou construire une image SD prête à flasher qui s'enrôle seule au premier démarrage (`installer/image-rpi/`) |
 | **Windows** 10/11 | PC d'affichage Windows existants | copier `player-windows/` sur le PC et lancer `install.ps1` en administrateur |
-| **Android** 9+ (box Android TV, tablettes) | players à bas coût | installer l'APK de la page [Releases](https://github.com/edkahall/vitrail/releases) (`adb install`), puis saisir l'adresse du serveur et le jeton ; pour un kiosque verrouillé, voir [`player-android/README.md`](../player-android/README.md) |
+| **Android** 9+ (box Android TV, tablettes) | players à bas coût | installer l'APK de la page [Releases](https://github.com/edkahall/vitrail/releases) (`adb install`), puis saisir l'adresse du serveur et le jeton ; pour un kiosque verrouillé, voir [`player-android/README.md`](../player-android/README.fr.md) |
 | **BrightSign** | lecteurs professionnels | **Players → Provisioning** génère une carte SD prête à copier |
 
 **Poser beaucoup de players** : l'outil `signflow-provision` enrôle un appareil à distance en
 une commande, par SSH (Linux, Raspberry Pi), WinRM (Windows) ou ADB (Android). Voir
-[`installer/README.md`](../installer/README.md) et le guide de terrain
-[`RUNBOOK_POSE_PLAYER.md`](RUNBOOK_POSE_PLAYER.md).
+[`installer/README.md`](../installer/README.fr.md) et le guide de terrain
+[`RUNBOOK_POSE_PLAYER.md`](RUNBOOK_POSE_PLAYER.fr.md).
 
 **Vérifier un player** : il est **en ligne** dans **Players**, il n'apparaît qu'une seule fois
 (ré-enrôler un appareil existant demande l'option de ré-attache, sinon on crée un doublon), et

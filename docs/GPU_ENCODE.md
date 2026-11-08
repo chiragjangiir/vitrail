@@ -1,22 +1,24 @@
-# Encodage matériel GPU (NVENC / Intel VAAPI-QSV)
+# GPU hardware encoding (NVENC / Intel VAAPI-QSV)
 
-Le worker `celery-media` détecte automatiquement les encodeurs matériels disponibles
-(`app/core/encoders.py`) et s'en sert pour ffmpeg : **NVENC** (Nvidia) > **QSV/VAAPI**
-(Intel) > **libx264/libx265** (repli logiciel). Détection par test-encode réel → si le GPU
-n'est pas accessible au conteneur, repli logiciel transparent (zéro régression).
+🇫🇷 [Version française](GPU_ENCODE.fr.md)
 
-Préférence/qualité : `-cq 21` (NVENC) / `-global_quality 21` (QSV) / `-qp 22` (VAAPI) ≈
-`-crf 20` logiciel. HDR → toujours libx265 10-bit (logiciel). Échec d'un encode HW → repli
-auto libx264 (le worker retente une fois en logiciel).
+The `celery-media` worker automatically detects the available hardware encoders
+(`app/core/encoders.py`) and uses them for ffmpeg: **NVENC** (Nvidia) > **QSV/VAAPI**
+(Intel) > **libx264/libx265** (software fallback). Detection uses a real test encode → if the GPU
+is not accessible to the container, there is a transparent software fallback (zero regression).
 
-## Prérequis — accès GPU au conteneur (par hôte, non commité)
+Preference/quality: `-cq 21` (NVENC) / `-global_quality 21` (QSV) / `-qp 22` (VAAPI) ≈
+software `-crf 20`. HDR → always libx265 10-bit (software). If a HW encode fails → automatic
+fallback to libx264 (the worker retries once in software).
 
-Le `docker-compose.yml` de base reste **portable** (aucun GPU imposé). L'accès GPU se
-configure dans **`docker-compose.override.yml`** (gitignoré, propre à chaque machine).
+## Prerequisite — GPU access for the container (per host, not committed)
 
-### 1. NVIDIA (NVENC) — RTX 5050 prod, RTX 4060 local
+The base `docker-compose.yml` stays **portable** (no GPU imposed). GPU access is configured in
+**`docker-compose.override.yml`** (gitignored, specific to each machine).
 
-Installer le toolkit conteneur **sur l'hôte** (une fois) :
+### 1. NVIDIA (NVENC) — tested on an RTX 5050 and an RTX 4060
+
+Install the container toolkit **on the host** (once):
 
 ```bash
 # Dépôt nvidia-container-toolkit (cf. doc officielle NVIDIA pour la clé/repo à jour)
@@ -27,7 +29,10 @@ sudo systemctl restart docker
 docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi
 ```
 
-Bloc à ajouter dans `docker-compose.override.yml` :
+(Set up the nvidia-container-toolkit repository first — see the official NVIDIA documentation for
+the current key/repo. The last command must list the GPU.)
+
+Block to add to `docker-compose.override.yml`:
 
 ```yaml
 services:
@@ -44,9 +49,9 @@ services:
       NVIDIA_DRIVER_CAPABILITIES: compute,video,utility
 ```
 
-### 2. Intel iGPU (VAAPI/QSV) — Core Ultra prod
+### 2. Intel iGPU (VAAPI/QSV) — tested on an Intel Core Ultra
 
-Pas de toolkit : on passe le nœud DRM. Le pilote iHD est dans l'image (Dockerfile).
+No toolkit: the DRM node is passed through. The iHD driver is in the image (Dockerfile).
 
 ```yaml
 services:
@@ -57,10 +62,12 @@ services:
       - "render"        # accès au groupe render (sinon /dev/dri/renderD* non utilisable)
 ```
 
-> Les deux blocs peuvent coexister (NVENC prioritaire ; VAAPI en secours). Sur une machine
-> sans GPU, ne rien ajouter → repli logiciel automatique.
+(The `render` group is required; otherwise `/dev/dri/renderD*` cannot be used.)
 
-## Déploiement
+> Both blocks can coexist (NVENC takes priority; VAAPI as a fallback). On a machine without a
+> GPU, add nothing → automatic software fallback.
+
+## Deployment
 
 ```bash
 cd /opt/signflow
@@ -69,7 +76,10 @@ docker compose build celery-media        # rebuild (libs Intel + code)
 docker compose up -d celery-media        # recrée avec l'override GPU
 ```
 
-## Vérification
+(Rebuild the image for the Intel libraries and code, then recreate the container so it picks up
+the GPU override.)
+
+## Verification
 
 ```bash
 # Encodeurs détectés (test-encode réel) :
@@ -88,9 +98,15 @@ nvidia-smi   # process ffmpeg visible
 #   HWENC_CONCURRENCY=4          (sessions parallèles GPU ; défaut min(4, cœurs/2))
 ```
 
-## Concurrence
+In short: the first command lists the detected encoders (real test encode). After uploading a
+video, the log shows `Video transcode: encoder=h264_nvenc ...`, and `nvidia-smi` shows the ffmpeg
+process during the encode. For debugging, set these in the `celery-media` service environment:
+`SF_VIDEO_ENCODER` forces an encoder, `SF_DISABLE_HWENC=1` forces the software fallback,
+`HWENC_CONCURRENCY` sets the number of parallel GPU sessions (default `min(4, cores/2)`).
 
-Avec un encodeur matériel actif, l'encode part sur le GPU (plus CPU-bound) :
-`media_concurrency()` se cale alors sur les **sessions GPU** (`min(4, cœurs/2)`, surcharge
-`HWENC_CONCURRENCY`) et **libère des cœurs CPU**. Sans GPU : borné CPU+RAM comme avant
-(cf. `app/core/resources.py`, [[feedback-upload-overload]]).
+## Concurrency
+
+With a hardware encoder active, encoding runs on the GPU (no longer CPU-bound):
+`media_concurrency()` then aligns with the **GPU sessions** (`min(4, cores/2)`, override with
+`HWENC_CONCURRENCY`) and **frees CPU cores**. Without a GPU: bounded by CPU+RAM as before
+(see `app/core/resources.py`).

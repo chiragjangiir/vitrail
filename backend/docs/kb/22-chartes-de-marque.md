@@ -25,7 +25,7 @@ la charte décide de l'identité visuelle, comme les polices personnalisées.
 
 Il y a **au plus une charte de chaque** : une pour l'organisation, une par annonceur. Quand
 un visuel est fait *pour un annonceur*, c'est **sa** charte qui s'applique ; sinon celle de
-l'organisation. Un visuel Dyson ne porte pas les couleurs du magasin.
+l'organisation. Un visuel Brightwell ne porte pas les couleurs du magasin.
 
 Le choix se fait dans la carte **« Charte appliquée »**, en haut de la colonne de gauche :
 *Visuel de l'enseigne*, ou l'annonceur visé. La ligne en dessous dit toujours quelle charte

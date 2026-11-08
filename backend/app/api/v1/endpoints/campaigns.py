@@ -1464,7 +1464,7 @@ async def _check_creative_duration(
     db: AsyncSession, id_org: int, media: CmsMedia, duration_ms: int | None
 ) -> None:
     """Garde-fou « créatif long × boucle courte » (décision Ed 12/07 : limite fixe
-    réglable par org, défaut 30 s — le cas Nissan 90 s sur boucle 80 s donnait 46 %
+    réglable par org, défaut 30 s — le cas Corvane 90 s sur boucle 80 s donnait 46 %
     servis pour 15 % vendus). 422 si dépassement. Ne bloque pas si la durée est
     encore inconnue (vidéo pas transcodée) — re-vérifié au publish/submit."""
     limit_s = await _org_creative_max_duration_s(db, id_org)

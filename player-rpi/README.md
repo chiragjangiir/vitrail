@@ -1,52 +1,54 @@
-# SignFlow Player — Raspberry Pi
+# Vitrail Player — Raspberry Pi
 
-Player Electron pour **Raspberry Pi 4/5 sous Raspberry Pi OS Trixie (Debian 13, arm64), Wayland**.
+🇫🇷 [Version française](README.fr.md)
+
+Electron player for **Raspberry Pi 4/5 on Raspberry Pi OS Trixie (Debian 13, arm64), Wayland**.
 
 ## Installation
 
-- **Terrain (recommandé)** : `docs/RUNBOOK_POSE_PLAYER.md` — canaux `signflow-provision`
-  (image SD pour un RPi neuf : flasher, insérer, allumer, ne rien faire ; ou SSH pour une
-  machine déjà en service).
-- **Manuelle locale** : `sudo bash install.sh [username] [--overlay] [--watchdog]`
-  (utilisateur par défaut : `signflow`). Variables : `WLR_OUTPUT` (sortie Wayland, auto-détectée
-  sinon), `WLR_MODE` (défaut `1920x1080@60`), `SF_NTP_ROLE`/`SF_NTP_SERVER`, `SF_HW_DECODE`.
+- **Field (recommended)**: `docs/RUNBOOK_POSE_PLAYER.md` — `signflow-provision` channels
+  (SD image for a new RPi: flash, insert, power on, do nothing; or SSH for a
+  machine already in service).
+- **Local manual install**: `sudo bash install.sh [username] [--overlay] [--watchdog]`
+  (default user: `signflow`). Variables: `WLR_OUTPUT` (Wayland output, auto-detected
+  otherwise), `WLR_MODE` (default `1920x1080@60`), `SF_NTP_ROLE`/`SF_NTP_SERVER`, `SF_HW_DECODE`.
 
-## Décisions techniques à connaître
+## Technical decisions to know
 
-- **Wayland + cage** (compositeur kiosk), lancé par lightdm (`user-session=signflow-player`).
-  Le code ne fait **jamais** `setFullScreen(true)` / `ready-to-show` / `show:false` : cage gère
-  le fullscreen nativement, ces appels créent un conflit XDG fatal. Le fullscreen vient du flag
-  CLI `--start-fullscreen`.
-- **GPU ACTIVÉ** : `--enable-gpu --use-gl=egl --use-v4l2-codec` (décodage V4L2 Broadcom, pas de
-  VA-API). ⚠️ `--disable-gpu` **casse le fullscreen sous cage** — ne pas le remettre. Le
-  subprocess GPU logge `exit_code=5` (EGL passthrough non supporté RPi5/Mesa) : **non fatal**,
-  Chromium retombe en rendu software tout seul.
-- **FHD forcé, 4K éliminé** (saccade même GPU actif) : `wlr-randr --mode $WLR_MODE` dans la
-  boucle de `~/start-player.sh` (5 tentatives — cage peut ne pas être prêt).
-- **Garde anti-dérive HDMI** : couper/rallumer l'écran = hotplug → wlroots repasse au mode
-  préféré (souvent 4K@30) et la fenêtre Electron grandit ; re-forcer le mode ne la rétrécit pas
-  (seul le quart haut-gauche s'affiche). La garde (boucle toutes les 5 s dans start-player.sh)
-  **redémarre le player** (`pkill`) : le watchdog re-force FHD *avant* de relancer — le chemin
-  du boot, qui marche.
-- **Coupure de sortie vidéo** = `wlr-randr --output X --off/--on` — jamais de DPMS (le DPMS off
-  gèle Electron/Chromium, validé HW).
-- **Redémarrage** : `app.quit()` (cage/lightdm relance) ; l'OTA finalise par un **reboot OS**
-  (`app.relaunch()` crashe le GPU sous cage). Après relaunch, sudo est bloqué (NoNewPrivs
-  hérité) → fuseau et NTP passent par polkit/D-Bus (unité `signflow-ntp-apply.service`).
-- Watchdog applicatif : boucle `start-player.sh` (relance à 3 s) ; `--watchdog` en option =
-  watchdog matériel kernel ; `--overlay` = rootfs overlay (protège la carte SD).
-- NTP : chrony, rôle serveur/client choisi à l'install, re-pilotable depuis le CMS.
+- **Wayland + cage** (kiosk compositor), launched by lightdm (`user-session=signflow-player`).
+  The code **never** calls `setFullScreen(true)` / `ready-to-show` / `show:false`: cage handles
+  fullscreen natively, these calls create a fatal XDG conflict. Fullscreen comes from the
+  `--start-fullscreen` CLI flag.
+- **GPU ENABLED**: `--enable-gpu --use-gl=egl --use-v4l2-codec` (Broadcom V4L2 decoding, no
+  VA-API). ⚠️ `--disable-gpu` **breaks fullscreen under cage** — do not put it back. The
+  GPU subprocess logs `exit_code=5` (EGL passthrough not supported on RPi5/Mesa): **not fatal**,
+  Chromium falls back to software rendering by itself.
+- **FHD forced, 4K eliminated** (stutters even with GPU enabled): `wlr-randr --mode $WLR_MODE` in the
+  `~/start-player.sh` loop (5 attempts — cage may not be ready).
+- **HDMI drift guard**: turning the screen off/on = hotplug → wlroots switches back to the preferred
+  mode (often 4K@30) and the Electron window grows; re-forcing the mode does not shrink it
+  (only the top-left quarter is displayed). The guard (loop every 5 s in start-player.sh)
+  **restarts the player** (`pkill`): the watchdog re-forces FHD *before* relaunching — the boot
+  path, which works.
+- **Video output off** = `wlr-randr --output X --off/--on` — never DPMS (DPMS off
+  freezes Electron/Chromium, validated on hardware).
+- **Restart**: `app.quit()` (cage/lightdm relaunches); OTA finishes with an **OS reboot**
+  (`app.relaunch()` crashes the GPU under cage). After relaunch, sudo is blocked (inherited
+  NoNewPrivs) → timezone and NTP go through polkit/D-Bus (unit `signflow-ntp-apply.service`).
+- Application watchdog: `start-player.sh` loop (relaunch after 3 s); `--watchdog` option =
+  kernel hardware watchdog; `--overlay` = rootfs overlay (protects the SD card).
+- NTP: chrony, server/client role chosen at install, can be re-driven from the CMS.
 
 ## Config
 
-`~/.config/signflow-player-rpi/config.json` — le répertoire est **dérivé du `name` de
-`package.json`** (`app.getPath('userData')`), jamais réécrit en dur (leçon du 2026-08-09 : un
-répertoire nommé à la main à côté n'est jamais lu → « Setup required » avec la config posée).
-Clés : `backend_url`, `player_token` (`sfp_…` de provisioning, remplacé par un JWT à
-l'enregistrement). `capabilities.json` (V4L2) vit au même endroit.
+`~/.config/signflow-player-rpi/config.json` — the directory is **derived from the `name` in
+`package.json`** (`app.getPath('userData')`), never hard-coded (lesson learned: a
+hand-named directory next to it is never read → "Setup required" with the config in place).
+Keys: `backend_url`, `player_token` (provisioning `sfp_…`, replaced by a JWT on
+registration). `capabilities.json` (V4L2) lives in the same place.
 
-## Logs / diagnostic
+## Logs / diagnostics
 
-- `/var/log/signflow-player.log` (stdout/stderr Electron, logrotate 10 M ×3 copytruncate —
-  critique sur carte SD) ; log applicatif borné dans `userData/logs/`.
-- La garde de résolution et le watchdog datent leurs actions dans ce même log.
+- `/var/log/signflow-player.log` (Electron stdout/stderr, logrotate 10 M ×3 copytruncate —
+  critical on an SD card); bounded application log in `userData/logs/`.
+- The resolution guard and the watchdog timestamp their actions in this same log.

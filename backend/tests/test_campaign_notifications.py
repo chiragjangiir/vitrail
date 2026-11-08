@@ -30,18 +30,18 @@ TZ = ZoneInfo("Europe/Paris")
 
 def test_build_message_campaign_events() -> None:
     subj, body = build_message("campaign_started", {
-        "campaign_name": "Été Dyson", "advertiser_name": "Dyson",
+        "campaign_name": "Été Brightwell", "advertiser_name": "Brightwell",
         "sov_percent": 20.0, "starts_on": "2026-07-01", "ends_on": "2026-07-31"})
-    assert "Été Dyson" in subj and "Dyson" in body and "20.0 %" in body
+    assert "Été Brightwell" in subj and "Brightwell" in body and "20.0 %" in body
 
     subj, body = build_message("campaign_ended", {
-        "campaign_name": "Été Dyson", "advertiser_name": "Dyson",
+        "campaign_name": "Été Brightwell", "advertiser_name": "Brightwell",
         "starts_on": "2026-07-01", "ends_on": "2026-07-31",
         "plays": 232, "signed_plays": 232, "sov_served_pct": 19.8})
     assert "terminée" in subj and "232 passages" in body and "19.8 %" in body
 
     subj, body = build_message("campaign_underserved", {
-        "campaign_name": "Été Dyson", "advertiser_name": "Dyson",
+        "campaign_name": "Été Brightwell", "advertiser_name": "Brightwell",
         "sov_percent": 20.0, "sov_served_pct": 4.8, "threshold_pct": 80.0,
         "period_from": "2026-07-01", "period_until": "2026-07-08"})
     assert "sous-servie" in subj and "4.8 %" in body and "20.0 % vendus" in body
@@ -71,7 +71,7 @@ async def _rule(db: AsyncSession, org: CmsOrganization, event_type: str,
 
 def _campaign(org: CmsOrganization, adv: CmsAdvertiser, **kw) -> CmsCampaign:
     defaults = dict(
-        id_org=org.id_org, id_advertiser=adv.id_advertiser, campaign_name="Été Dyson",
+        id_org=org.id_org, id_advertiser=adv.id_advertiser, campaign_name="Été Brightwell",
         status="approved", starts_on=date.today(), ends_on=date.today() + timedelta(days=7),
         sov_percent=20.0, pricing_model="sov", price_amount=1500,
     )
@@ -81,7 +81,7 @@ def _campaign(org: CmsOrganization, adv: CmsAdvertiser, **kw) -> CmsCampaign:
 
 @pytest.mark.asyncio
 async def test_collect_started_edge_and_dedup(db_session, org):
-    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Dyson")
+    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Brightwell")
     db_session.add(adv)
     await db_session.flush()
     camp = _campaign(org, adv)                                   # live aujourd'hui
@@ -95,9 +95,9 @@ async def test_collect_started_edge_and_dedup(db_session, org):
     pending = await _collect(db_session, TZ)
     await db_session.commit()
     assert [(e, c["campaign_name"]) for _, e, c in pending] == [
-        ("campaign_started", "Été Dyson")]
+        ("campaign_started", "Été Brightwell")]
     _, _, ctx = pending[0]
-    assert ctx["advertiser_name"] == "Dyson" and ctx["sov_percent"] == 20.0
+    assert ctx["advertiser_name"] == "Brightwell" and ctx["sov_percent"] == 20.0
     assert camp.started_notified_at is not None
     assert future.started_notified_at is None
 
@@ -109,7 +109,7 @@ async def test_collect_started_edge_and_dedup(db_session, org):
 async def test_collect_no_rule_marks_but_stays_silent(db_session, org):
     """Sans règle active, la dédup est quand même posée (zéro rafale rétroactive si
     l'org configure une règle plus tard)."""
-    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Dyson")
+    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Brightwell")
     db_session.add(adv)
     await db_session.flush()
     camp = _campaign(org, adv)
@@ -123,7 +123,7 @@ async def test_collect_no_rule_marks_but_stays_silent(db_session, org):
 
 @pytest.mark.asyncio
 async def test_collect_ended_requires_prior_start(db_session, org):
-    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Dyson")
+    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Brightwell")
     db_session.add(adv)
     await db_session.flush()
     ended = _campaign(org, adv, starts_on=date.today() - timedelta(days=10),
@@ -140,7 +140,7 @@ async def test_collect_ended_requires_prior_start(db_session, org):
     pending = await _collect(db_session, TZ)
     await db_session.commit()
     assert [(e, c["campaign_name"]) for _, e, c in pending] == [
-        ("campaign_ended", "Été Dyson")]
+        ("campaign_ended", "Été Brightwell")]
     _, _, ctx = pending[0]
     assert ctx["plays"] == 0  # bilan présent même sans PoP
     assert ended.ended_notified_at is not None
@@ -153,7 +153,7 @@ async def test_collect_ended_requires_prior_start(db_session, org):
 async def test_collect_underserved_threshold_and_daily_dedup(db_session, org):
     """SOV servi (jours pleins) 4,8 % < 80 % × 20 % vendus → notifie ; avec un seuil
     de règle à 20 % (4 % du vendu), plus rien ; 1 évaluation par jour."""
-    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Dyson")
+    adv = CmsAdvertiser(id_org=org.id_org, advertiser_name="Brightwell")
     player = CmsPlayer(id_org=org.id_org, player_name="P-notif", player_os="linux")
     db_session.add_all([adv, player])
     await db_session.flush()

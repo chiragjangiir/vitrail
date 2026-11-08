@@ -176,7 +176,7 @@ async def test_creative_duration_guard(
                        campaign_name="Loop", status="draft",
                        starts_on=date.today(), ends_on=date.today() + timedelta(days=5),
                        sov_percent=10.0)
-    long_video = CmsMedia(id_org=org.id_org, media_name="nissan-90s", media_type="video",
+    long_video = CmsMedia(id_org=org.id_org, media_name="corvane-90s", media_type="video",
                           storage_key=f"t/{uuid.uuid4().hex}.mp4", checksum_sha256="c",
                           transcode_status="done", duration_ms=90_000)
     db_session.add_all([camp, long_video])
@@ -203,7 +203,7 @@ async def test_creative_duration_guard(
     await db_session.commit()
     r = await client.post(f"/api/v1/campaigns/{camp.id_campaign}/status",
                           headers=_headers(admin), json={"action": "publish"})
-    assert r.status_code == 422 and "nissan-90s" in r.json()["detail"]
+    assert r.status_code == 422 and "corvane-90s" in r.json()["detail"]
 
     r = await client.put("/api/v1/campaigns/settings", headers=_headers(admin),
                          json={"creative_max_duration_s": None})

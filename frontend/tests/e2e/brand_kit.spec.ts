@@ -39,7 +39,7 @@ const TEMPLATES = {
   resolutions: { '16:9': ['fhd', '4k'] },
 }
 
-const ADVERTISERS = [{ id_advertiser: 7, advertiser_name: 'Dyson' }]
+const ADVERTISERS = [{ id_advertiser: 7, advertiser_name: 'Brightwell' }]
 
 const ORG_KIT = {
   id_brand_kit: 1, id_advertiser: null, kit_name: 'Enseigne',
@@ -47,7 +47,7 @@ const ORG_KIT = {
   font_family: null, brand_name: 'Enseigne', id_logo_media: null,
   legal_mentions: 'Offre valable jusqu au 31/12.', tone: 'chaleureux',
 }
-const ADV_KIT = { ...ORG_KIT, id_brand_kit: 2, id_advertiser: 7, kit_name: 'Dyson', accent: '#0055FF', legal_mentions: null }
+const ADV_KIT = { ...ORG_KIT, id_brand_kit: 2, id_advertiser: 7, kit_name: 'Brightwell', accent: '#0055FF', legal_mentions: null }
 
 async function setup(
   page: import('@playwright/test').Page,
@@ -147,7 +147,7 @@ test('des mentions effacées ne reviennent pas, même en revenant sur la portée
   // interne et le défaut (« ne retenir que la dernière portée ») ne se manifeste jamais.
   await setup(page, {
     org: ORG_KIT,
-    advertiser: { ...ADV_KIT, legal_mentions: 'Mentions Dyson.' },
+    advertiser: { ...ADV_KIT, legal_mentions: 'Mentions Brightwell.' },
   })
   // ⚠️ Accordéon : chaque aller-retour annonceur ↔ mentions rouvre l'étape concernée. GESTES
   // seulement — les assertions ci-dessous sont exactement celles d'avant.
@@ -158,7 +158,7 @@ test('des mentions effacées ne reviennent pas, même en revenant sur la portée
   await openWhoStep(page)
   await page.getByTestId('promo-advertiser').selectOption('7')
   await openContentStep(page)
-  await expect(page.locator('textarea').first()).toHaveValue(/Mentions Dyson/)   // portée neuve → légitime
+  await expect(page.locator('textarea').first()).toHaveValue(/Mentions Brightwell/)   // portée neuve → légitime
   await page.locator('textarea').first().fill('')
 
   await openWhoStep(page)
@@ -178,7 +178,7 @@ test('changer d annonceur change la charte appliquée', async ({ page }) => {
   await expect(preview).toHaveCSS('background-color', PAPER_KIT)
 
   await page.getByTestId('promo-advertiser').selectOption('7')
-  await expect(page.getByTestId('promo-brand-state')).toContainText('Dyson')
+  await expect(page.getByTestId('promo-brand-state')).toContainText('Brightwell')
   await expect(preview).toHaveCSS('background-color', 'rgb(240, 245, 255)')
 })
 

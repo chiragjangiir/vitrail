@@ -1,45 +1,47 @@
-# SPIKE — Playlist staging / bouton « Publier » (#1)
+# SPIKE — Playlist staging / "Publish" button (#1)
 
-> Spike de design (2026-06-07). Retour terrain Ed : l'édition de playlist part à l'écran avant qu'il ait fini (chaque mutation d'item pousse un `force_sync` **préemptif immédiat**, `playlists.py::_push_sync_org`). **Décision Ed = staging robuste (snapshot publié)** : les players jouent une version PUBLIÉE ; les éditions restent invisibles jusqu'à « Publier ».
+🇫🇷 [Version française](SPIKE_playlist_publish_staging.fr.md)
+
+> Design spike (2026-06-07). Field feedback: playlist edits reach the screen before the editor has finished (every item mutation pushes an **immediate preemptive** `force_sync`, `playlists.py::_push_sync_org`). **Decision = robust staging (published snapshot)**: players play a PUBLISHED version; edits stay invisible until "Publish".
 >
-> **Verdict : GO, architecture 2 (live = publié + brouillon JSON)** — isole les brouillons SANS toucher au chemin de sync critique.
+> **Verdict: GO, architecture 2 (live = published + JSON draft)** — isolates drafts WITHOUT touching the critical sync path.
 
-## 1. Problème
-`add_playlist_item` / `reorder_playlist_items` / `remove_playlist_item` / `set_item_rules` appellent tous `_push_sync_org(db)` → `{"type":"player:force_sync"}` **sans `preemptive`** = application immédiate qui interrompt l'item en cours. Donc chaque sous-édition (et la création d'une Item Broadcast Rule avant qu'elle soit configurée) diffuse aussitôt.
+## 1. Problem
+`add_playlist_item` / `reorder_playlist_items` / `remove_playlist_item` / `set_item_rules` all call `_push_sync_org(db)` → `{"type":"player:force_sync"}` **without `preemptive`** = immediate application that interrupts the current item. So every sub-edit (including the creation of an Item Broadcast Rule before it is configured) goes on air immediately.
 
-**Le piège** : `_resolve_sync_payload` lit l'**état live de `cms_playlist_items`**. Un simple flag « ne pas pousser » n'isole rien — toute resync (reconnexion player, push org-wide d'un autre objet, périodique) tire l'état live à moitié édité.
+**The trap**: `_resolve_sync_payload` reads the **live state of `cms_playlist_items`**. A simple "don't push" flag isolates nothing — any resync (player reconnection, org-wide push of another object, periodic) pulls the half-edited live state.
 
-## 2. Deux architectures
+## 2. Two architectures
 
-### Arch 1 — le snapshot EST la source servie aux players
-- `cms_playlists.published_snapshot` JSONB = items servis ; `_resolve_sync_payload` lit le snapshot au lieu des items live ; édition = items live (brouillon) ; Publier = snapshot ← live.
-- ⚠️ **Refonte du builder playlist dans `_resolve_sync_payload`** (chemin critique partagé gouvernance/events/renditions/offline-first) + backfill obligatoire. Risque élevé pour le mur en prod.
+### Arch 1 — the snapshot IS the source served to players
+- `cms_playlists.published_snapshot` JSONB = served items; `_resolve_sync_payload` reads the snapshot instead of the live items; editing = live items (draft); Publish = snapshot ← live.
+- ⚠️ **Rework of the playlist builder in `_resolve_sync_payload`** (critical path shared by governance/events/renditions/offline-first) + mandatory backfill. High risk for the wall in production.
 
-### Arch 2 — live = publié, brouillon = copie de travail JSON ✅ RECOMMANDÉE
-- **`cms_playlist_items` reste = la version PUBLIÉE** (ce que voient les players) → **`_resolve_sync_payload` INCHANGÉ** (zéro risque sur le chemin critique).
-- `cms_playlists.draft_items` JSONB (NULL = propre/pas de brouillon) = éditions en cours.
-- Les endpoints d'édition écrivent le **brouillon** (initialisé depuis les items live au 1er edit), **sans push**.
-- `POST /publish` : `cms_playlist_items` (+ rules) ← `draft_items`, efface le brouillon, **push `force_sync` graceful** (preemptive=false → bascule à la frontière d'item, plus d'interruption).
-- `POST /discard` : efface le brouillon (revient au publié).
-- L'éditeur lit le brouillon s'il existe, sinon les items live.
+### Arch 2 — live = published, draft = JSON working copy ✅ RECOMMENDED
+- **`cms_playlist_items` stays = the PUBLISHED version** (what players see) → **`_resolve_sync_payload` UNCHANGED** (zero risk on the critical path).
+- `cms_playlists.draft_items` JSONB (NULL = clean/no draft) = edits in progress.
+- Edit endpoints write the **draft** (initialized from the live items on the 1st edit), **without push**.
+- `POST /publish`: `cms_playlist_items` (+ rules) ← `draft_items`, clears the draft, **graceful `force_sync` push** (preemptive=false → switch at the item boundary, no more interruption).
+- `POST /discard`: clears the draft (back to published).
+- The editor reads the draft if it exists, otherwise the live items.
 
-**Reco = Arch 2** : protège le mur (le chemin que gouvernance/events/renditions/offline-first empruntent reste byte-identique), même isolation fonctionnelle (« publié » = items live), réversible (discard). Le « snapshot publié » voulu par Ed = réalisé par les items live ; le brouillon est le delta.
+**Rec = Arch 2**: protects the wall (the path used by governance/events/renditions/offline-first stays byte-identical), same functional isolation ("published" = live items), reversible (discard). The desired "published snapshot" = realized by the live items; the draft is the delta.
 
 ## 3. Plan (Arch 2)
-- **Migration** : `cms_playlists.draft_items JSONB NULL` + (dérivé) `has_draft_changes = draft_items IS NOT NULL`. Aucun backfill (NULL = propre).
-- **Modèle brouillon** (JSON) : `[{id_media, sort_order, duration_ms, zone_index, transition_type, rules:[...]}]` (id_item temporaire côté front).
-- **Endpoints édition** (add/reorder/remove/set_rules) : opèrent sur `draft_items` (init depuis live au 1er edit), **retirent `_push_sync_org`**, posent le brouillon.
-- **`POST /publish`** : applique `draft_items` → `cms_playlist_items`+`cms_playlist_item_rules` (remplace), efface brouillon, `_push_sync_org` **graceful** (ajouter `preemptive=false` au payload). Déclenche aussi la **conformité #2** par item ajouté.
-- **`POST /discard`** : efface `draft_items`.
-- **`GET /playlists/{id}`** : `items` = brouillon si présent sinon live ; `has_draft_changes`, `published_at`.
-- **Front** : bandeau « Modifications non publiées » + boutons **Publier** / **Annuler** ; l'éditeur travaille sur le brouillon ; i18n.
-- **`_push_sync_org`** : ajouter `preemptive=false` (graceful) — vaut aussi pour les autres appelants ? (à vérifier : events/embargo veulent peut-être préemptif). → garder `_push_sync_org` préemptif par défaut, et un `_push_sync_org(db, preemptive=False)` pour Publier.
+- **Migration**: `cms_playlists.draft_items JSONB NULL` + (derived) `has_draft_changes = draft_items IS NOT NULL`. No backfill (NULL = clean).
+- **Draft model** (JSON): `[{id_media, sort_order, duration_ms, zone_index, transition_type, rules:[...]}]` (temporary id_item on the front end).
+- **Edit endpoints** (add/reorder/remove/set_rules): operate on `draft_items` (init from live on the 1st edit), **remove `_push_sync_org`**, set the draft.
+- **`POST /publish`**: applies `draft_items` → `cms_playlist_items`+`cms_playlist_item_rules` (replace), clears the draft, **graceful** `_push_sync_org` (add `preemptive=false` to the payload). Also triggers **conformance #2** per added item.
+- **`POST /discard`**: clears `draft_items`.
+- **`GET /playlists/{id}`**: `items` = draft if present otherwise live; `has_draft_changes`, `published_at`.
+- **Front**: "Unpublished changes" banner + **Publish** / **Cancel** buttons; the editor works on the draft; i18n.
+- **`_push_sync_org`**: add `preemptive=false` (graceful) — does it also apply to the other callers? (to check: events/embargo may want preemptive). → keep `_push_sync_org` preemptive by default, and a `_push_sync_org(db, preemptive=False)` for Publish.
 
-## 4. Points d'attention
-- **Conformité #2** : aujourd'hui sur `add_playlist_item` (live). En Arch 2, déplacer le check au **Publish** (par item du brouillon) — l'advisory remonte alors à la publication.
-- **Item rules / tags** : le brouillon doit porter les règles par item (et tags ?). Tags = `cms_playlist_item_tags` (séparé) — décider s'ils sont stagés aussi (sinon ils s'appliquent live). v1 : stager items+rules ; tags hors staging (rare en pleine édition).
-- **Édition concurrente** : un seul brouillon par playlist (pas de multi-utilisateur sur le même brouillon — acceptable).
-- **`sync_windowed`/`sync_ready`** recalculés à la publication.
+## 4. Points of attention
+- **Conformance #2**: today on `add_playlist_item` (live). In Arch 2, move the check to **Publish** (per draft item) — the advisory then surfaces at publication.
+- **Item rules / tags**: the draft must carry the per-item rules (and tags?). Tags = `cms_playlist_item_tags` (separate) — decide whether they are staged too (otherwise they apply live). v1: stage items+rules; tags out of staging (rare mid-edit).
+- **Concurrent editing**: a single draft per playlist (no multi-user on the same draft — acceptable).
+- **`sync_windowed`/`sync_ready`** recomputed at publication.
 
 ## 5. Verdict
-**GO Arch 2.** Effort moyen-élevé (migration + 4 endpoints réécrits sur le brouillon + 2 nouveaux + front), **risque maîtrisé** (chemin de sync intact). Itérable : v1 = items+rules stagés, tags/avancé en suivant.
+**GO Arch 2.** Medium-high effort (migration + 4 endpoints rewritten on the draft + 2 new ones + front), **contained risk** (sync path intact). Iterable: v1 = items+rules staged, tags/advanced to follow.

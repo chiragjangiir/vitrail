@@ -6,24 +6,24 @@ import { test, expect } from '@playwright/test'
 
 const BASE = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'
 
-const ADV_USER = { id_user: 9, id_org: 1, email: 'buyer@dyson.com', full_name: 'Jane Buyer', avatar_url: null, totp_enabled: false, locale: 'en', is_active: true, id_advertiser: 1, last_login_at: null, created_at: new Date().toISOString() }
+const ADV_USER = { id_user: 9, id_org: 1, email: 'buyer@brightwell.com', full_name: 'Jane Buyer', avatar_url: null, totp_enabled: false, locale: 'en', is_active: true, id_advertiser: 1, last_login_at: null, created_at: new Date().toISOString() }
 const ADMIN_USER = { id_user: 1, id_org: 1, email: 'admin@test.com', full_name: 'Admin', avatar_url: null, totp_enabled: false, locale: 'en', is_active: true, last_login_at: null, created_at: new Date().toISOString() }
 
-const BRANDING = { org_name: 'Acme Retail', advertiser_name: 'Dyson', primary_color: '#4875B4', report_title: 'Acme Media Network', logo_url: null }
+const BRANDING = { org_name: 'Acme Retail', advertiser_name: 'Brightwell', primary_color: '#4875B4', report_title: 'Acme Media Network', logo_url: null }
 
 const CAMPAIGN = {
-  id_campaign: 1, id_advertiser: 1, campaign_name: 'Dyson Summer', status: 'live',
+  id_campaign: 1, id_advertiser: 1, campaign_name: 'Brightwell Summer', status: 'live',
   starts_on: '2026-07-01', ends_on: '2026-07-31', daily_hours: null,
   sov_percent: 20, pricing_model: 'sov', price_amount: 1500, price_currency: 'EUR',
-  cpm_rate: null, priority: 50, advertiser_name: 'Dyson', creative_count: 2,
+  cpm_rate: null, priority: 50, advertiser_name: 'Brightwell', creative_count: 2,
   target_player_count: 3, targets: [],
 }
 
 const AUDIO_CAMPAIGN = {
-  ...{ id_campaign: 2, id_advertiser: 1, campaign_name: 'Dyson Audio', status: 'live',
+  ...{ id_campaign: 2, id_advertiser: 1, campaign_name: 'Brightwell Audio', status: 'live',
     starts_on: '2026-07-01', ends_on: '2026-07-31', daily_hours: null,
     sov_percent: 10, pricing_model: 'flat', price_amount: null, price_currency: 'EUR',
-    cpm_rate: null, priority: 50, advertiser_name: 'Dyson', creative_count: 1,
+    cpm_rate: null, priority: 50, advertiser_name: 'Brightwell', creative_count: 1,
     target_player_count: 2, targets: [], campaign_kind: 'audio', spots_per_hour: 6 },
 }
 
@@ -39,7 +39,7 @@ const OVERVIEW = {
 }
 
 const REPORT = {
-  campaign: { id_campaign: 1, campaign_name: 'Dyson Summer', advertiser_name: 'Dyson', status: 'live', starts_on: '2026-07-01', ends_on: '2026-07-31', sov_percent: 20 },
+  campaign: { id_campaign: 1, campaign_name: 'Brightwell Summer', advertiser_name: 'Brightwell', status: 'live', starts_on: '2026-07-01', ends_on: '2026-07-31', sov_percent: 20 },
   period: { from: '2026-07-01', to: '2026-07-31' },
   totals: { plays: 232, signed_plays: 232, airtime_seconds: 6264, players: 6, days_active: 9 },
   sov: { sold_pct: 20, served_pct: 19.8 },
@@ -91,16 +91,16 @@ test.describe('Advertiser portal (S7 B2)', () => {
     // réservé aux rapports §24.3, il ne titre plus le portail) + chip annonceur
     await expect(page.locator('text=Acme Retail')).toBeVisible()
     await expect(page.locator('text=Acme Media Network')).toHaveCount(0)
-    await expect(page.locator('text=Dyson').first()).toBeVisible()
+    await expect(page.locator('text=Brightwell').first()).toBeVisible()
     await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible()
     // Pas de sidebar CMS
     await expect(page.locator('text=Dashboard')).toHaveCount(0)
 
     // Campagne listée (colonne visuelle) → clic sur la carte ouvre le rapport
-    await expect(page.locator('text=Dyson Summer')).toBeVisible()
-    await page.locator('text=Dyson Summer').click()
+    await expect(page.locator('text=Brightwell Summer')).toBeVisible()
+    await page.locator('text=Brightwell Summer').click()
     await expect(page).toHaveURL(/\/portal\/campaigns\/1/)
-    await expect(page.locator('text=Dyson Summer').first()).toBeVisible()
+    await expect(page.locator('text=Brightwell Summer').first()).toBeVisible()
     await expect(page.getByRole('button', { name: /pdf/i })).toBeVisible()
     // Un chiffre du rapport (232 passages) rendu par CampaignReportView
     await expect(page.locator('text=232').first()).toBeVisible()
@@ -129,8 +129,8 @@ test.describe('Advertiser portal (S7 B2)', () => {
     // Campagnes en 2 colonnes : visuelle à gauche, audio à droite
     await expect(page.locator('text=Visual campaigns')).toBeVisible()
     await expect(page.locator('text=Audio campaigns')).toBeVisible()
-    await expect(page.locator('text=Dyson Summer')).toBeVisible()
-    await expect(page.locator('text=Dyson Audio')).toBeVisible()
+    await expect(page.locator('text=Brightwell Summer')).toBeVisible()
+    await expect(page.locator('text=Brightwell Audio')).toBeVisible()
     await expect(page.locator('text=6 spots/h')).toBeVisible()
   })
 
@@ -203,7 +203,7 @@ test.describe('Advertiser portal (S7 B2)', () => {
     await page.route('**/api/v1/advertisers/', async (route) => {
       await route.fulfill({
         status: 200, contentType: 'application/json',
-        body: JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Dyson', contact_name: null, contact_email: null, notes: null, is_active: true, campaign_count: 1, created_at: new Date().toISOString() }]),
+        body: JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Brightwell', contact_name: null, contact_email: null, notes: null, is_active: true, campaign_count: 1, created_at: new Date().toISOString() }]),
       })
     })
     let invited = false
@@ -213,7 +213,7 @@ test.describe('Advertiser portal (S7 B2)', () => {
         await route.fulfill({
           status: 201, contentType: 'application/json',
           body: JSON.stringify({
-            user: { id_user: 9, email: 'buyer@dyson.com', full_name: 'Jane', is_active: true, last_login_at: null, created_at: new Date().toISOString() },
+            user: { id_user: 9, email: 'buyer@brightwell.com', full_name: 'Jane', is_active: true, last_login_at: null, created_at: new Date().toISOString() },
             initial_password: 'sf-Temp-123',
           }),
         })
@@ -221,23 +221,23 @@ test.describe('Advertiser portal (S7 B2)', () => {
         await route.fulfill({
           status: 200, contentType: 'application/json',
           body: invited
-            ? JSON.stringify([{ id_user: 9, email: 'buyer@dyson.com', full_name: 'Jane', is_active: true, last_login_at: null, created_at: new Date().toISOString() }])
+            ? JSON.stringify([{ id_user: 9, email: 'buyer@brightwell.com', full_name: 'Jane', is_active: true, last_login_at: null, created_at: new Date().toISOString() }])
             : '[]',
         })
       }
     })
     await page.goto(`${BASE}/campaigns/advertisers`)
 
-    await page.locator('text=Dyson').first().click()
-    const drawer = page.getByRole('dialog', { name: 'Dyson' })
+    await page.locator('text=Brightwell').first().click()
+    const drawer = page.getByRole('dialog', { name: 'Brightwell' })
     await expect(drawer.locator('text=Portal access')).toBeVisible()
     await expect(drawer.locator('text=No portal account yet.')).toBeVisible()
 
     // Invitation → mot de passe affiché UNE fois
-    await drawer.getByPlaceholder('buyer@brand.com').fill('buyer@dyson.com')
+    await drawer.getByPlaceholder('buyer@brand.com').fill('buyer@brightwell.com')
     await drawer.getByRole('button', { name: 'Invite' }).click()
     await expect(drawer.locator('text=sf-Temp-123')).toBeVisible()
-    await expect(drawer.locator('text=buyer@dyson.com · sf-Temp-123')).toBeVisible()
+    await expect(drawer.locator('text=buyer@brightwell.com · sf-Temp-123')).toBeVisible()
 
     // Compte listé + bouton de révocation → DELETE
     page.on('dialog', (d) => d.accept())

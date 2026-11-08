@@ -42,6 +42,22 @@ Part 1 gets a server and a first screen running in about 15 minutes, on your own
 any web browser. Part 2 covers production: sizing (with or without a GPU), HTTPS, every player
 platform, updates, backups, the Telegram assistant.
 
+### 🤖 Install with an AI assistant
+
+This repository ships a [`CLAUDE.md`](CLAUDE.md) that briefs an AI assistant on Vitrail: the
+installation steps, the checks to run after each one, the pitfalls met on real installs, and
+safety rules (ask before anything destructive, never print secrets).
+
+- **With [Claude Code](https://claude.com/claude-code)**: clone the repository on your server
+  and run `claude` in it. Claude reads `CLAUDE.md` automatically and can walk you through the
+  installation, run the checks with you and help you troubleshoot.
+- **In a chat** (claude.ai or another assistant): download
+  [`CLAUDE.md`](https://raw.githubusercontent.com/edkahall/vitrail/main/CLAUDE.md), add it to
+  the conversation and ask for help installing Vitrail.
+
+The assistant answers in your language. It is the same content as the guide, written for an
+assistant: the guide stays the reference.
+
 ---
 
 ## Quick start (development)

@@ -1,50 +1,52 @@
-# SignFlow Player — Android
+# Vitrail Player — Android
 
-Application **native Kotlin** (pas Electron) pour Android 9+ (`minSdk 28`) — box Android TV,
-écrans tactiles, téléphones. Package `app.signflow.player`.
+🇫🇷 [Version française](README.fr.md)
+
+**Native Kotlin** application (not Electron) for Android 9+ (`minSdk 28`) — Android TV boxes,
+touch screens, phones. Package `app.signflow.player`.
 
 ## Installation
 
-- **Terrain (recommandé)** : `docs/RUNBOOK_POSE_PLAYER.md` — canal `signflow-provision` ADB
-  (`--os android --ip <ip>`, APK poussé + provisionné en une commande).
-- **Boîtiers Android TV / Google TV** : `docs/RUNBOOK_POSE_ANDROID_TV.md` — kiosque = passer
-  **launcher** (sur Google TV `set-home-activity` ne suffit pas : désactiver les paquets HOME),
-  `appops … REQUEST_INSTALL_PACKAGES allow` pour l'OTA, `adb tcpip 5555` avant tout.
-  ⚠️ **Google TV sans Device Owner ≠ Android TV** : certains OS (Google TV grand public,
-  ColorOS) refusent le Device Owner — critère n°1 du choix matériel.
-- **Manuelle locale** : `./install.sh [--release] [--ip <ip>]` (build gradle + `adb install`
+- **Field (recommended)**: `docs/RUNBOOK_POSE_PLAYER.md` — `signflow-provision` ADB channel
+  (`--os android --ip <ip>`, APK pushed + provisioned in one command).
+- **Android TV / Google TV boxes**: `docs/RUNBOOK_POSE_ANDROID_TV.md` — kiosk = become the
+  **launcher** (on Google TV `set-home-activity` is not enough: disable the HOME packages),
+  `appops … REQUEST_INSTALL_PACKAGES allow` for OTA, `adb tcpip 5555` before anything else.
+  ⚠️ **Google TV without Device Owner ≠ Android TV**: some OSes (consumer Google TV,
+  ColorOS) refuse Device Owner — the #1 criterion when choosing hardware.
+- **Local manual install**: `./install.sh [--release] [--ip <ip>]` (gradle build + `adb install`
   + set-home-activity).
 
-## Décisions techniques à connaître
+## Technical decisions to know
 
-- **WebView + ExoPlayer** : la WebView (renderer partagé) rend tout le contenu non-vidéo ;
-  une **TextureView ExoPlayer (media3)** sœur, au-dessus, décode en HW natif ce que la WebView
-  ne tient pas (**HEVC, 4K@60**). L'écran idle est une **vue native** posée au-dessus des deux
-  (la WebView de certaines box Amlogic ne compose pas en idle — les captures mentiraient).
-- **Debug et release = deux apps distinctes** : le debug est suffixé `.debug`
-  (`applicationIdSuffix`). Passer en release = installation à neuf (re-provisionner), puis
+- **WebView + ExoPlayer**: the WebView (shared renderer) renders all non-video content;
+  a sibling **ExoPlayer TextureView (media3)**, on top, decodes in native HW what the WebView
+  cannot handle (**HEVC, 4K@60**). The idle screen is a **native view** placed above both
+  (the WebView of some Amlogic boxes does not composite when idle — screenshots would lie).
+- **Debug and release = two distinct apps**: debug is suffixed `.debug`
+  (`applicationIdSuffix`). Switching to release = fresh install (re-provision), then
   `adb uninstall app.signflow.player.debug`.
-- **Signature release** : `keystore.properties` (gitignoré) + `signflow-release.jks`. Sans
-  keystore le build release sort **non signé** (non installable) — le build debug, lui, passe.
-  ⚠️ Le keystore doit être **sauvegardé** : le perdre = plus aucune mise à jour possible du
-  package sans désinstaller (Android exige la même clé).
-- **OTA par APK depuis le serveur** : le player télécharge le bundle
-  (`player-bundles/android/<version>.apk`, **URL relative** résolue contre son `backend_url` —
-  jamais d'URL MinIO pré-signée, elle expire) et installe via **`PackageInstaller`** :
-  silencieux si l'app est **Device Owner**, sinon confirmation à l'écran.
-- Le reste est à parité Electron : `ContentStore.kt` (offline-first), `LanSyncController` /
-  `VodLanController` (UDP 7778/7779), `LocalControlServer` (nanohttpd — Store Control Panel
-  LAN §19.3), `PopSigner` (Proof of Play Ed25519 — BouncyCastle bas-niveau, le JCE natif
-  n'a Ed25519 qu'à partir d'API 33), `WatchdogWorker`, `BootReceiver` (relance au boot).
+- **Release signing**: `keystore.properties` (gitignored) + `signflow-release.jks`. Without
+  a keystore the release build comes out **unsigned** (not installable) — the debug build still works.
+  ⚠️ The keystore must be **backed up**: losing it = no more updates possible for the
+  package without uninstalling (Android requires the same key).
+- **OTA by APK from the server**: the player downloads the bundle
+  (`player-bundles/android/<version>.apk`, **relative URL** resolved against its `backend_url` —
+  never a pre-signed MinIO URL, it expires) and installs it via **`PackageInstaller`**:
+  silent if the app is **Device Owner**, otherwise an on-screen confirmation.
+- The rest is at parity with Electron: `ContentStore.kt` (offline-first), `LanSyncController` /
+  `VodLanController` (UDP 7778/7779), `LocalControlServer` (nanohttpd — LAN Store Control Panel
+  §19.3), `PopSigner` (Ed25519 Proof of Play — low-level BouncyCastle, the native JCE
+  only has Ed25519 from API 33), `WatchdogWorker`, `BootReceiver` (restart at boot).
 
 ## Config
 
-Pas de `config.json` : **`EncryptedSharedPreferences`** (`signflow_config`, AES-256, Android
-Keystore). Clés : `backend_url`, `player_token` (`sfp_…` de provisioning, remplacé par un JWT
-à l'enregistrement), `player_name`. Saisie via l'écran de setup au premier lancement, ou
-injectée par `signflow-provision`.
+No `config.json`: **`EncryptedSharedPreferences`** (`signflow_config`, AES-256, Android
+Keystore). Keys: `backend_url`, `player_token` (provisioning `sfp_…`, replaced by a JWT
+on registration), `player_name`. Entered via the setup screen on first launch, or
+injected by `signflow-provision`.
 
-## Logs / diagnostic
+## Logs / diagnostics
 
-- `adb logcat -s SignFlow/Main` (+ tags `SignFlow/*` des autres contrôleurs).
-- Version et état remontés au heartbeat CMS ; overlay de diagnostic on-device disponible.
+- `adb logcat -s SignFlow/Main` (+ the `SignFlow/*` tags of the other controllers).
+- Version and status reported in the CMS heartbeat; on-device diagnostic overlay available.

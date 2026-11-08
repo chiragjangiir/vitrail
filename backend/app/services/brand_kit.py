@@ -8,7 +8,7 @@ logo, mentions légales, ton. Deux portées : l'**organisation** (le retailer) e
 1. **Une charte ne remplace QUE ce qu'elle déclare.** Une valeur nulle laisse au template la
    sienne — sinon poser une seule couleur de marque effacerait en silence les quatre autres du
    template et rendrait un visuel incohérent.
-2. **L'annonceur l'emporte sur l'organisation** — un visuel fait pour Dyson ne porte pas les
+2. **L'annonceur l'emporte sur l'organisation** — un visuel fait pour Brightwell ne porte pas les
    couleurs du magasin.
 3. **La charte est un DÉFAUT, pas un verrou** : les overrides de style saisis par l'opérateur
    passent après elle et gagnent (`resolve_template` applique les overrides sur le thème déjà

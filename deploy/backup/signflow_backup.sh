@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# Backup quotidien SignFlow → NAS WD (SMB via rclone) — cf. docs/RUNBOOK_BACKUPS.md
+# Backup quotidien Vitrail → stockage distant (rclone : NAS, S3, SFTP…)
 #
 # Sauvegarde : dump Postgres (format custom) + rôles globaux + config (.env,
 # overrides compose, version alembic) + MIROIR du volume MinIO (médias) avec
-# corbeille 30 j (un fichier supprimé/écrasé côté serveur reste 30 j sur le NAS).
+# corbeille 30 j (un fichier supprimé/écrasé côté serveur reste 30 j sur le stockage distant).
 #
-# Tourne en user kahall (groupe docker) — AUCUN root requis : rclone en
+# Tourne sous un compte du groupe docker — AUCUN root requis : rclone en
 # conteneur, volume MinIO monté read-only. Secrets HORS git :
-#   ~/.config/signflow-backup/rclone.conf   (accès SMB NAS, chmod 600)
+#   ~/.config/signflow-backup/rclone.conf   (remote rclone nommé « backup », chmod 600)
 #   ~/.config/signflow-backup/backup.env    (KUMA_PUSH_URL, TELEGRAM_CHAT_ID)
 #
-# Alerting : échec → message Telegram direct (bot du .env prod) ; succès →
+# Alerting : échec → message Telegram direct (bot du .env) ; succès →
 # ping du push-monitor Uptime Kuma (dead man's switch : Kuma alerte si AUCUN
 # backup ne s'est exécuté depuis 26 h). + alerte disque > 85 %.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -20,7 +20,7 @@ set -euo pipefail
 APP_DIR="${APP_DIR:-/opt/signflow}"
 CONF_DIR="${CONF_DIR:-$HOME/.config/signflow-backup}"
 STAGING="${STAGING:-$HOME/signflow_backups}"
-REMOTE="${REMOTE:-nas:NET_HDD_2/Save/signflow}"
+REMOTE="${REMOTE:-backup:vitrail}"   # <remote rclone>:<chemin> — à adapter
 KEEP_LOCAL_DAYS="${KEEP_LOCAL_DAYS:-7}"
 KEEP_REMOTE_DAYS="${KEEP_REMOTE_DAYS:-30}"
 DISK_ALERT_PCT="${DISK_ALERT_PCT:-85}"
@@ -71,7 +71,7 @@ docker exec "$BACKEND_CONTAINER" alembic current 2>/dev/null \
 tar czf "$STAGING/config/config_${STAMP}.tgz" -C "$APP_DIR" \
   .env docker-compose.override.yml
 
-# ── 3. Upload dumps + config vers le NAS ─────────────────────────────────────
+# ── 3. Upload dumps + config vers le stockage distant ─────────────────────────────────────
 STEP=upload_db
 rclone_files copy "$STAGING/db" "$REMOTE/db" --log-level ERROR
 rclone_files copy "$STAGING/config" "$REMOTE/config" --log-level ERROR

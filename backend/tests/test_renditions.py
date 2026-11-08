@@ -91,7 +91,7 @@ def test_player_target_height_mpv_standalone_serves_4k():
     Forme réelle du heartbeat en mode video_renderer=mpv : detect-capabilities pose
     hw_decode='vaapi' (méthode) et le bloc mpv force hw_decode_active=true → décodage
     classé matériel → le plafond logiciel 1080 ne s'applique pas. Cf. item #4 (4K HW
-    hors groupe LAN) et [[project-mpv-lansync-rule]] (mpv = standalone).
+    hors groupe LAN) (mpv = standalone).
     """
     from app.services import player_capabilities as PC
     caps = {"hw_decode": "vaapi", "hw_decode_active": True,
@@ -107,7 +107,7 @@ def test_player_target_height_chromeos_native_uses_panel():
 
     Le bridge remonte display_modes (résolution physique de l'écran). Un Chromebox 1080p
     reçoit donc du FHD, un 4K reçoit du 4K — fini le « 4K servi par défaut » faute de
-    capacité connue. Cf. backlog ChromeOS UI CMS + [[project-chromeos-pwa]].
+    capacité connue. Cf. backlog ChromeOS UI CMS.
     """
     p1080 = CmsPlayer(player_os="chromeos", capabilities={
         "hw_decode": "chromium-native", "platform": "chromeos",

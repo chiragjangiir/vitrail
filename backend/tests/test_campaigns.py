@@ -581,11 +581,11 @@ async def test_advertiser_folder_autocreated_and_renamed(client: AsyncClient, he
     """Dossier médiathèque « Annonceurs/<nom> » auto-créé à la création (migr 0075),
     renommé quand l'annonceur change de nom."""
     from app.models.media_folder import CmsMediaFolder
-    adv = await _advertiser(client, headers, "Dyson")
+    adv = await _advertiser(client, headers, "Brightwell")
     assert adv["id_folder"], "dossier lié à la création"
     folder = (await db_session.execute(select(CmsMediaFolder).where(
         CmsMediaFolder.id_folder == adv["id_folder"]))).scalar_one()
-    assert folder.folder_name == "Dyson" and folder.depth == 1
+    assert folder.folder_name == "Brightwell" and folder.depth == 1
     root = (await db_session.execute(select(CmsMediaFolder).where(
         CmsMediaFolder.id_folder == folder.parent_id))).scalar_one()
     assert root.folder_name == "Annonceurs" and root.parent_id is None
@@ -599,7 +599,7 @@ async def test_advertiser_folder_autocreated_and_renamed(client: AsyncClient, he
 
     # Renommage de l'annonceur → dossier renommé
     r = await client.put(f"/api/v1/advertisers/{adv['id_advertiser']}", headers=headers,
-                         json={"advertiser_name": "Dyson France"})
+                         json={"advertiser_name": "Brightwell France"})
     assert r.status_code == 200
     await db_session.refresh(folder)
-    assert folder.folder_name == "Dyson France"
+    assert folder.folder_name == "Brightwell France"

@@ -1,90 +1,92 @@
-# Runbook — poser un player SignFlow en clientèle
+# Runbook — installing a Vitrail player at a customer site
 
-**Éprouvé de bout en bout le 2026-08-09** sur les trois canaux : Raspberry Pi (carte SD, machine
-nue), Windows 11 (WinRM, machine déjà installée), Linux/RPi (SSH, machine déjà en service).
+🇫🇷 [Version française](RUNBOOK_POSE_PLAYER.fr.md)
 
-> **Ce document dit comment POSER un player chez un client.**
-> À ne pas confondre avec :
-> - `installer/RUNBOOK_TEST_HW.md` — comment **tester** les canaux (recette interne) ;
-> - `docs/RUNBOOK_POSE_ANDROID_TV.md` — la pose sur **boîtier Android TV**, qui a ses propres
->   pièges (Device Owner, launcher, factory reset) ;
-> - `docs/RUNBOOK_DIAGNOSTIC.md` — quand un player **déjà posé** ne va pas.
+**Tested end to end** on all three channels: Raspberry Pi (SD card, bare machine), Windows 11
+(WinRM, machine already installed), Linux/RPi (SSH, machine already in service).
+
+> **This document explains how to INSTALL a player at a customer site.**
+> Not to be confused with:
+> - `installer/RUNBOOK_TEST_HW.md` — how to **test** the channels (internal acceptance procedure);
+> - `docs/RUNBOOK_POSE_ANDROID_TV.md` — installation on an **Android TV box**, which has its own
+>   pitfalls (Device Owner, launcher, factory reset);
+> - `docs/RUNBOOK_DIAGNOSTIC.md` — when a player that is **already installed** misbehaves.
 
 ---
 
-## 1. Le principe, en une phrase
+## 1. The principle, in one sentence
 
-Le CMS génère un **payload** — l'URL du serveur + un **jeton `sfp_` à usage unique** — et
-**pré-crée le player** côté serveur. Le device s'y **ré-attache** à son premier contact, échange
-le jeton contre un JWT permanent, et apparaît *online*.
+The CMS generates a **payload** — the server URL + a **single-use `sfp_` token** — and
+**pre-creates the player** on the server side. The device **re-attaches** to it on first contact,
+exchanges the token for a permanent JWT, and shows up *online*.
 
 ```
 CMS ──payload (sfp_)──> [ carte SD | WinRM | SSH | ADB ] ──> player ──register──> online
 ```
 
-⚠️ **Un jeton consommé ne resert pas.** Si une pose échoue après l'enregistrement, il faut
-**regénérer un payload** — sinon l'essai suivant échouera pour une raison sans rapport avec la
-vraie cause, et vous chercherez au mauvais endroit.
+⚠️ **A consumed token cannot be reused.** If an installation fails after registration, you must
+**regenerate a payload** — otherwise the next attempt will fail for a reason unrelated to the
+real cause, and you will look in the wrong place.
 
 ---
 
-## 2. À préparer une seule fois (poste du technicien)
+## 2. To prepare once (technician's workstation)
 
-### 2.1 La clé opérateur
+### 2.1 The operator key
 
-Dans le CMS, en **org-admin** : **Provisioning → « Clé opérateur »** → générer → copier la clé
-`sfk_…` (affichée **une seule fois**). Puis, sur le poste :
+In the CMS, as **org-admin**: **Provisioning → "Operator key"** → generate → copy the
+`sfk_…` key (shown **only once**). Then, on the workstation:
 
 ```bash
 signflow-provision --cms https://<votre-serveur>:8443 --key sfk_… --save-config
 ```
 
-→ plus rien à ressaisir ensuite. La clé est **scopée provisioning** (créer un payload, lire l'état
-d'un player) — elle ne donne **pas** les droits org-admin — et elle est révocable depuis le CMS.
+→ nothing to re-enter afterwards. The key is **scoped to provisioning** (create a payload, read a
+player's state) — it does **not** grant org-admin rights — and it can be revoked from the CMS.
 
-⚠️ **La clé `sfk_` expire** (défaut **90 jours**, réglable jusqu'à 730 à la création). Un
-`--save-config` qui échoue avec « Authentification CMS refusée » des mois plus tard, c'est
-probablement elle : en regénérer une dans le CMS.
+⚠️ **The `sfk_` key expires** (default **90 days**, adjustable up to 730 at creation). A
+`--save-config` that fails with "CMS authentication refused" months later is most likely
+caused by this: generate a new one in the CMS.
 
-> *Alternative sans clé* : `--token <JWT org-admin>`, mais il **expire en 15 minutes**. À éviter
-> sur le terrain.
+> *Alternative without a key*: `--token <JWT org-admin>`, but it **expires after 15 minutes**.
+> Avoid it in the field.
 
-### 2.2 L'outil
+### 2.2 The tool
 
-- **Technicien sans Python** : copier **un seul fichier**, `installer/dist/signflow-provision.exe`
-  (~13 Mo). Rien d'autre à installer.
+- **Technician without Python**: copy **a single file**, `installer/dist/signflow-provision.exe`
+  (~13 MB). Nothing else to install.
 
-  ⚠️ **Vérifier la fraîcheur de l'exe distribué** : `signflow-provision --selftest` doit afficher
-  « code du 2026-08-16 » (ou plus récent). Un exe plus ancien ne contient pas les correctifs du
-  2026-08-09 (canal SSH qui n'écrivait aucune config). Reconstruire :
+  ⚠️ **Check that the distributed exe is up to date**: `signflow-provision --selftest` must display
+  "code du 2026-08-16" (or more recent). An older exe does not contain the fixes of
+  2026-08-09 (SSH channel that wrote no config). To rebuild:
   `cd installer && pyinstaller --clean signflow-provision.spec`.
-- **Poste avec Python** : `cd installer && pip install -r requirements.txt`, puis
+- **Workstation with Python**: `cd installer && pip install -r requirements.txt`, then
   `python -m signflow_provision …`.
 
-Vérifier les canaux disponibles : `signflow-provision --selftest`.
+Check the available channels: `signflow-provision --selftest`.
 
 ---
 
-## 3. Quel canal choisir
+## 3. Which channel to choose
 
-| Situation | Canal | Geste humain requis sur place |
+| Situation | Channel | Human action required on site |
 |---|---|---|
-| **Raspberry Pi neuf** (rien dessus) | Carte SD | insérer la carte, allumer — **c'est tout** |
-| **PC Windows déjà installé** | WinRM | ouvrir WinRM une fois (§5.1) |
-| **Linux / RPi déjà en service** | SSH | aucun si SSH est déjà ouvert |
-| **Boîtier Android** | ADB | activer le débogage USB → `docs/RUNBOOK_POSE_ANDROID_TV.md` |
-| **BrightSign** | ZIP sur carte SD | copier le `config.json` produit à la racine d'une SD déjà préparée (ZIP du CMS) |
+| **New Raspberry Pi** (nothing on it) | SD card | insert the card, power on — **that's all** |
+| **Windows PC already installed** | WinRM | open WinRM once (§5.1) |
+| **Linux / RPi already in service** | SSH | none if SSH is already open |
+| **Android box** | ADB | enable USB debugging → `docs/RUNBOOK_POSE_ANDROID_TV.md` |
+| **BrightSign** | ZIP on SD card | copy the generated `config.json` to the root of an already prepared SD card (ZIP from the CMS) |
 
-**Règle générale** : l'outil ne peut pas ouvrir la porte à votre place. Un **foothold** (WinRM,
-SSH, ADB, accès physique à la SD) doit exister ; tout le reste est automatisé.
+**General rule**: the tool cannot open the door for you. A **foothold** (WinRM, SSH, ADB,
+physical access to the SD card) must exist; everything else is automated.
 
 ---
 
-## 4. Raspberry Pi neuf — carte SD
+## 4. New Raspberry Pi — SD card
 
-### 4.1 Construire l'image (une fois par version de player, pas par machine)
+### 4.1 Build the image (once per player version, not per machine)
 
-Sur une machine avec Docker (le build a besoin du mode privilégié : loop + device-mapper) :
+On a machine with Docker (the build needs privileged mode: loop + device-mapper):
 
 ```bash
 cd installer/image-rpi && mkdir -p out cache
@@ -94,38 +96,37 @@ docker run --rm --privileged \
   alpine:3.20 sh /work/src/build.sh
 ```
 
-En fin de build, **noter le mot de passe affiché** — il est généré aléatoirement et écrit dans
-`out/signflow-rpi.credentials.txt` :
+At the end of the build, **write down the password displayed** — it is randomly generated and
+written to `out/signflow-rpi.credentials.txt`:
 
 ```
 - compte système : signflow / <mot de passe>
 ```
 
-> `RPI_PASSWORD=…` permet d'en imposer un. Ce compte sert au **dépannage sur site** (SSH), il a
-> `sudo`. Sans lui, une machine en échec serait inspectable par personne.
+> `RPI_PASSWORD=…` lets you set one yourself. This account is used for **on-site troubleshooting**
+> (SSH) and has `sudo`. Without it, a failed machine could not be inspected by anyone.
 
-### 4.2 Injecter le payload (une fois par machine)
+### 4.2 Inject the payload (once per machine)
 
-Générer le payload depuis le CMS (**Provisioning → Générer un payload**, `os = rpi`), puis le
-placer dans la partition **boot** de l'image, sous le nom `signflow-provision.json`, à la place du
-fichier d'exemple.
+Generate the payload from the CMS (**Provisioning → Generate payload**, `os = rpi`), then place it
+in the image's **boot** partition, named `signflow-provision.json`, replacing the example file.
 
-> La partition boot est en FAT : elle est lisible sous Windows après le flash, si vous préférez
-> flasher d'abord et éditer ensuite.
+> The boot partition is FAT: it can be read on Windows after flashing, if you prefer to flash
+> first and edit afterwards.
 
-### 4.3 Flasher
+### 4.3 Flash
 
-**Raspberry Pi Imager** (choisir « image personnalisée ») ou `dd`.
+**Raspberry Pi Imager** (choose "custom image") or `dd`.
 
-⚠️ **Avant tout `dd`, vérifier trois fois la lettre du disque.** Une erreur écrase un disque de
-données sans confirmation. Contrôles minimaux : le périphérique doit être en **USB**, faire la
-**taille de la carte**, et **ne pas être monté**.
+⚠️ **Before any `dd`, check the disk letter three times.** A mistake overwrites a data disk
+without confirmation. Minimum checks: the device must be **USB**, be the **size of the card**,
+and **not be mounted**.
 
-### 4.4 Sur site
+### 4.4 On site
 
-> **Insérer la carte. Brancher réseau et écran. Allumer. Ne rien faire.**
+> **Insert the card. Connect network and screen. Power on. Do nothing.**
 
-L'écran affiche :
+The screen shows:
 
 ```
 ===============================================
@@ -137,19 +138,20 @@ L'écran affiche :
   -> installation de Node, Electron et du player (plusieurs minutes)...
 ```
 
-puis **« Installation TERMINEE - redemarrage dans 5s »**. La machine redémarre **seule** et le
-player démarre en kiosque. Compter **~10 minutes**, internet requis.
+then **"Installation TERMINEE - redemarrage dans 5s"** (installation finished, rebooting in 5 s).
+The machine reboots **by itself** and the player starts in kiosk mode. Allow **~10 minutes**;
+internet access is required.
 
-**Aucune question n'est posée. Aucun clavier n'est nécessaire. Aucun second démarrage.**
+**No question is asked. No keyboard is needed. No second boot.**
 
-En cas d'échec, l'écran affiche la cause et les dernières lignes du journal, puis rend la main.
-**Redémarrer suffit à relancer un essai** : le service reste armé tant qu'il n'a pas réussi.
+On failure, the screen shows the cause and the last lines of the log, then returns control.
+**Rebooting is enough to retry**: the service stays armed until it succeeds.
 
 ---
 
-## 5. PC Windows déjà installé — WinRM
+## 5. Windows PC already installed — WinRM
 
-### 5.1 Ouvrir le foothold (une fois, sur la machine cible, PowerShell administrateur)
+### 5.1 Open the foothold (once, on the target machine, PowerShell as administrator)
 
 ```powershell
 Set-NetConnectionProfile -NetworkCategory Private   # sinon Enable-PSRemoting échoue
@@ -158,16 +160,17 @@ New-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies
   -Name LocalAccountTokenFilterPolicy -PropertyType DWord -Value 1 -Force
 ```
 
-> La 1ʳᵉ ligne n'est pas décorative : sur une machine fraîche le réseau est classé « Public » et
-> `Enable-PSRemoting` refuse. La 3ᵉ non plus : sans elle, le compte admin **local** reçoit par le
-> réseau un jeton bridé, et les écritures dans `%APPDATA%` échouent. L'outil affiche
-> `admin=True/False` — **si c'est `False`, cette clé n'a pas pris.**
+> The 1st line is not decorative: on a fresh machine the network is classified as "Public" and
+> `Enable-PSRemoting` refuses (the comment means "otherwise Enable-PSRemoting fails"). Nor is the
+> 3rd: without it, the **local** admin account receives a restricted token over the network, and
+> writes to `%APPDATA%` fail. The tool displays `admin=True/False` — **if it says `False`, this key
+> did not take effect.**
 
-### 5.2 Déposer les sources du player
+### 5.2 Copy the player sources
 
-Copier le dossier `player-windows/` sur la machine, par exemple dans `C:\signflow\player-windows`.
+Copy the `player-windows/` folder to the machine, for example to `C:\signflow\player-windows`.
 
-### 5.3 Poser, depuis le poste du technicien
+### 5.3 Install, from the technician's workstation
 
 ```bash
 signflow-provision --ref "PC Accueil" --os windows \
@@ -175,98 +178,100 @@ signflow-provision --ref "PC Accueil" --os windows \
   --source 'C:\signflow\player-windows' --start-task
 ```
 
-L'outil installe **Node.js s'il manque**, pose Electron, écrit la config, démarre la tâche
-planifiée et **attend le passage online** avant de rendre la main.
+The tool installs **Node.js if it is missing**, installs Electron, writes the config, starts the
+scheduled task and **waits for the player to come online** before returning.
 
-- `--windows-user <compte>` si le **compte kiosk** diffère du compte WinRM (c'est son `%APPDATA%`
-  qui reçoit la configuration).
-- Sans `--source`, l'outil suppose le player **déjà installé** et ne dépose que la configuration.
+- `--windows-user <account>` if the **kiosk account** differs from the WinRM account (its
+  `%APPDATA%` is what receives the configuration).
+- Without `--source`, the tool assumes the player is **already installed** and only writes the
+  configuration.
 
-> Un `UserWarning` pywinrm sur la conversion d'un message PowerShell est **cosmétique** — ignorer
-> si le player passe online.
+> A pywinrm `UserWarning` about converting a PowerShell message is **cosmetic** — ignore it
+> if the player comes online.
 
 ---
 
-## 6. Linux ou Raspberry Pi déjà en service — SSH
+## 6. Linux or Raspberry Pi already in service — SSH
 
 ```bash
 signflow-provision --ref "Vitrine Lyon" --os rpi --ssh signflow@192.168.1.20
 ```
 
-L'outil relance l'installeur présent sur la machine, écrit la configuration **dans le répertoire
-que le player lit réellement**, puis **relance le player** pour qu'il la prenne en compte.
+The tool reruns the installer present on the machine, writes the configuration **to the directory
+the player actually reads**, then **restarts the player** so that it picks it up.
 
-- `--player-user <compte>` si le player tourne sous un autre compte que `signflow`.
-- L'authentification passe par le binaire `ssh` : prévoir une **clé** (un mot de passe interactif
-  ne peut pas être fourni à l'outil).
+- `--player-user <account>` if the player runs under an account other than `signflow`.
+- Authentication goes through the `ssh` binary: set up a **key** (an interactive password cannot
+  be provided to the tool).
 
-**Prérequis du canal SSH** : le player doit être installé sous `/opt/signflow/player-rpi` ou
-`/opt/signflow/player-linux`, et le compte du player avoir son home sous `/home/<compte>` —
-ces chemins sont codés dans le driver. Sinon le canal s'arrête en le disant.
-
----
-
-## 7. Vérifier que la pose a réussi
-
-Ne pas se contenter du message de l'outil. Trois preuves :
-
-1. **Le CMS** : le player est **online**, avec le bon OS, et il n'y a **qu'une seule ligne**
-   (pas de doublon).
-2. **Le jeton a été consommé** : dans le `config.json` du player, `player_token` commence par
-   `eyJ…` (un JWT) et **plus** par `sfp_`. S'il commence encore par `sfp_`, l'enregistrement n'a
-   pas eu lieu. ⚠️ Sur **Windows**, avant enregistrement la clé s'appelle `org_token` (le player
-   la remplace par `player_token` en s'enregistrant) — la preuve est donc « le `org_token` sfp_
-   a disparu au profit d'un `player_token` eyJ… », pas « player_token commence encore par sfp_ ».
-3. **L'écran** diffuse (ou affiche le repli si aucun contenu n'est programmé).
+**SSH channel prerequisites**: the player must be installed under `/opt/signflow/player-rpi` or
+`/opt/signflow/player-linux`, and the player account must have its home under `/home/<compte>` —
+these paths are hard-coded in the driver. Otherwise the channel stops and says so.
 
 ---
 
-## 8. Pièges (tous rencontrés en réel)
+## 7. Checking that the installation succeeded
 
-**Re-provisionner un player existant sans `--reattach <id>` crée un DOUBLON.** Récupérer l'`id`
-dans le CMS → Players. À noter : un `--dry-run` **crée aussi** un player côté CMS.
+Do not settle for the tool's message. Three proofs:
 
-**La clé d'hôte SSH change à chaque réinstallation.** Le refus qui suit (`REMOTE HOST
-IDENTIFICATION HAS CHANGED`) est le système qui fait son travail. Retirer l'ancienne empreinte :
-`ssh-keygen -R <ip>`. ⚠️ Tant qu'elle n'est pas retirée, OpenSSH **désactive aussi
-l'authentification par mot de passe** — on croit à un mauvais mot de passe alors que c'est la clé.
-
-**Un Raspberry Pi n'a pas d'horloge.** Au premier démarrage il repart de la date de l'image ; tant
-que NTP n'a pas synchronisé, **toute connexion HTTPS est refusée** (« certificate is not yet
-valid »). L'image gère l'attente — mais si un site bloque NTP, l'installation échouera et le dira.
-
-**Une machine sans réseau au bon moment échoue proprement** : le message le dit, et un
-redémarrage relance l'essai. Ne pas réinstaller la carte pour autant.
-
-**Windows n'a aucun pilote virtio.** Sur une VM, utiliser un disque **SATA** et une carte réseau
-**e1000e**, sinon l'installateur ne voit pas le disque et la machine n'a pas de réseau.
+1. **The CMS**: the player is **online**, with the right OS, and there is **only one row**
+   (no duplicate).
+2. **The token was consumed**: in the player's `config.json`, `player_token` starts with
+   `eyJ…` (a JWT) and **no longer** with `sfp_`. If it still starts with `sfp_`, registration did
+   not happen. ⚠️ On **Windows**, before registration the key is called `org_token` (the player
+   replaces it with `player_token` when registering) — so the proof is "the `org_token` sfp_
+   is gone, replaced by a `player_token` eyJ…", not "player_token still starts with sfp_".
+3. **The screen** is playing content (or shows the fallback if no content is scheduled).
 
 ---
 
-## 9. Si ça ne marche pas
+## 8. Pitfalls (all encountered for real)
 
-**Raspberry Pi** — se connecter en SSH avec le compte du build (`signflow` + le mot de passe de
-`signflow-rpi.credentials.txt`, il a `sudo`) :
+**Re-provisioning an existing player without `--reattach <id>` creates a DUPLICATE.** Get the `id`
+from CMS → Players. Note: a `--dry-run` **also creates** a player on the CMS side.
+
+**The SSH host key changes on every reinstallation.** The refusal that follows (`REMOTE HOST
+IDENTIFICATION HAS CHANGED`) is the system doing its job. Remove the old fingerprint:
+`ssh-keygen -R <ip>`. ⚠️ Until it is removed, OpenSSH **also disables password
+authentication** — you think the password is wrong when it is actually the key.
+
+**A Raspberry Pi has no clock.** On first boot it starts from the image's date; until NTP has
+synchronised, **every HTTPS connection is refused** ("certificate is not yet valid"). The image
+handles the wait — but if a site blocks NTP, the installation will fail and say so.
+
+**A machine without network at the right moment fails cleanly**: the message says so, and a
+reboot retries. Do not re-flash the card because of it.
+
+**Windows has no virtio drivers.** On a VM, use a **SATA** disk and an **e1000e** network card,
+otherwise the installer cannot see the disk and the machine has no network.
+
+---
+
+## 9. If it does not work
+
+**Raspberry Pi** — connect over SSH with the build account (`signflow` + the password from
+`signflow-rpi.credentials.txt`; it has `sudo`):
 
 ```bash
 cat /var/log/signflow-firstboot.log     # tout le déroulé, y compris la sortie de l'installeur
 tail -f /var/log/signflow-player.log    # le player une fois installé
 ```
 
-> Ce journal **survit au redémarrage**, contrairement au journal systemd de cette image. C'est la
-> première chose à lire.
+> The first log contains the whole run, including the installer output; the second is the player
+> once installed. This log **survives reboots**, unlike this image's systemd journal. It is the
+> first thing to read.
 
-**Windows** — vérifier que la tâche existe et que la configuration est au bon endroit :
+**Windows** — check that the task exists and that the configuration is in the right place:
 
 ```powershell
 Get-ScheduledTask 'SignFlow Player'
 Get-Content "$env:APPDATA\signflow-player-windows\config.json"
 ```
 
-**Tous OS** — si le player reste sur « Setup required » alors que la configuration existe, c'est
-qu'il **ne lit pas le fichier que vous regardez**. Le répertoire est
-`~/.config/<nom du paquet>` sur linux/rpi (`signflow-player-rpi`, `signflow-player`), et
-`%APPDATA%\signflow-player-windows` sur Windows. Le nom est **dérivé du `package.json`** du player
-(`app.getPath('userData')`) — jamais réécrit à la main.
+**All OSes** — if the player stays on "Setup required" although the configuration exists, it
+**is not reading the file you are looking at**. The directory is `~/.config/<package name>` on
+linux/rpi (`signflow-player-rpi`, `signflow-player`), and `%APPDATA%\signflow-player-windows` on
+Windows. The name is **derived from the player's `package.json`** (`app.getPath('userData')`) —
+never rewritten by hand.
 
-Pour la suite, voir `docs/RUNBOOK_DIAGNOSTIC.md`.
+For what comes next, see `docs/RUNBOOK_DIAGNOSTIC.md`.

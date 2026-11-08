@@ -1,36 +1,39 @@
-# SignFlow — Image carte SD greenfield (Raspberry Pi)
+# Vitrail — Greenfield SD card image (Raspberry Pi)
 
-Customise l'**image officielle Raspberry Pi OS Lite (arm64)** en image d'appliance SignFlow **prête
-à flasher** : injecte `player-rpi` + un **service systemd de premier boot** qui lit le payload de
-provisioning, installe le player (via `player-rpi/install.sh`) et sème le `config.json` → au 2ᵉ boot
-le RPi diffuse. « Customisation type Pi Imager », côté serveur.
+🇫🇷 [Version française](README.fr.md)
 
-> **Statut : ✅ validé de bout en bout le 2026-08-09** — installation de zéro sur un vrai
-> Raspberry Pi : 1er boot, install player, kiosk, player online, **zéro intervention**.
+Customizes the **official Raspberry Pi OS Lite (arm64) image** into a **ready-to-flash** Vitrail
+appliance image: it injects `player-rpi` + a **first-boot systemd service** that reads the
+provisioning payload, installs the player (via `player-rpi/install.sh`) and seeds the `config.json`
+→ on the 2nd boot the RPi is playing content. "Pi Imager-style customization", done server-side.
 
-## Comment ça marche
+> **Status: ✅ validated end to end** — installation from scratch on a real Raspberry Pi: 1st boot,
+> player install, kiosk, player online, **zero intervention**.
 
-1. On part de l'image **Raspberry Pi OS Lite arm64** officielle (téléchargée + décompressée).
-2. On la **loop-monte** (losetup + kpartx) et on injecte :
-   - `player-rpi/` → `/opt/signflow/player-rpi` (sans `node_modules`),
-   - `signflow-firstboot.sh` + un **service systemd oneshot** activé (`multi-user.target.wants`),
-   - `signflow-provision.json` sur la **partition boot** (FAT, éditable après flash),
-   - `ssh` (dépannage terrain),
-   - **`userconf.txt`** — le compte système `signflow`. ⚠️ **Sans lui l'image n'est pas
-     autonome** : Raspberry Pi OS n'a plus de compte par défaut, et le premier démarrage
-     s'arrête alors sur son assistant en **attendant un clavier** (« Which user would you like
-     to rename »), ce qui vide de son sens une pose sans opérateur. Le mot de passe est
-     **généré aléatoirement** et rendu en fin de build (`out/signflow-rpi.credentials.txt`) ;
-     `RPI_PASSWORD=…` permet d'en imposer un. Le nom du compte doit rester `signflow` :
-     c'est pour lui qu'`install.sh` configure la session kiosk.
-3. Au **premier boot** (réseau requis) le service lit le payload, lance `install.sh`, écrit le
-   `config.json` (`backend_url` + `player_token` `sfp_` + `player_name` — voir
-   `firstboot.sh:183-198`), se désactive et **redémarre sur le player**. Le player s'auto-enregistre et se **ré-attache** au player pré-créé (zéro doublon).
+## How it works
 
-> ⚠️ Contrairement à l'image **x86** (kiosk PWA, offline), le player RPi est **Electron/Debian** :
-> le premier boot **installe** Node/Electron via `install.sh` → **internet requis au 1er boot**.
+1. Start from the official **Raspberry Pi OS Lite arm64** image (downloaded + decompressed).
+2. **Loop-mount** it (losetup + kpartx) and inject:
+   - `player-rpi/` → `/opt/signflow/player-rpi` (without `node_modules`),
+   - `signflow-firstboot.sh` + an enabled **oneshot systemd service** (`multi-user.target.wants`),
+   - `signflow-provision.json` on the **boot partition** (FAT, editable after flashing),
+   - `ssh` (field troubleshooting),
+   - **`userconf.txt`** — the `signflow` system account. ⚠️ **Without it the image is not
+     self-sufficient**: Raspberry Pi OS no longer has a default account, and first boot then stops
+     on its wizard **waiting for a keyboard** ("Which user would you like to rename"), which defeats
+     the purpose of an operator-free installation. The password is **randomly generated** and
+     output at the end of the build (`out/signflow-rpi.credentials.txt`); `RPI_PASSWORD=…` lets you
+     force one. The account name must stay `signflow`: it is the account for which `install.sh`
+     configures the kiosk session.
+3. On **first boot** (network required) the service reads the payload, runs `install.sh`, writes the
+   `config.json` (`backend_url` + `player_token` `sfp_` + `player_name` — see
+   `firstboot.sh:183-198`), disables itself and **reboots into the player**. The player
+   self-registers and **re-attaches** to the pre-created player (zero duplicates).
 
-## Construire l'image (Docker privilégié — loop + device-mapper)
+> ⚠️ Unlike the **x86** image (PWA kiosk, offline), the RPi player is **Electron/Debian**:
+> first boot **installs** Node/Electron via `install.sh` → **internet required on 1st boot**.
+
+## Building the image (privileged Docker — loop + device-mapper)
 
 ```bash
 cd installer/image-rpi
@@ -42,22 +45,23 @@ docker run --rm --privileged \
 # → out/signflow-rpi.img
 ```
 
-`--privileged` est nécessaire (loop devices + kpartx). Le `.img.xz` officiel est mis en cache
-(`cache/`) pour éviter de le retélécharger. Variable `IMG_URL` pour épingler une version précise.
+`--privileged` is required (loop devices + kpartx). The official `.img.xz` is cached (`cache/`) to
+avoid downloading it again. Use the `IMG_URL` variable to pin a specific version.
 
-## Préparer + flasher
+## Prepare + flash
 
-1. Générer le **payload** du player depuis le CMS (page Provisioning, `os=rpi`).
-2. Flasher `out/signflow-rpi.img` sur la carte SD avec **Raspberry Pi Imager** (ou `dd`).
-3. Rouvrir la partition **boot** (montée sous Windows) et remplacer `signflow-provision.json` par le
-   payload (ou y coller le `token` `sfp_…` + `backend_url`).
-4. Insérer la SD dans le RPi, le démarrer (réseau branché). Premier boot = install (plusieurs
-   minutes) → reboot → player.
+1. Generate the player's **payload** from the CMS (Provisioning page, `os=rpi`).
+2. Flash `out/signflow-rpi.img` onto the SD card with **Raspberry Pi Imager** (or `dd`).
+3. Reopen the **boot** partition (mounted under Windows) and replace `signflow-provision.json` with
+   the payload (or paste the `sfp_…` `token` + `backend_url` into it).
+4. Insert the SD card into the RPi and power it on (network connected). First boot = install
+   (several minutes) → reboot → player.
 
-## Limites
+## Limitations
 
-- **Premier boot = réseau requis** (apt/node/npm/electron via `install.sh`). Pré-bake offline
-  (chroot arm64 + qemu-binfmt) = amélioration future.
-- RPi = **carte SD flashée** (pas de « boot USB »). Modèles visés : RPi 4/5 (RPi OS Trixie,
-  Debian 13 — cible réelle de `player-rpi/install.sh`).
-- Rappel projet : **4K éliminé** sur RPi → le player force FHD (cf. `player-rpi/install.sh`).
+- **First boot = network required** (apt/node/npm/electron via `install.sh`). Offline pre-baking
+  (arm64 chroot + qemu-binfmt) = future improvement.
+- RPi = **flashed SD card** (no "USB boot"). Target models: RPi 4/5 (RPi OS Trixie, Debian 13 —
+  the actual target of `player-rpi/install.sh`).
+- Project reminder: **4K is ruled out** on RPi → the player forces FHD (see
+  `player-rpi/install.sh`).

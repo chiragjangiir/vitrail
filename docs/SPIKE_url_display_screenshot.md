@@ -1,51 +1,53 @@
-# SPIKE — URL Display mode `screenshot_server` + vignettes (Sprint 2.8 #2)
+# SPIKE — URL Display `screenshot_server` mode + thumbnails (Sprint 2.8 #2)
 
-> Décision Ed : worker Celery **dédié** `celery-screenshot` (Playwright/Chromium), isolé des
-> workers media/event. Règle les sites non-framables (YouTube…) + fournit la vignette d'accueil.
+🇫🇷 [Version française](SPIKE_url_display_screenshot.fr.md)
 
-## Principe
-- `url_config.render_mode = 'screenshot_server'` → le serveur charge la page avec Playwright,
-  en fait une **capture**, l'upload sur MinIO ; le player affiche une **image** (pas l'iframe).
-- **Vignette** : on capture aussi une miniature de la page → `cms_media.thumbnail_url` → la grille
-  médiathèque l'affiche automatiquement (remplace le placeholder Globe), pour les DEUX modes.
+> Decision: a **dedicated** Celery worker `celery-screenshot` (Playwright/Chromium), isolated from the
+> media/event workers. Solves non-framable sites (YouTube…) + provides the home thumbnail.
+
+## Principle
+- `url_config.render_mode = 'screenshot_server'` → the server loads the page with Playwright,
+  takes a **capture**, uploads it to MinIO; the player displays an **image** (not the iframe).
+- **Thumbnail**: we also capture a miniature of the page → `cms_media.thumbnail_url` → the media
+  library grid displays it automatically (replaces the Globe placeholder), for BOTH modes.
 
 ## Infra
-- Nouveau service `celery-screenshot` (base `python:3.12-slim` + `playwright install --with-deps
-  chromium`, ~1 Go), monte `./backend:/app`, consomme la file **`cms_screenshot`**, concurrency 2.
-- `Dockerfile.screenshot`. Ajouté à `docker-compose.yml` (pas de port) + à l'install prod.
+- New service `celery-screenshot` (base `python:3.12-slim` + `playwright install --with-deps
+  chromium`, ~1 GB), mounts `./backend:/app`, consumes the **`cms_screenshot`** queue, concurrency 2.
+- `Dockerfile.screenshot`. Added to `docker-compose.yml` (no port) + to the production install.
 
 ## Backend
-- `app/workers/screenshot_worker.py` :
-  - `capture_url_display(id_media)` — **import Playwright LAZY (dans la fonction)** pour que les
-    autres workers (media/event/backend/beat) puissent importer le module sans Chromium. Charge la
-    page (viewport, zoom, custom_css, hide_selectors, timeout), screenshot pleine page + thumbnail,
-    upload MinIO (`url_display/{id}/latest.png` + `.../thumb.png`), met à jour `cms_media`
+- `app/workers/screenshot_worker.py`:
+  - `capture_url_display(id_media)` — **LAZY Playwright import (inside the function)** so that the
+    other workers (media/event/backend/beat) can import the module without Chromium. Loads the
+    page (viewport, zoom, custom_css, hide_selectors, timeout), full-page screenshot + thumbnail,
+    MinIO upload (`url_display/{id}/latest.png` + `.../thumb.png`), updates `cms_media`
     (`thumbnail_url`, `media_metadata.screenshot_key`/`last_capture_at`/`capture_status`/`last_error`),
-    puis `_push_sync` graceful aux players (si screenshot_server).
-  - `capture_due_url_displays()` — léger (pas de Playwright) : trouve les url_display
-    `screenshot_server` dont `last_capture_at` > `refresh_interval_s` (ou jamais capturés) et
-    enqueue `capture_url_display`. Routé queue **default** (tourne sur celery-worker), Beat 60s.
-- `celery_app` : `include` += screenshot_worker ; `task_routes` `capture_url_display`→`cms_screenshot` ;
+    then a graceful `_push_sync` to the players (if screenshot_server).
+  - `capture_due_url_displays()` — lightweight (no Playwright): finds `screenshot_server` url_displays
+    whose `last_capture_at` > `refresh_interval_s` (or never captured) and
+    enqueues `capture_url_display`. Routed to the **default** queue (runs on celery-worker), Beat 60s.
+- `celery_app`: `include` += screenshot_worker; `task_routes` `capture_url_display`→`cms_screenshot`;
   `beat_schedule` `capture-due-url-displays-60s`.
-- `endpoints/url_display.py` : à la création ET à l'édition, enqueue `capture_url_display` (vignette
-  pour tous les modes + image pour screenshot_server). `render_mode` accepté dans la config.
-- `ws._url_display_media_dict` : si `render_mode=='screenshot_server'` ET capture prête → émet
-  `image_url` (URL signée MinIO) + `cache_key`/`cache_checksum` (offline-first comme une image) +
-  `render_mode`. Sinon (webview, ou capture pas encore prête) → comportement iframe actuel.
+- `endpoints/url_display.py`: on creation AND on edit, enqueues `capture_url_display` (thumbnail
+  for all modes + image for screenshot_server). `render_mode` accepted in the config.
+- `ws._url_display_media_dict`: if `render_mode=='screenshot_server'` AND capture ready → emits
+  `image_url` (signed MinIO URL) + `cache_key`/`cache_checksum` (offline-first like an image) +
+  `render_mode`. Otherwise (webview, or capture not ready yet) → current iframe behavior.
 
 ## Player (5 renderers)
-- Branche `url_display` : si `url_config.render_mode === 'screenshot_server'` ET `media.image_url` →
-  rend un **`<img>`** (caché offline-first via le content store, comme une image normale → robuste
-  hors-ligne). Sinon → **iframe** webview (actuel). Le mode screenshot marche donc AUSSI sur
-  Android WebView / ChromeOS PWA (pas de contrainte de framing sur une image).
+- `url_display` branch: if `url_config.render_mode === 'screenshot_server'` AND `media.image_url` →
+  renders an **`<img>`** (cached offline-first via the content store, like a normal image → robust
+  offline). Otherwise → webview **iframe** (current). The screenshot mode therefore ALSO works on
+  Android WebView / ChromeOS PWA (no framing constraint on an image).
 
 ## Frontend
-- `UrlDisplayDrawer` : sélecteur **Webview / Capture serveur** (`render_mode`) + (la vignette
-  s'affiche déjà via `thumbnail_url` dans la grille). Hint sur le mode capture (sites non-framables).
+- `UrlDisplayDrawer`: **Webview / Server capture** selector (`render_mode`) + (the thumbnail
+  already shows via `thumbnail_url` in the grid). Hint on the capture mode (non-framable sites).
 
 ## Migration
-Aucune : `render_mode`/capture meta dans `media_metadata` ; `thumbnail_url` = colonne existante.
+None: `render_mode`/capture meta in `media_metadata`; `thumbnail_url` = existing column.
 
-## Déploiement (plus impliqué)
-Build de la nouvelle image (`docker compose build celery-screenshot`) + `up -d celery-screenshot`
-sur le prod ; pull backend + restart ; déployer les 5 renderers ; pas de migration.
+## Deployment (more involved)
+Build the new image (`docker compose build celery-screenshot`) + `up -d celery-screenshot`
+on production; pull backend + restart; deploy the 5 renderers; no migration.

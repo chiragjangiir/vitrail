@@ -62,7 +62,7 @@ async def other_org(db_session: AsyncSession) -> CmsOrganization:
 
 @pytest_asyncio.fixture
 async def advertiser(db_session: AsyncSession, org: CmsOrganization) -> CmsAdvertiser:
-    a = CmsAdvertiser(id_org=org.id_org, advertiser_name="Dyson")
+    a = CmsAdvertiser(id_org=org.id_org, advertiser_name="Brightwell")
     db_session.add(a)
     await db_session.commit()
     await db_session.refresh(a)
@@ -229,7 +229,7 @@ async def test_resolution_annonceur_puis_org(db_session: AsyncSession, org, adve
     assert resolved["accent"] == "#111111"
 
     db_session.add(CmsBrandKit(id_org=org.id_org, id_advertiser=advertiser.id_advertiser,
-                               kit_name="Dyson", accent="#222222"))
+                               kit_name="Brightwell", accent="#222222"))
     await db_session.commit()
     resolved = await bk.resolve_brand_kit(db_session, org.id_org, advertiser.id_advertiser)
     assert resolved["accent"] == "#222222"                       # l'annonceur l'emporte
@@ -254,7 +254,7 @@ async def test_les_deux_chemins_de_lecture_rendent_la_meme_charte(
 
     db_session.add(CmsBrandKit(id_org=org.id_org, kit_name="Enseigne", accent="#111111"))
     db_session.add(CmsBrandKit(id_org=org.id_org, id_advertiser=advertiser.id_advertiser,
-                               kit_name="Dyson", accent="#222222", tone="technique"))
+                               kit_name="Brightwell", accent="#222222", tone="technique"))
     await db_session.commit()
 
     dsn = TEST_DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
@@ -420,7 +420,7 @@ async def test_charte_resolue_exposee_a_l_ui(
                      json={"kit_name": "Enseigne", "accent": "#111111"},
                      headers={"Authorization": f"Bearer {admin_token}"})
     await client.put(f"/api/v1/promo/brand-kits/advertiser/{advertiser.id_advertiser}",
-                     json={"kit_name": "Dyson", "accent": "#222222"},
+                     json={"kit_name": "Brightwell", "accent": "#222222"},
                      headers={"Authorization": f"Bearer {admin_token}"})
 
     r = await client.get("/api/v1/promo/brand-kits/resolved",

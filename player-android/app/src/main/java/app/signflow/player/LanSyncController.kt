@@ -28,7 +28,7 @@ import kotlin.math.abs
  * Élection du leader : priorité (master désigné=1 > normal=0) puis plus petit id_player.
  * Le leader diffuse `sync_play` toutes les 2 s ; les slaves corrigent sur dérive > 40 ms.
  * #2b : le leader annonce `switch_at` (instant absolu de sa prochaine bascule) → les
- * slaves alignent leur bascule d'item dessus (exige NTP partagé, cf. [[project-lan-sync]]).
+ * slaves alignent leur bascule d'item dessus (exige NTP partagé).
  *
  * Particularité Android : l'audio/vidéo joue dans le WebView. Le contrôleur tourne en
  * natif (DatagramSocket) et marshale via MainActivity :

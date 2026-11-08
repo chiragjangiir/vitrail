@@ -6,7 +6,7 @@ la console super-admin (cf. modèle « platform admin »), jamais par la lecture
 
 Usage :
   SHOW_TOTP_EMAIL=admin@boutique-demo.demo \
-    docker compose -p cms_kahall exec -T -e SHOW_TOTP_EMAIL \
+    docker compose -p signflow exec -T -e SHOW_TOTP_EMAIL \
       backend python3 - < backend/scripts/show_totp.py
 
 ⚠️ CORRIGÉ le 2026-07-19 — ce script affichait `user.totp_secret` BRUT. Depuis que

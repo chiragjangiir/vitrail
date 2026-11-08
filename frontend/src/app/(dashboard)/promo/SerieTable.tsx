@@ -116,7 +116,7 @@ export default function SerieTable({
           <p className="text-[11px] text-gray-400">{t('promo.serie_paste_hint')}</p>
           <textarea value={pasted} onChange={(e) => setPasted(e.target.value)} rows={4}
             data-testid="serie-paste-area"
-            placeholder={'Produit;Prix;Prix barré\nDyson V15;499,00;599,00'}
+            placeholder={'Produit;Prix;Prix barré\nBrightwell V15;499,00;599,00'}
             className="w-full resize-none rounded border border-gray-200 bg-surface px-2 py-1.5 font-mono text-[11px] focus:border-accent focus:outline-none" />
           <div className="flex gap-2">
             <button type="button" className={ghost} data-testid="serie-paste-apply"

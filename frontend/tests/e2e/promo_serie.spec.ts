@@ -98,14 +98,14 @@ test('saisie directe : une ligne complète part, une ligne sans prix est nommée
   await page.getByTestId('serie-add-line').click()
   await expect(rows(page)).toHaveCount(2)
 
-  await rows(page).nth(0).getByTestId('serie-slogan').fill('Dyson V15')
+  await rows(page).nth(0).getByTestId('serie-slogan').fill('Brightwell V15')
   await rows(page).nth(0).getByTestId('serie-price').fill('499,00')
-  await rows(page).nth(1).getByTestId('serie-slogan').fill('Airwrap')   // pas de prix
+  await rows(page).nth(1).getByTestId('serie-slogan').fill('Breeze')   // pas de prix
 
   // ⛔ La ligne incomplète est NOMMÉE — c'est ce qui la distingue d'un silence.
   const warn = page.getByTestId('serie-incomplete')
   await expect(warn).toBeVisible()
-  await expect(warn).toContainText('Airwrap')
+  await expect(warn).toContainText('Breeze')
   await expect(page.getByTestId('serie-count')).toContainText('1')
 
   // …et la série part quand même, avec la seule ligne complète.
@@ -119,21 +119,21 @@ test('saisie directe : une ligne complète part, une ligne sans prix est nommée
   expect(generated).toHaveLength(1)
   const body = generated[0] as { inputs: Record<string, string>; name: string }
   expect(body.inputs.price).toBe('499,00')
-  expect(body.inputs.slogan).toBe('Dyson V15')
+  expect(body.inputs.slogan).toBe('Brightwell V15')
   // Nommé d'après le produit : sinon N visuels arrivent sous le même nom dans la médiathèque.
-  expect(body.name).toBe('Dyson V15')
+  expect(body.name).toBe('Brightwell V15')
 })
 
 test('import CSV : point-virgule, accents et en-têtes reconnus', async ({ page }) => {
   await setup(page)
-  const csv = 'Produit;Prix;Prix barré\nDyson V15;499,00;599,00\nAirwrap;399,00;449,00\n'
+  const csv = 'Produit;Prix;Prix barré\nBrightwell V15;499,00;599,00\nBreeze;399,00;449,00\n'
   await page.getByTestId('serie-paste-toggle').click()
   await page.getByTestId('serie-paste-area').fill(csv)
   await page.getByTestId('serie-paste-apply').click()
 
   await expect(rows(page)).toHaveCount(2)
   await expect(rows(page).nth(0).getByTestId('serie-price')).toHaveValue('499,00')
-  await expect(rows(page).nth(1).getByTestId('serie-slogan')).toHaveValue('Airwrap')
+  await expect(rows(page).nth(1).getByTestId('serie-slogan')).toHaveValue('Breeze')
   await expect(page.getByTestId('serie-import-note')).toContainText('2')
 
   // Deux lignes complètes ⇒ exactement deux appels, sur l'endpoint des visuels isolés.
@@ -141,13 +141,13 @@ test('import CSV : point-virgule, accents et en-têtes reconnus', async ({ page 
   await expect(page.getByTestId('serie-generate')).toBeEnabled()
   await expect(rows(page).nth(1)).toContainText('lancée')
   expect(generated).toHaveLength(2)
-  expect(generated.map((g) => (g.inputs as Record<string, string>).slogan)).toEqual(['Dyson V15', 'Airwrap'])
+  expect(generated.map((g) => (g.inputs as Record<string, string>).slogan)).toEqual(['Brightwell V15', 'Breeze'])
 })
 
 test('un CSV sans en-tête reconnu le DIT au lieu de deviner en silence', async ({ page }) => {
   await setup(page)
   await page.getByTestId('serie-paste-toggle').click()
-  await page.getByTestId('serie-paste-area').fill('Dyson V15;499,00;599,00')
+  await page.getByTestId('serie-paste-area').fill('Brightwell V15;499,00;599,00')
   await page.getByTestId('serie-paste-apply').click()
 
   await expect(rows(page)).toHaveCount(1)

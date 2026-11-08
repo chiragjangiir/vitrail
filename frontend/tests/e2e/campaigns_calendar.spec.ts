@@ -17,10 +17,10 @@ const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
 const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0)
 
 const CAMPAIGN = {
-  id_campaign: 1, id_advertiser: 1, campaign_name: 'Dyson Calendar', status: 'live',
+  id_campaign: 1, id_advertiser: 1, campaign_name: 'Brightwell Calendar', status: 'live',
   starts_on: iso(monthStart), ends_on: iso(monthEnd), daily_hours: null,
   sov_percent: 20, pricing_model: 'sov', price_amount: 1500, price_currency: 'EUR',
-  cpm_rate: null, priority: 50, advertiser_name: 'Dyson', creative_count: 1,
+  cpm_rate: null, priority: 50, advertiser_name: 'Brightwell', creative_count: 1,
   target_player_count: 3,
   targets: [{ id_target: 1, target_type: 'org', target_id: null }],
 }
@@ -56,7 +56,7 @@ test.describe('Campaign calendar (S6)', () => {
   test('toggle_shows_month_bars_and_daily_load', async ({ page }) => {
     for (const [pattern, body] of [
       ['**/api/v1/campaigns/', JSON.stringify([CAMPAIGN])],
-      ['**/api/v1/advertisers/', JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Dyson', id_folder: null }])],
+      ['**/api/v1/advertisers/', JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Brightwell', id_folder: null }])],
       ['**/api/v1/sites', '[]'],
       ['**/api/v1/player-groups/', '[]'],
       ['**/api/v1/site-groups/', '[]'],
@@ -86,10 +86,10 @@ test.describe('Campaign calendar (S6)', () => {
     expect(occQuery).toContain(`date_to=${iso(monthEnd)}`)
     // Bandeau de charge + barre de la campagne visibles
     await expect(page.getByText('Inventory load', { exact: true })).toBeVisible()
-    const bar = page.getByRole('button', { name: 'Dyson Calendar' }).first()
+    const bar = page.getByRole('button', { name: 'Brightwell Calendar' }).first()
     await expect(bar).toBeVisible()
     // Clic sur la campagne → drawer
     await bar.click()
-    await expect(page.getByRole('dialog', { name: 'Dyson Calendar' })).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Brightwell Calendar' })).toBeVisible()
   })
 })

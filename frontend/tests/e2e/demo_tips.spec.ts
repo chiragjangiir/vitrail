@@ -196,7 +196,7 @@ test.describe('Demo tips & demo advertiser (S7)', () => {
     await page.route('**/api/v1/advertisers/', async (route) => {
       await route.fulfill({
         status: 200, contentType: 'application/json',
-        body: JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Dyson', contact_name: null, contact_email: null, notes: null, is_active: true, campaign_count: 0, created_at: new Date().toISOString() }]),
+        body: JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Brightwell', contact_name: null, contact_email: null, notes: null, is_active: true, campaign_count: 0, created_at: new Date().toISOString() }]),
       })
     })
     let postBody: unknown = null
@@ -215,8 +215,8 @@ test.describe('Demo tips & demo advertiser (S7)', () => {
       }
     })
     await page.goto(`${BASE}/campaigns/advertisers`)
-    await page.locator('text=Dyson').first().click()
-    const drawer = page.getByRole('dialog', { name: 'Dyson' })
+    await page.locator('text=Brightwell').first().click()
+    const drawer = page.getByRole('dialog', { name: 'Brightwell' })
     await drawer.getByPlaceholder('buyer@brand.com').fill('prospect@demo.com')
     // Cible la case DEMO par son libelle : le drawer annonceur en compte desormais trois
     // (les flags allow_visual/audio_campaigns sont arrives le 2026-07-18, migr 0095), et un

@@ -8,10 +8,10 @@ const BASE = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'
 const MOCK_USER_ME = { id_user: 1, id_org: 1, email: 'admin@test.com', full_name: 'Admin', avatar_url: null, totp_enabled: false, locale: 'en', is_active: true, last_login_at: null, created_at: new Date().toISOString() }
 
 const CAMPAIGN = {
-  id_campaign: 1, id_advertiser: 1, campaign_name: 'Dyson Summer', status: 'live',
+  id_campaign: 1, id_advertiser: 1, campaign_name: 'Brightwell Summer', status: 'live',
   starts_on: '2026-07-01', ends_on: '2026-07-31', daily_hours: null,
   sov_percent: 20, pricing_model: 'sov', price_amount: 1500, price_currency: 'EUR',
-  cpm_rate: null, priority: 50, advertiser_name: 'Dyson', creative_count: 2,
+  cpm_rate: null, priority: 50, advertiser_name: 'Brightwell', creative_count: 2,
   target_player_count: 3,
   targets: [{ id_target: 1, target_type: 'org', target_id: null }],
 }
@@ -55,7 +55,7 @@ async function mockCampaignRoutes(page: import('@playwright/test').Page, creativ
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([CAMPAIGN]) })
   })
   await page.route('**/api/v1/advertisers/', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Dyson', id_folder: null }]) })
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Brightwell', id_folder: null }]) })
   })
   await page.route('**/api/v1/sites', async (route) => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
@@ -103,7 +103,7 @@ test.describe('Campaigns creative approval (S5)', () => {
     await mockCampaignRoutes(page, true)
     await mockAuthAndNavigate(page, `${BASE}/campaigns`)
 
-    await page.locator('td', { hasText: 'Dyson Summer' }).click()
+    await page.locator('td', { hasText: 'Brightwell Summer' }).click()
     const drawer = page.getByRole('dialog')
     // Section Créatifs repliée par défaut (creative_count > 0) → l'ouvrir
     await drawer.getByRole('button', { name: /^creatives\b/i }).click()
@@ -126,7 +126,7 @@ test.describe('Campaigns creative approval (S5)', () => {
     await mockCampaignRoutes(page, false)
     // Annonceur AVEC dossier → pills scope visibles, défaut = médias de l'annonceur
     await page.route('**/api/v1/advertisers/', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Dyson', id_folder: 5 }]) })
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Brightwell', id_folder: 5 }]) })
     })
     const served: string[] = []
     await page.route('**/api/v1/media/**', async (route) => {
@@ -135,7 +135,7 @@ test.describe('Campaigns creative approval (S5)', () => {
       const mediaType = url.searchParams.get('media_type')
       const q = (url.searchParams.get('q') ?? '').toLowerCase()
       const all = [
-        { id_media: 100, media_name: 'promo-dyson-v12', media_type: 'video', duration_ms: 15000, thumbnail_url: null, transcode_status: 'done' },
+        { id_media: 100, media_name: 'promo-brightwell-v12', media_type: 'video', duration_ms: 15000, thumbnail_url: null, transcode_status: 'done' },
         { id_media: 101, media_name: 'affiche-soldes', media_type: 'image', duration_ms: null, thumbnail_url: null, transcode_status: 'done' },
       ]
       const out = all.filter((m) => m.media_type === mediaType && (!q || m.media_name.includes(q)))
@@ -150,7 +150,7 @@ test.describe('Campaigns creative approval (S5)', () => {
     })
     await mockAuthAndNavigate(page, `${BASE}/campaigns`)
 
-    await page.locator('td', { hasText: 'Dyson Summer' }).click()
+    await page.locator('td', { hasText: 'Brightwell Summer' }).click()
     // Section Créatifs repliée par défaut → l'ouvrir avant d'atteindre le bouton d'ajout
     await page.getByRole('dialog').getByRole('button', { name: /^creatives\b/i }).click()
     await page.getByRole('button', { name: /add creatives/i }).click()
@@ -159,18 +159,18 @@ test.describe('Campaigns creative approval (S5)', () => {
     await expect(picker).toBeVisible()
     // Pills scope + sous-arbre annonceur interrogé (id_folder=5&subtree=true)
     await expect(picker.getByRole('button', { name: /advertiser's media/i })).toBeVisible()
-    await expect(picker.locator('text=promo-dyson-v12')).toBeVisible()
+    await expect(picker.locator('text=promo-brightwell-v12')).toBeVisible()
     expect(served.some((s) => s.includes('id_folder=5') && s.includes('subtree=true'))).toBe(true)
 
     // Recherche server-side (déboucée 300 ms) → param q, l'autre média disparaît
     await picker.getByPlaceholder(/search/i).fill('promo')
     await expect.poll(() => served.some((s) => s.includes('q=promo'))).toBe(true)
-    await expect(picker.locator('text=promo-dyson-v12')).toBeVisible()
+    await expect(picker.locator('text=promo-brightwell-v12')).toBeVisible()
     await expect(picker.locator('text=affiche-soldes')).toHaveCount(0)
 
     // Sélection + ajout groupé → POST créatif
     const postReq = page.waitForRequest((r) => r.url().includes('/campaigns/1/creatives') && r.method() === 'POST')
-    await picker.locator('text=promo-dyson-v12').click()
+    await picker.locator('text=promo-brightwell-v12').click()
     await expect(picker.locator('text=1 selected')).toBeVisible()
     await picker.getByRole('button', { name: /add \(1\)/i }).click()
     const req = await postReq
@@ -182,8 +182,8 @@ test.describe('Campaigns creative approval (S5)', () => {
     // sur sa ligne · sections Cible/Créatifs repliables avec pastilles de comptage.
     await mockCampaignRoutes(page, false)
     await mockAuthAndNavigate(page, `${BASE}/campaigns`)
-    await page.locator('td', { hasText: 'Dyson Summer' }).click()
-    const drawer = page.getByRole('dialog', { name: 'Dyson Summer' })
+    await page.locator('td', { hasText: 'Brightwell Summer' }).click()
+    const drawer = page.getByRole('dialog', { name: 'Brightwell Summer' })
 
     // Campagne live → Pause/Complete/Cancel visibles, Rapport SOUS la ligne d'actions
     const pauseBtn = drawer.getByRole('button', { name: 'Pause' })
@@ -222,10 +222,10 @@ test.describe('Campaigns creative approval (S5)', () => {
       }
     })
     const delReq = page.waitForRequest((r) => /\/api\/v1\/campaigns\/1$/.test(r.url()) && r.method() === 'DELETE')
-    await page.getByRole('row', { name: /Dyson Summer/ }).getByTitle('Delete', { exact: true }).click()
+    await page.getByRole('row', { name: /Brightwell Summer/ }).getByTitle('Delete', { exact: true }).click()
     await delReq
     // stopPropagation : le clic poubelle n'ouvre pas le drawer (le composant Drawer reste
     // monté fermé dans le DOM → on vérifie qu'il n'a PAS pris le titre de la campagne)
-    await expect(page.getByRole('dialog', { name: 'Dyson Summer' })).toHaveCount(0)
+    await expect(page.getByRole('dialog', { name: 'Brightwell Summer' })).toHaveCount(0)
   })
 })

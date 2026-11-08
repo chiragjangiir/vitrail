@@ -1196,7 +1196,7 @@ async def _player_target_height(db, player: "CmsPlayer") -> int | None:
 
     Hors groupe LAN : sa propre capacité (écran ∩ décodage). En groupe LAN sync : le
     **min** des cibles connues des membres du groupe → tout le mur joue le même encode
-    (cohérence frame `switch_at`/offset). Cf. EVOLUTIONS.md / [[project-lan-sync]].
+    (cohérence frame `switch_at`/offset). Cf. EVOLUTIONS.md.
     """
     own = rendition_svc.player_target_height(player)
     dc = player.display_config or {}

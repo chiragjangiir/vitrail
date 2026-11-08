@@ -268,7 +268,7 @@ class FolderRead(BaseModel):
     # Chemin LISIBLE, ancêtres compris (« Video / Divers »). Sans lui, deux dossiers
     # homonymes places sous deux parents differents sont INDISCERNABLES partout ou l'on
     # affiche une liste a plat — c'est ce qui faisait dire « un des deux n'apparaît pas »
-    # dans le tiroir de classement (3 cas reels en prod : Divers, Dyson, Nissan).
+    # dans le tiroir de classement (plusieurs dossiers de même nom en pratique).
     full_path: str = ""
     created_at: datetime
 

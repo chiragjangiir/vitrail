@@ -71,7 +71,7 @@ test.describe('Map pickers (S7 Phase A)', () => {
   test('campaign_map_picker_inits_from_targets_and_applies', async ({ page }) => {
     for (const [pattern, body] of [
       ['**/api/v1/campaigns/', '[]'],
-      ['**/api/v1/advertisers/', JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Dyson', id_folder: null }])],
+      ['**/api/v1/advertisers/', JSON.stringify([{ id_advertiser: 1, advertiser_name: 'Brightwell', id_folder: null }])],
       ['**/api/v1/sites', JSON.stringify(SITES)],
       ['**/api/v1/player-groups/', '[]'],
       ['**/api/v1/site-groups/', '[]'],
