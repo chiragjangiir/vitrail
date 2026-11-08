@@ -488,10 +488,19 @@ systemctl enable nginx
 systemctl restart nginx
 ok "Nginx actif sur port ${NGINX_PORT}"
 
-# Ouvre le port si ufw est actif
+# Ouvre le port si ufw est actif. L'interface est servie en HTTP CLAIR (mots de passe et
+# jetons compris) : par défaut on ne l'ouvre qu'aux réseaux PRIVÉS. VITRAIL_PUBLIC_HTTP=1
+# l'ouvre à tous — à réserver à un essai, la vraie exposition passe par un proxy TLS.
 if ufw status | grep -q "Status: active"; then
-    ufw allow ${NGINX_PORT}/tcp >/dev/null
-    ok "Règle ufw ajoutée pour port ${NGINX_PORT}"
+    if [[ "${VITRAIL_PUBLIC_HTTP:-0}" == "1" ]]; then
+        ufw allow ${NGINX_PORT}/tcp >/dev/null
+        warn "Port ${NGINX_PORT} ouvert à TOUT Internet en HTTP clair (VITRAIL_PUBLIC_HTTP=1)"
+    else
+        for net in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16; do
+            ufw allow from "$net" to any port ${NGINX_PORT} proto tcp >/dev/null
+        done
+        ok "Port ${NGINX_PORT} ouvert aux réseaux privés seulement (VITRAIL_PUBLIC_HTTP=1 pour l'ouvrir à tous)"
+    fi
 fi
 
 # =============================================================================

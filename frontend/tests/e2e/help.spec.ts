@@ -55,8 +55,21 @@ test.describe('User manual (/help)', () => {
     await expect(page.getByRole('heading', { name: 'Bienvenue dans Vitrail' })).toHaveCount(0)
   })
 
-  // Les captures du manuel ont été retirées le temps de les refaire sur des données de démo
-  // neutres ; le test `help_screenshots_render_and_are_clickable` revient avec elles.
+  test('help_screenshots_render_and_are_clickable', async ({ page }) => {
+    await setAuthAndNavigate(page, `${BASE}/help`, 'fr')
+    await expect(page.getByRole('heading', { name: 'Bienvenue dans Vitrail' })).toBeVisible()
+
+    // La capture du dashboard est rendue, chargée (pas de 404) et ouvre la pleine taille.
+    const shot = page.locator('img[src="/help/img/dashboard.webp"]')
+    await expect(shot).toBeVisible()
+    await expect
+      .poll(async () => shot.evaluate((el: HTMLImageElement) => el.naturalWidth))
+      .toBeGreaterThan(0)
+    await expect(page.locator('a[href="/help/img/dashboard.webp"]')).toHaveAttribute('target', '_blank')
+
+    // Légende affichée sous la capture.
+    await expect(page.getByText('Le tableau de bord : indicateurs du réseau', { exact: false })).toBeVisible()
+  })
 
   // Garde : le renderer de /help ne supporte NI les tableaux `|…|` NI l'italique `*x*`.
   // Un manuel qui en contient les affiche en TEXTE BRUT (pipes et astérisques visibles) —

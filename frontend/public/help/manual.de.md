@@ -4,6 +4,8 @@
 
 Vitrail ist eine Digital-Signage-Plattform: Sie spielen Inhalte (Videos, Bilder, Webseiten, News-Feeds, Audio) auf Bildschirmen aus, die von Playern gesteuert werden — alles über eine zentrale Weboberfläche.
 
+![Das Dashboard: Netzwerk-KPIs, Flottenkarte, letzte Aktivitäten](/help/img/dashboard.webp)
+
 ### Die wichtigsten Konzepte
 
 - **Organisation**: Ihr Arbeitsbereich. Inhalte, Player und Benutzer sind von anderen Organisationen isoliert.
@@ -27,6 +29,8 @@ Der Bildschirm zeigt den Inhalt wenige Sekunden nach dem Speichern des Zeitplans
 
 ## Player
 
+
+![Die Player-Liste: Status, Standort, Version, zuletzt gesehen](/help/img/players.webp)
 ### Einen Player registrieren
 
 Ein Player tritt Ihrer Organisation über ein **Provisioning-Token** bei:
@@ -36,6 +40,8 @@ Ein Player tritt Ihrer Organisation über ein **Provisioning-Token** bei:
 3. Token (`sfp_…`) kopieren und bei der Player-Installation zusammen mit der Server-URL angeben.
 
 Beim ersten Start tauscht der Player das Token gegen seine dauerhafte Identität und erscheint unter **Players**. Ein aktives Token kann **widerrufen** (registriert nicht mehr; bestehende Player laufen weiter) und danach gelöscht werden.
+
+![Provisioning: Registrierungs-Tokens und Payload-Erzeugung](/help/img/players-provisioning.webp)
 
 ### Batch-Provisioning und USB-Stick
 
@@ -48,6 +54,8 @@ Die Player-Liste zeigt den Zustand (online / offline / geplanter Standby) mit de
 Ohne SSH können Sie setzen: Auflösung, Drehung, Lautstärke, Ton, Render-Engine, Zeitzone, Bandbreitenlimit. Der Knopf **„Info auf dem Bildschirm"** blendet ein Diagnose-Panel direkt auf dem Player-Bildschirm ein (Name, Netzwerk, laufender Zeitplan, gespieltes Medium). Einmal-Aktionen: App neu starten, Gerät neu starten, Resync erzwingen, Screenshot. Die Schaltfläche **„Sammelbefehle“** in der oberen Leiste sendet denselben Befehl an ein ganzes Ziel (Organisation, Standort, Standortgruppe, Player-Gruppe); eine Vorschau listet die betroffenen Bildschirme **vor** dem Senden auf, und destruktive Befehle (Neustart, App beenden, Wartung) erfordern ein Bestätigungshäkchen **und Ihre PIN**.
 
 Zwei „Kampagnen"-Einstellungen liegen ebenfalls hier: **Von Werbekampagnen ausgeschlossen** (Opt-out) und die **Werbe-Belegungsobergrenze** (siehe Kampagnen).
+
+![Das Player-Panel: Gerät, Bildschirm, Netzwerk, Fernaktionen](/help/img/player-drawer.webp)
 
 ### Gruppen und LAN-Synchronisation
 
@@ -70,11 +78,19 @@ Ein **Standort** steht für einen physischen Ort (Filiale, Geschäft). Jeder Pla
 
 Beim Überfahren eines Standorts (Liste) fasst ein Tooltip seine Player und die 7-Tage-Werbebelegung zusammen.
 
+![Standorte: Zeitzone, Öffnungszeiten, Koordinaten](/help/img/sites.webp)
+
+![Standortgruppen (Region, Marke) als Ziel verwendbar](/help/img/site-groups.webp)
+
 ## Mediathek
 
+
+![Die Mediathek: Ordner, Vorschaubilder, Typfilter](/help/img/media.webp)
 ### Importieren
 
 **Mediathek → Importieren**: Videos, Bilder, Dokumente (PDF). Der Reiter **Freie Fotos** schöpft aus Unsplash/Pexels mit automatischer Attribution. Ein Video wird automatisch in ein universelles Format transkodiert: der bisherige Inhalt läuft während der Verarbeitung weiter, kein Bildschirm wird schwarz. Ist die **Renditions**-Richtlinie der Organisation aktiv, erzeugt ein 4K-Video zusätzlich eine Full-HD-Version — jeder Player erhält die zu seinem Bildschirm passende Auflösung.
+
+![Medien importieren (Dateien, freie Fotos)](/help/img/media-upload.webp)
 
 ### Organisieren
 
@@ -89,9 +105,15 @@ Beim Überfahren eines Standorts (Liste) fasst ein Tooltip seine Player und die 
 - **Quarantäne**: ein Medium sofort flottenweit sperren (auch offline), danach entsperren oder den Cache leeren.
 - **Konformität**: jedes Video trägt ein Urteil (bereit / abspielbar / nicht konform) zu seiner Kodierung, mit Neuanalyse und Passthrough-Modus (Originaldatei ohne Neukodierung behalten).
 
+![Das Medien-Panel: Vorschau, Metadaten, Konformität, Lebenszyklus](/help/img/media-drawer.webp)
+
 ## Vorlagen (Templates)
 
 **Vorlagen** definieren Mehrzonen-Layouts (Hauptvideo + Laufband + Logo…). Der Editor arbeitet in der deklarierten **Canvas-Auflösung** (FHD, 4K, Hochformat, LED nach Maß) — wählen Sie die Auflösung des Zielbildschirms. Eine mit einer Vorlage verknüpfte Playlist speist deren Zonen; eine Warnung erscheint, wenn die Vorlagenauflösung nicht zum Zielbildschirm passt.
+
+![Multizonen-Vorlagen mit ihrer Canvas-Auflösung](/help/img/templates.webp)
+
+![Der Vorlagen-Editor: Zonen, Ebenen und Eigenschaften](/help/img/templates-editor.webp)
 
 ## Playlists
 
@@ -100,6 +122,12 @@ Beim Überfahren eines Standorts (Liste) fasst ein Tooltip seine Player und die 
 3. Änderungen sammeln sich als **Entwurf**: der Knopf **Veröffentlichen** schiebt sie in einem Zug zu den Playern (sauberer Wechsel, nie ein leerer Zustand).
 
 Die Kopfzeile des Editors und jede Playlist-Kachel zeigen **die Anzahl der Inhalte und die Gesamtdauer** der Schleife; die Summe folgt Ihren Änderungen live, Entwurf eingeschlossen.
+
+![Playlists: Gesamtdauer, Anzahl Elemente, Veröffentlichungsstatus](/help/img/playlists.webp)
+
+![Der Playlist-Editor: Reihenfolge, Dauern, Regeln pro Element, Entwurf zum Veröffentlichen](/help/img/playlist-editor.webp)
+
+![Medien hinzufügen: Suche, Ordner, Mehrfachauswahl](/help/img/playlist-add-media.webp)
 
 ### Eine Playlist ansehen
 
@@ -123,9 +151,17 @@ Nur eine Verschachtelungsebene ist erlaubt; eine als Sub-Playlist referenzierte 
 
 Diese Einstellungen **folgen dem Entwurf** wie die Inhalte: Werden sie geändert, erscheint der Hinweis „Nicht veröffentlichte Änderungen“, und die Bildschirme spielen weiterhin die veröffentlichte Schleife, bis Sie auf **Veröffentlichen** klicken (bzw. bis zur **Freigabe** bei einer moderierten, gesteuerten Playlist).
 
+![Sub-Playlist verschachteln und Rotation einstellen (N Elemente pro Durchlauf)](/help/img/playlist-add-playlist.webp)
+
+![Die Timeline-Simulation: der tatsächliche Ablauf Durchlauf für Durchlauf](/help/img/playlist-simulation.webp)
+
 ## Audio-Körbe
 
 **Audio-Körbe** liefern Hintergrundbeschallung im Geschäft, unabhängig vom Bildinhalt: Hintergrundmusik, Jingles in Intervallen oder zu festen Zeiten, mit automatischem **Ducking** (die Musik senkt sich während eines Jingles). Jeder Player hat eine **Audio-Rolle**: Standardinhalte (Videoton), nur Audio, oder gemischt (Hintergrund + stummgeschaltete Videos). Das **Filial-Bedienpanel** (LAN) lässt das Personal vor Ort ohne CMS-Konto agieren. Jede Korb-Kachel zeigt **die Anzahl der Titel und die Gesamtdauer**. Musikrechte-Berichte stützen sich auf nachgewiesene Wiedergaben.
+
+![Audio-Körbe: Hintergrundmusik, Jingles, Ducking](/help/img/audio-baskets.webp)
+
+![Inhalt eines Audio-Korbs und seine Ausspielregeln](/help/img/audio-baskets-edit.webp)
 
 ## Zeitplanung
 
@@ -135,11 +171,19 @@ Ein **Zeitplan** sagt, was ausgespielt wird (eine Playlist), wo (Player, Gruppen
 2. Die betroffenen Player aktualisieren sich in Sekunden.
 3. Der **einheitliche Kalender** überlagert visuelle und Audio-Programme, Events und Kampagnen (Legende mit Symbolen). Filtern Sie nach Typ (Alle/Visuell/Audio/Events/Kampagnen) oder nach **Ziel** (Standortgruppe, Standort, Player); der **CSV-Export** folgt den aktiven Filtern. Bei Überlappung gewinnt die höchste **Priorität**.
 
+![Der einheitliche Kalender: Zeitpläne, Ereignisse und Kampagnen überlagert](/help/img/schedules.webp)
+
+![Zeitplan anlegen: Playlist, Ziele, Zeitfenster und Priorität](/help/img/schedule-new.webp)
+
+![Den Zeitplan eines Players über einen Tag simulieren](/help/img/schedule-simulation.webp)
+
 Netze mit mehreren Ebenen (Zentrale, Regionen, Märkte) stellen ihre Programmierung mit der **hierarchischen Governance** zusammen — siehe den eigenen Abschnitt weiter unten.
 
 ## Hierarchische Governance (Multi-Standort-Netze)
 
 Die **Governance** ist für Netze gedacht, in denen mehrere Ebenen über den Inhalt entscheiden: eine Zentrale, Regionen, Märkte. Jede Ebene stellt **ihren** Teil der Programmierung zusammen, und die Bildschirme spielen die **Summe** der Ebenen, von denen sie abhängen. Eine Einzelstandort-Installation braucht das nicht: ohne Knoten ändert sich nichts (das Feld „Eigentümer-Knoten“ wird gar nicht angezeigt).
+
+![Hierarchische Governance: national, regional, lokal](/help/img/governance.webp)
 
 ### Die fünf Begriffe
 
@@ -204,6 +248,7 @@ Ein Knoten kann unter einen anderen Elternknoten **verschoben** werden: Pfade, E
 
 Ist die Vorschau eines Bildschirms leer, **nennt die Meldung die Ursache**: kein Knoten, kein Programm am Knoten, inaktives Programm, keine Playlist, **keine Zeitregel** (es wird nie aktiv), oder außerhalb seines Fensters zu diesem Zeitpunkt.
 
+
 ## Ereignisse
 
 Ein **Ereignis** hat vorübergehend Vorrang vor dem Zeitplan: Aktion, Durchsage, ausgelöster Inhalt.
@@ -217,9 +262,17 @@ Ein **Ereignis** hat vorübergehend Vorrang vor dem Zeitplan: Aktion, Durchsage,
 - Am Ende kehrt der Player exakt zu seinem Zeitplan zurück (aktuelle Uhrzeit).
 - Ein **mitten im Zeitfenster (re)aktiviertes** Ereignis mit einem nie zuvor verteilten Medium kann einige Minuten brauchen, bis es erscheint (der Player lädt die Datei zuerst herunter — nie ein schwarzer Bildschirm). Vorab aktivieren/planen für einen sofortigen Wechsel.
 
+![Ereignisse: manuell oder geplant, mit ihrem Status](/help/img/events.webp)
+
+![Ein Ereignis: Inhalt, Ziel, Typ, Stunden-Spot, Bildschirme an](/help/img/event-edit.webp)
+
 ## On-Demand-Ausspielung (VOD)
 
 Die Seite **On-Demand** spielt einen Inhalt sofort aus, über dem Zeitplan, ohne Playlists anzufassen. Eine **VOD-Konfiguration** bündelt Medien und ein Ziel: entweder **ausgewählte Player** (desselben Standorts) oder einen **gesamten Standort** – dann wird jeder später hinzugefügte Player automatisch berücksichtigt; die Medien sind vorab heruntergeladen, das Auslösen ist sofort: **Einmal** oder **Schleife** (bis Stop). Die Berechtigung `vod : trigger` allein genügt für ein „Filial"-Konto. Danach setzt der Zeitplan zur aktuellen Uhrzeit fort.
+
+![On-Demand-Ausspielkonfigurationen](/help/img/vod.webp)
+
+![Eine VOD-Konfiguration: vorab geladene Medien und Ziel-Player](/help/img/vod-edit.webp)
 
 > **BrightSign**-Besonderheiten: Start und Stopp können **bis zu 2 Sekunden** dauern (integriertes lokales Relais) — das ist normal. Während der Ausspielung ist die Playlist ausgesetzt (nur ein Hardware-Videostream auf diesen Playern) und setzt danach zur aktuellen Uhrzeit fort. Der erste Vorab-Download kann bei 4K-Dateien dauern: solange ein Medium nicht im Cache ist, wird gestreamt (verzögerter Start).
 
@@ -242,6 +295,8 @@ Ein **Feed** ist eine vom Server abgefragte Quelle: RSS/Atom, Google News, YouTu
 
 Zeigen Sie eine Webseite auf dem Bildschirm: **WebView**-Modus (Live-Rendering auf dem Player) oder **Server-Aufnahme** (der Server fotografiert die Seite periodisch — für Seiten, die das Einbetten verweigern oder serverseitige Anmeldung brauchen). Eine Webseite ist ein Medium wie jedes andere: Tags, Playlists, Zeitplanung.
 
+![Webseite (URL Display): WebView-Modus oder Server-Screenshot](/help/img/media-web-page.webp)
+
 ## KI-Generierung
 
 Vitrail generiert Bilder, Videos, Musik und Sprecherstimmen aus einer Beschreibung. Das erzeugte Medium landet ganz normal in der Mediathek.
@@ -251,6 +306,8 @@ Vitrail generiert Bilder, Videos, Musik und Sprecherstimmen aus einer Beschreibu
 - **Prompts**: die Modelle arbeiten auf Englisch — der **Prompt-Assistent** verwandelt Ihre Idee (jede Sprache) in einen optimierten englischen Prompt + Negativ-Prompt. Einfach bleiben: Motiv + Aktion + Stil; für Video Kamera und Licht ergänzen; nie Meta-Anweisungen („Werbeinhalt…" wird sonst ins Bild gemalt).
 - **Bearbeitung**: Freistellen (Hintergrund entfernen), Retusche per Anweisung, mehrere Varianten, Bild → Video (nur die Bewegung beschreiben).
 - Eine **Kostenschätzung** erscheint vor jeder Generierung.
+
+![KI-Generierung: Bild, Video, Musik oder Stimme aus einer Beschreibung](/help/img/media-generate-ai.webp)
 
 ## Promo-Generator
 
@@ -264,6 +321,8 @@ Der **Promo-Generator** erstellt ein Werbeplakat (Bild oder kurzes Video) aus ei
 - **Die KI macht nur den Hintergrund** (und stellt das Produkt frei). Preis, Rabatt, Name und Rechtshinweise setzt das Compositing aus Ihrer Eingabe — also exakt.
 - **Verketten**: „Mit anderem Produkt wiederholen" behält Marke, Layout, Hintergrund und Hinweise; **Voreinstellungen** rufen eine komplette Konfiguration ab.
 
+![Der Promo-Generator: links der Ablauf in sechs Schritten, in der Mitte die Vorschau](/help/img/promo.webp)
+
 ### Serienmodus — ein Layout, N Produkte
 
 Der Umschalter **Ein Visual / Serie** oben ersetzt die Vorschau durch eine **Tabelle**: eine Zeile je Visual. Der Ablauf links definiert weiterhin das **Gemeinsame** (Marke, Layout, Hintergrund, Hinweise, Währung); die Tabelle trägt nur das **Wechselnde** — Produkt, Slogan, Preis, Streichpreis, Rabatt.
@@ -272,6 +331,8 @@ Der Umschalter **Ein Visual / Serie** oben ersetzt die Vorschau durch eine **Tab
 - **Der Import ergänzt**, er ersetzt nicht: zwei Dateien nacheinander oder Nacharbeit von Hand sind möglich.
 - **Eine Zeile ohne Preis stoppt die Serie nicht**: sie wird hervorgehoben, im Hinweis benannt und übersprungen. Die Schaltfläche nennt die Zahl der tatsächlich erzeugten Visuals.
 - Jedes Visual wird **nach seinem Produkt benannt**, sonst landeten alle unter demselben Namen in der Mediathek.
+
+![Serienmodus: eine Zeile je Visual, die Zeile ohne Preis wird benannt und übersprungen](/help/img/promo-serie.webp)
 
 ## Markenrichtlinien
 
@@ -292,6 +353,10 @@ Die Seite **Kampagnen** verkauft Ihre Bildschirme als Werbeinventar: ein Werbetr
 
 Legen Sie Ihre **Werbetreibenden** an (Seite Werbetreibende): jeder erhält einen Mediathek-Ordner „Werbetreibende/<Name>" und eine oder mehrere **Branchenkategorien**. An jedem **Standort** listen Sie die **ausgeschlossenen** Kategorien: betroffene Werbetreibende können diesen Standort weder anvisieren noch dort ausspielen (durchgesetzt in Targeting, Belegung, Angebot, Bericht, Portal und Ausspielung).
 
+![Werbetreibende und ihre Branchenkategorien](/help/img/advertisers.webp)
+
+![Ein Werbetreibender: Kategorien, Portalzugang, erlaubte Kampagnentypen](/help/img/advertiser-edit.webp)
+
 ### Kampagne anlegen und veröffentlichen
 
 Eine Kampagne = Zeitraum (+ optionales tägliches Zeitfenster), **verkaufter SOV in %**, Preis (SOV-basiert oder pauschal, manuell erfasst — ein **Richtangebot** wird aus den Bildschirmtarifen berechnet), Ziele (kumulierbar: Org, Standorte, Standortgruppen, Gruppen, Player) und Werbemittel (Videos/Bilder, gewichtete Rotation). Status: Entwurf → veröffentlicht (geplant / live / beendet), Pause (sofortige Entfernung von den Bildschirmen), Fortsetzung, Stornierung.
@@ -303,6 +368,10 @@ Eine Kampagne = Zeitraum (+ optionales tägliches Zeitfenster), **verkaufter SOV
 - **Werbemittel-Freigabe** (optional, je Org): jedes neue Werbemittel startet „Ausstehend" und muss vor der Ausstrahlung freigegeben werden.
 - **Kalender**: monatliches Gantt der Kampagnen mit Tageslast (gelb/rot).
 - **Import**: komplette Kampagne aus einer JSON-Datei (Dry-Run-Vorschau, Anlage als Entwurf, manuelle Veröffentlichung), auch **per API** mit einem `sfi_`-Schlüssel.
+
+![Kampagnen: Werbetreibender, Zeitraum, SOV, Status und Auslastungskalender](/help/img/campaigns.webp)
+
+![Eine Kampagne: Ziele, Creatives, erreichbarer SOV und Angebot](/help/img/campaign-edit.webp)
 
 ### Ausspielung, Nachweis und Bericht
 
@@ -327,6 +396,10 @@ Die Seite **Freigaben** bündelt die Freigabeanfragen — aktuell Kampagnen (aus
 4. **Erneute Einreichung** nach Korrekturen; Verlauf bleibt erhalten.
 
 Prüfer (`approvals`-Berechtigungen) sehen die Warteschlange der gesamten Organisation und eine **Glocke** in der oberen Leiste; **CSV/PDF-Exporte** der Warteschlange; Anfragen in einem Endstatus können aus der Liste entfernt werden (Audit-Spur bleibt).
+
+![Die Freigabe-Warteschlange mit Suche und Exporten](/help/img/approvals.webp)
+
+![Prüfung eines Antrags: Creatives, prognostizierte Belegung, Entscheidung](/help/img/approval-review.webp)
 
 ## Berichte und Analysen
 
@@ -375,6 +448,8 @@ Jeder Player kennt seine Einschaltfenster **14 Tage im Voraus**: ist der Server 
 ## Server und Dauer der Kodierungen
 
 Jedes hochgeladene Video wird **neu kodiert**, damit alle Bildschirme es abspielen können — die mit Abstand schwerste Aufgabe des Servers. Die Seite **Einstellungen → Server** sagt Ihnen, warum es so lange dauert.
+
+![Die Seite Server: Kodierkapazität, gemessene Durchsätze, Warteschlange](/help/img/server.webp)
 
 **Kodierkapazität** — die Zeile, die fast alles erklärt: **Hardwarebeschleunigung aktiv** oder nicht. Ohne nutzbare Grafikkarte läuft die Kodierung über den Prozessor und ist deutlich langsamer. **Gemessene Durchsätze** = die tatsächlich an Ihren eigenen Dateien beobachteten Geschwindigkeiten. **Arbeitsdatenträger** = freier Platz, auf dem der Worker seine temporären Dateien schreibt.
 

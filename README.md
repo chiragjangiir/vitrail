@@ -66,9 +66,10 @@ random secrets, builds and starts the containers, runs the migrations, sets up a
 and an nginx front on port 8080, then creates the first organisation and administrator. The
 administrator's credentials and 2FA secret are printed **once** at the end: note them.
 
-Known limitation: it serves plain **HTTP**, and port 8080 is only opened to private networks.
-For access over the Internet, put the stack behind a reverse proxy with TLS (see
-`deploy/caddy/Caddyfile.example`).
+Known limitation: it serves plain **HTTP** on port 8080. When `ufw` is active, the installer
+opens that port to **private networks only**; set `VITRAIL_PUBLIC_HTTP=1` to open it to everyone
+(fine for a quick trial, not for production). For access over the Internet, put the stack behind
+a reverse proxy with TLS (see `deploy/caddy/Caddyfile.example`).
 
 To create a **super-admin** (the platform role that manages organisations), run this on the
 server; shell access is the only requirement:

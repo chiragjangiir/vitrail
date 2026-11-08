@@ -255,7 +255,7 @@ def main() -> None:
         api.post("/schedules", json={"schedule_name": "Matinée vitrines", "id_playlist": pls[0], "priority": 10,
                                      "rules": [{"rule_type": "weekly", "days_of_week": week,
                                                 "time_start": "07:00:00", "time_end": "11:00:00"}],
-                                     "targets": [{"target_type": "group", "target_id": grp["id_group"]}]})
+                                     "targets": [{"target_type": "player_group", "target_id": grp["id_group"]}]})
         api.post("/schedules", json={"schedule_name": "Journée tous écrans", "id_playlist": pls[1],
                                      "rules": [{"rule_type": "always"}],
                                      "targets": [{"target_type": "site", "target_id": s} for s in sites]})
@@ -284,9 +284,12 @@ def main() -> None:
             "starts_on": today.isoformat(), "ends_on": (today + timedelta(days=30)).isoformat(),
             "sov_percent": 15, "targets": [{"target_type": "org"}]})
         if camp:
-            api.post(f"/campaigns/{camp['id_campaign']}/creatives", json={"id_media": images[4]})
-    if pls:
-        api.post("/approvals/", json={"resource_type": "playlist", "resource_id": pls[2] if len(pls) > 2 else pls[0],
+            api.post(f"/campaigns/{camp['id_campaign']}/creatives", json={"id_media": images[4], "duration_ms": 10000})
+    # Une validation porte sur un BROUILLON : playlist non publiée, soumise telle quelle.
+    draft = api.post("/playlists", json={"playlist_name": "Promotion d'été (à valider)"})
+    if draft and len(images) > 7:
+        api.post(f"/playlists/{draft['id_playlist']}/items/bulk", json={"id_medias": [images[4], images[7]]})
+        api.post("/approvals/", json={"resource_type": "playlist", "resource_id": draft["id_playlist"],
                                       "notes": "Merci de valider les visuels de la promotion."})
 
     asyncio.run(_players_online(players))
