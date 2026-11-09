@@ -50,7 +50,7 @@ async def main() -> None:
             await db.execute(
                 select(CmsOrganization.org_name).where(CmsOrganization.id_org == user.id_org)
             )
-        ).scalar_one_or_none() or "SignFlow"
+        ).scalar_one_or_none() or "Vitrail"
 
     if not user.totp_secret:
         print(f"{EMAIL} : aucun secret TOTP enrôlé (totp_enabled={user.totp_enabled}).")

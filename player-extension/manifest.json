@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Vitrail Player",
-  "version": "2.0.12",
+  "version": "2.0.13",
   "description": "Vitrail lightweight digital-signage player (§3.10) — turns any Chrome browser into a managed player, no native app required.",
   "minimum_chrome_version": "116",
   "permissions": [

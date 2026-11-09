@@ -130,7 +130,7 @@ The screen shows:
 
 ```
 ===============================================
-   SignFlow - installation du player en cours
+   Vitrail - installation du player en cours
    NE PAS ETEINDRE / DO NOT POWER OFF
 ===============================================
 [signflow-firstboot] attente de l'horloge (NTP)...

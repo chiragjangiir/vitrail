@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install.sh — SignFlow Player installation on Debian 12 / Ubuntu
+# install.sh — Vitrail Player installation on Debian 12 / Ubuntu
 #
 # Turnkey : installe les prérequis (curl, git, Node 20), une session kiosk
 # minimale (xorg + openbox + lightdm) avec autologin, les dépendances Electron,
@@ -44,7 +44,7 @@ CONFIG_DIR="/home/$SERVICE_USER/.config/$APP_NAME"
 AUTOSTART_XDG="/home/$SERVICE_USER/.config/autostart"
 AUTOSTART_OB="/home/$SERVICE_USER/.config/openbox"
 
-echo "=== SignFlow Player — Debian 12 Install ==="
+echo "=== Vitrail Player — Debian 12 Install ==="
 echo "    Player directory : $PLAYER_DIR"
 echo "    User             : $SERVICE_USER"
 [[ -n "$BACKEND_URL" ]] && echo "    Backend URL      : $BACKEND_URL"
@@ -399,7 +399,7 @@ mkdir -p /var/lib/signflow
 chown "$SERVICE_USER:$SERVICE_USER" /var/lib/signflow
 cat > /etc/systemd/system/signflow-ntp-apply.service <<'UNIT'
 [Unit]
-Description=SignFlow NTP apply (reads /var/lib/signflow/ntp_request)
+Description=Vitrail NTP apply (reads /var/lib/signflow/ntp_request)
 
 [Service]
 Type=oneshot
@@ -490,7 +490,7 @@ echo ""
 echo "  2. Edit the player config:"
 echo "       nano $CONFIG_DIR/config.json"
 echo ""
-echo "     Set backend_url to your SignFlow server URL, and"
+echo "     Set backend_url to your Vitrail server URL, and"
 echo "     player_token to the provisioning token (sfp_...)"
 echo "     The player will register automatically on first start."
 echo ""

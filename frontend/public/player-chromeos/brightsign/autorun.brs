@@ -662,7 +662,7 @@ End Sub
 Function HdmiControlPage() As String
     h = "<!doctype html><html><head><meta charset='utf-8'>"
     h = h + "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-    h = h + "<title>SignFlow HDMI Control</title><style>"
+    h = h + "<title>Vitrail HDMI Control</title><style>"
     h = h + "body{margin:0;font-family:system-ui,sans-serif;background:#1C1E2A;color:#eee;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:20px}"
     h = h + "h2{font-weight:600;margin:0 0 8px}"
     h = h + "button{width:300px;padding:22px;font-size:18px;font-weight:600;border:0;border-radius:12px;cursor:pointer}"

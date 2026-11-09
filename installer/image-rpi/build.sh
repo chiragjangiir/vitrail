@@ -68,7 +68,7 @@ install -m 0755 "$SRC/firstboot.sh" "$WORK/root/opt/signflow/signflow-firstboot.
 sed -i 's/\r$//' "$WORK/root/opt/signflow/signflow-firstboot.sh"
 cat > "$WORK/root/etc/systemd/system/signflow-firstboot.service" <<'EOF'
 [Unit]
-Description=SignFlow premier boot (provisioning + installation du player)
+Description=Vitrail premier boot (provisioning + installation du player)
 After=network-online.target time-sync.target
 Wants=network-online.target time-sync.target
 ConditionPathExists=/opt/signflow/player-rpi/install.sh

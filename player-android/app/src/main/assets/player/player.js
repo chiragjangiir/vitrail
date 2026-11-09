@@ -2457,7 +2457,7 @@ function refreshOverlay() {
 
   _overlayEl.innerHTML =
     `<div style="font-weight:600;color:#7fb0ff;margin-bottom:6px;letter-spacing:.5px">`
-    + `SignFlow · MAINTENANCE</div>`
+    + `Vitrail · MAINTENANCE</div>`
     + _ovRow('Player', `${p.player_name || dev.hostname || '—'}  (#${dev.id_player ?? '—'})`)
     + _ovRow('Device', `${dev.hostname || '—'} · ${dev.os || ''} v${dev.version || '?'}`)
     + _ovNet('Network', [['LAN', dev.ip], ['MAC', dev.mac], ['WAN', dev.wan_ip]])

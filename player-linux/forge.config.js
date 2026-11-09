@@ -8,9 +8,9 @@ module.exports = {
       name: '@electron-forge/maker-deb',
       config: {
         options: {
-          maintainer: 'SignFlow',
+          maintainer: 'Vitrail',
           homepage: 'https://signflow.io',
-          description: 'SignFlow Digital Signage Player',
+          description: 'Vitrail Digital Signage Player',
           categories: ['Utility'],
         },
       },

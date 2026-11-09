@@ -260,7 +260,7 @@ class MainActivity : AppCompatActivity() {
             visibility = View.GONE
         }
         val logoTv = TextView(this).apply {
-            text = "SignFlow"
+            text = "Vitrail"
             setTextColor(Color.parseColor("#4875B4"))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 40f)
             typeface = Typeface.create(typeface, Typeface.BOLD)

@@ -1,7 +1,7 @@
 {
-  "name": "SignFlow Player",
-  "short_name": "SignFlow",
-  "description": "SignFlow digital signage player (ChromeOS PWA).",
+  "name": "Vitrail Player",
+  "short_name": "Vitrail",
+  "description": "Vitrail digital signage player (ChromeOS PWA).",
   "start_url": "./index.html",
   "scope": "./",
   "display": "fullscreen",

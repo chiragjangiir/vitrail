@@ -346,7 +346,7 @@ class LocalControlServer {
     // cibles tactiles ≥64px, badges icône+couleur+libellé.
     return `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>SignFlow — Audio Control</title>
+<title>Vitrail — Audio Control</title>
 <style>
   :root{--bg:#1D2B3A;--card:#243548;--accent:#4875B4;--text:#F8F7F5;--muted:#9fb0c3;--ok:#3FB984;--off:#7c8aa0}
   *{box-sizing:border-box;font-family:Inter,system-ui,sans-serif}

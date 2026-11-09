@@ -171,7 +171,7 @@ write_net_diag() {  # dump complet (fichier sur la clé) pour le cas "pas d'inte
     d="$USB_MNT/rapports"; mkdir -p "$d" 2>/dev/null
     f="$d/diag-net-$(date '+%Y%m%d-%H%M%S' 2>/dev/null || echo horodate).txt"
     {
-        echo "SignFlow - diagnostic reseau (aucune interface detectee)"
+        echo "Vitrail - diagnostic reseau (aucune interface detectee)"
         echo "Date: $(date 2>/dev/null)"
         echo "=== /sys/class/net ==="; ls -1 /sys/class/net 2>/dev/null
         echo "=== PCI classe reseau (02xx) : device  vendor:device  class  driver ==="
@@ -272,7 +272,7 @@ write_reports() {
     base="$dir/rapport-boot-$ts"
     v=$(verdict)
     {
-        echo "SignFlow - Validation materielle (boot) - profil $PROFILE"
+        echo "Vitrail - Validation materielle (boot) - profil $PROFILE"
         echo "Date: $(date 2>/dev/null)"
         echo "----------------------------------------------------------"
         printf '%s\n' "$CHECKS" | while IFS='|' read -r s n d; do
@@ -284,9 +284,9 @@ write_reports() {
     } > "$base.txt" 2>/dev/null
     {
         vcol="#2E7D32"; [ "$v" = "NON VALIDE" ] && vcol="#C62828"; [ "$v" = "VALIDE AVEC RESERVES" ] && vcol="#E65100"
-        echo "<!doctype html><meta charset=utf-8><title>SignFlow - $host</title>"
+        echo "<!doctype html><meta charset=utf-8><title>Vitrail - $host</title>"
         echo "<body style='font-family:sans-serif;background:#F8F7F5;padding:24px;max-width:720px;margin:auto'>"
-        echo "<h2>SignFlow - Validation materielle (boot)</h2><small>profil $PROFILE - $(date 2>/dev/null)</small>"
+        echo "<h2>Vitrail - Validation materielle (boot)</h2><small>profil $PROFILE - $(date 2>/dev/null)</small>"
         echo "<table style='width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e7eb'>"
         printf '%s\n' "$CHECKS" | while IFS='|' read -r s n d; do
             [ -z "$s" ] && continue
@@ -302,7 +302,7 @@ write_reports() {
 print_console() {
     v=$(verdict)
     printf '\n'
-    printf "  ${BLD}SignFlow - Validation materielle${RST}  (profil %s)\n" "$PROFILE"
+    printf "  ${BLD}Vitrail - Validation materielle${RST}  (profil %s)\n" "$PROFILE"
     printf '  ----------------------------------------------------------\n'
     printf '%s\n' "$CHECKS" | while IFS='|' read -r s n d; do
         [ -z "$s" ] && continue

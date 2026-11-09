@@ -45,7 +45,7 @@ fi
 # Terminal plein écran lisible, au premier plan sur la session du player.
 DISPLAY="$DISP" XAUTHORITY="$XA" "$TERM_BIN" \
     -fa Monospace -fs 15 -geometry 130x42 \
-    -T "SignFlow - Player configuration" \
+    -T "Vitrail - Player configuration" \
     -e /usr/local/bin/sf-configure.sh "$MP/signflow-config.json" 2>/dev/null || true
 
 # On n'arrive ici QUE si sf-configure n'a pas redémarré (config incomplète / abandon) → trap démonte.

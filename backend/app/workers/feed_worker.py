@@ -97,7 +97,7 @@ def _fetch_image(url: str) -> bytes | None:
         logger.info("rehost: hôte non sûr ignoré (%s)", parsed.hostname)
         return None
     try:
-        headers = {"User-Agent": "SignFlow-FeedFetcher/1.0 (+https://signflow)"}
+        headers = {"User-Agent": "Vitrail-FeedFetcher/1.0 (+https://github.com/edkahall/vitrail)"}
         with httpx.Client(timeout=15, follow_redirects=False, headers=headers) as client:
             with client.stream("GET", url) as resp:
                 resp.raise_for_status()
@@ -144,7 +144,7 @@ def _youtube_rss_url(raw: str) -> str:
     try:
         if not _host_is_safe(urlparse(url).hostname or ""):
             return raw
-        headers = {"User-Agent": "Mozilla/5.0 (SignFlow-FeedFetcher)"}
+        headers = {"User-Agent": "Mozilla/5.0 (Vitrail-FeedFetcher)"}
         # Cookie SOCS=CAI : contourne le mur de consentement cookies YouTube (FR/EU) qui sinon
         # redirige vers consent.youtube.com (page SANS channelId). Sans lui, la résolution échoue.
         with httpx.Client(timeout=15, follow_redirects=True, headers=headers,
@@ -339,7 +339,7 @@ def fetch_feed(self, id_feed: int) -> dict:
 
         # Téléchargement contrôlé (timeout + plafond taille) puis parsing.
         try:
-            headers = {"User-Agent": "SignFlow-FeedFetcher/1.0 (+https://signflow)"}
+            headers = {"User-Agent": "Vitrail-FeedFetcher/1.0 (+https://github.com/edkahall/vitrail)"}
             with httpx.Client(timeout=timeout_s, follow_redirects=False, headers=headers) as client:
                 resp = client.get(url)
                 resp.raise_for_status()

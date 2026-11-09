@@ -1,8 +1,8 @@
-# Player BrightSign (HD1024 / Série 5) — SignFlow
+# Player BrightSign (HD1024 / Série 5) — Vitrail
 
 🇬🇧 [English version](README.md)
 
-Portage du player SignFlow sur **BrightSign** (BrightSignOS). Cible de test : **HD1024**
+Portage du player Vitrail sur **BrightSign** (BrightSignOS). Cible de test : **HD1024**
 (Série 5 « expanded I/O » : **4K**, **H.265/HEVC**, microSD, RS232, GPIO).
 
 ## Principe
@@ -90,7 +90,7 @@ autorun.brs (BrightScript, sur la carte SD)
 
 Les points **VERIFY** = variantes possibles selon la version de BrightSignOS du HD1024.
 
-- [ ] **Boot** : l'écran affiche le player (logo SignFlow / contenu), pas une page blanche.
+- [ ] **Boot** : l'écran affiche le player (logo Vitrail / contenu), pas une page blanche.
 - [ ] **En ligne** : le player passe **online** dans le CMS (WS connecté).
 - [ ] **Contenu** : une **image** s'affiche ; une **vidéo H.264 FHD** se lit (HTML5 `<video>`).
 - [ ] **Heartbeat enrichi** (objets JS BrightSign actifs) : le drawer player montre `bs_model`,

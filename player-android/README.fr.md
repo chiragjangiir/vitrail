@@ -1,4 +1,4 @@
-# SignFlow Player — Android
+# Vitrail Player — Android
 
 🇬🇧 [English version](README.md)
 

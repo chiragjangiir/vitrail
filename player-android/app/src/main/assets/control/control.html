@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>SignFlow — Audio Control</title>
+<title>Vitrail — Audio Control</title>
 <style>
   :root{--bg:#1D2B3A;--card:#243548;--accent:#4875B4;--text:#F8F7F5;--muted:#9fb0c3;--ok:#3FB984;--off:#7c8aa0}
   *{box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
@@ -170,7 +170,7 @@ function paint(st,baskets){
 function render(){
   document.getElementById('app').innerHTML='';
   const root=document.getElementById('app');
-  root.appendChild(el('<h1>♪ SignFlow — Audio Control</h1>'));
+  root.appendChild(el('<h1>♪ Vitrail — Audio Control</h1>'));
   root.appendChild(el('<div class="sub">'+(S.name||'Player')+'</div>'));
   root.appendChild(el('<div class="card"><div class="row"><span>Now playing</span><span class="npwrap" id="npwrap"><span class="np" id="np">—</span></span></div><div class="row" id="nparow" style="display:none"><span>Ambiance</span><span class="npwrap"><span class="np" id="npa">—</span></span></div></div>'));
   if(S.perm.can_set_volume){

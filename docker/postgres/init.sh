@@ -1,5 +1,5 @@
 #!/bin/bash
-# Initialisation PostgreSQL — SignFlow
+# Initialisation PostgreSQL — Vitrail
 #
 # Exécuté par l'entrypoint de l'image postgres UNIQUEMENT si le répertoire de
 # données est vierge (donc à la première installation, jamais aux suivantes).
@@ -56,4 +56,4 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     \$\$;
 EOSQL
 
-echo "SignFlow : extensions et rôles initialisés."
+echo "Vitrail : extensions et rôles initialisés."

@@ -48,7 +48,7 @@ systemctl stop getty@tty1.service 2>/dev/null || true
 
 screen ""
 screen "==============================================="
-screen "   SignFlow - installation du player en cours"
+screen "   Vitrail - installation du player en cours"
 screen "   NE PAS ETEINDRE / DO NOT POWER OFF"
 screen "==============================================="
 screen ""

@@ -1,5 +1,5 @@
 # ===========================================================================
-#  SignFlow CMS — Demarrage dev local (Windows / Docker Desktop)
+#  Vitrail — Demarrage dev local (Windows / Docker Desktop)
 #  Usage    : .\demo-start.ps1
 #  Options  : .\demo-start.ps1 -Quick    (DB + MinIO + Backend uniquement, pour les tests)
 #             .\demo-start.ps1 -Full     (+ Mailpit)
@@ -34,7 +34,7 @@ function Get-PortProcess {
 Clear-Host
 Write-Host ""
 Write-Host "  =====================================================" -ForegroundColor DarkCyan
-Write-Host "  |   SignFlow CMS  --  Demarrage dev local          |" -ForegroundColor Cyan
+Write-Host "  |   Vitrail      --  Demarrage dev local          |" -ForegroundColor Cyan
 Write-Host "  =====================================================" -ForegroundColor DarkCyan
 Write-Host ""
 

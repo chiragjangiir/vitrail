@@ -1,4 +1,4 @@
-# SignFlow Player — ChromeOS PWA (§3.9)
+# Vitrail Player — ChromeOS PWA (§3.9)
 
 🇬🇧 [English version](README.md)
 
@@ -11,7 +11,7 @@
 > mauvais endroit. **Tout correctif du renderer ChromeOS/BrightSign se fait dans
 > `frontend/public/player-chromeos/`.**
 
-Player de digital signage SignFlow porté en **Progressive Web App** pour Chromebox /
+Player de digital signage Vitrail porté en **Progressive Web App** pour Chromebox /
 Chromebook en **kiosk managé** (console Google Admin) ou PWA plein écran.
 
 ## Principe

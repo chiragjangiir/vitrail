@@ -27,13 +27,13 @@ from pydantic import BaseModel
 logger = logging.getLogger("feed-proxy")
 
 app = FastAPI(
-    title="SignFlow Feed Proxy",
+    title="Vitrail Feed Proxy",
     version="0.2.0",
     description="Micro-service d'agrégation de flux (§XXV.3) — connecteurs socials/financiers/météo.",
     docs_url="/docs",
 )
 
-_UA = {"User-Agent": "SignFlow-FeedProxy/0.2 (+https://signflow)"}
+_UA = {"User-Agent": "Vitrail-FeedProxy/0.2 (+https://github.com/edkahall/vitrail)"}
 _SOCIAL_TYPES = ("instagram", "facebook_page", "twitter_x", "linkedin", "tiktok")
 
 

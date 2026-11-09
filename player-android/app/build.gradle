@@ -21,8 +21,8 @@ android {
         applicationId "app.signflow.player"
         minSdk 28
         targetSdk 34
-        versionCode 34
-        versionName "2.5.32"
+        versionCode 36
+        versionName "2.5.34"
     }
 
     signingConfigs {

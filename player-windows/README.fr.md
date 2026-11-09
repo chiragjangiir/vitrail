@@ -1,4 +1,4 @@
-# SignFlow Player — Windows
+# Vitrail Player — Windows
 
 🇬🇧 [English version](README.md)
 

@@ -1,5 +1,5 @@
 # ===========================================================================
-#  SignFlow CMS — Arret propre des services dev local
+#  Vitrail — Arret propre des services dev local
 #  Usage    : .\demo-stop.ps1
 #  Options  : .\demo-stop.ps1 -Volumes     (supprime aussi les volumes Docker)
 #             .\demo-stop.ps1 -Prune        (nettoie images/reseaux orphelins)
@@ -25,7 +25,7 @@ function Write-Fail { param($msg)     Write-Host "      ERR $msg" -ForegroundCol
 Clear-Host
 Write-Host ""
 Write-Host "  =====================================================" -ForegroundColor DarkCyan
-Write-Host "  |   SignFlow CMS  --  Arret dev local              |" -ForegroundColor Cyan
+Write-Host "  |   Vitrail      --  Arret dev local              |" -ForegroundColor Cyan
 Write-Host "  =====================================================" -ForegroundColor DarkCyan
 Write-Host ""
 
@@ -47,7 +47,7 @@ if (-not $dockerRunning) { Write-Fail "Docker Desktop n'est pas demarre." }
 Write-OK "Docker $dockerRunning"
 
 # -- 2. Arret des containers ------------------------------------------------
-Write-Step 2 "Arret des containers SignFlow"
+Write-Step 2 "Arret des containers Vitrail"
 
 $composeArgs = @("compose", "down")
 if ($Volumes) {
@@ -75,7 +75,7 @@ if ($Prune) {
 
 # -- 4. Verification --------------------------------------------------------
 Write-Host ""
-Write-Step 4 "Verification -- containers SignFlow restants"
+Write-Step 4 "Verification -- containers Vitrail restants"
 Write-Host ""
 
 $savedEap = $ErrorActionPreference; $ErrorActionPreference = "SilentlyContinue"
@@ -85,7 +85,7 @@ if ($remaining) {
     Write-Warn "Ces containers sont encore actifs :"
     $remaining | ForEach-Object { Write-Host "      $_" -ForegroundColor Yellow }
 } else {
-    Write-OK "Aucun container SignFlow actif"
+    Write-OK "Aucun container Vitrail actif"
 }
 
 # -- 5. Arret Docker Desktop (optionnel) ------------------------------------

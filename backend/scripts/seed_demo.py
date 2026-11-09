@@ -120,7 +120,7 @@ async def main() -> None:
             )
             await db.commit()
             if created and secret:
-                uri = pyotp.totp.TOTP(secret).provisioning_uri(name=admin_email, issuer_name="SignFlow")
+                uri = pyotp.totp.TOTP(secret).provisioning_uri(name=admin_email, issuer_name="Vitrail")
                 print(f"  ORG_ADMIN   {admin_email}  /  {ADMIN_PWD}")
                 print(f"     TOTP secret : {secret}")
                 print(f"     TOTP URI    : {uri}")

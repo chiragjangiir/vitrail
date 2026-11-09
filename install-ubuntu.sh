@@ -368,7 +368,7 @@ SYSTEMD_FILE="/etc/systemd/system/signflow.service"
 
 cat > "$SYSTEMD_FILE" << EOF
 [Unit]
-Description=SignFlow CMS
+Description=Vitrail (digital signage server)
 Requires=docker.service
 After=docker.service network-online.target
 Wants=network-online.target

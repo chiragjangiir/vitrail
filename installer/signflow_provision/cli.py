@@ -117,7 +117,7 @@ def build_options(args) -> dict | None:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         prog="signflow-provision",
-        description="Pose SignFlow sur un player (§XXIX) — 1 payload, plusieurs canaux.")
+        description="Pose Vitrail sur un player (§XXIX) — 1 payload, plusieurs canaux.")
     ap.add_argument("--cms", help="URL du CMS (ex. https://cms.example.com)")
     ap.add_argument("--key", help="Clé opérateur de provisioning sfk_… (longue durée, recommandé)")
     ap.add_argument("--token", help="JWT bearer org-admin (alternative à --key ; expire en 15 min)")

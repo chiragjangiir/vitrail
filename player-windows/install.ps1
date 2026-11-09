@@ -1,4 +1,4 @@
-# install.ps1 - SignFlow Player Windows
+# install.ps1 - Vitrail Player Windows
 # Run as Administrator in PowerShell
 
 param(
@@ -8,7 +8,7 @@ param(
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-Write-Host "SignFlow Player - Windows Installer" -ForegroundColor Cyan
+Write-Host "Vitrail Player - Windows Installer" -ForegroundColor Cyan
 Write-Host "Install directory: $InstallDir"
 Write-Host ""
 

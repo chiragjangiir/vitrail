@@ -19,7 +19,7 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
     <application
-        android:label="SignFlow Player"
+        android:label="Vitrail Player"
         android:icon="@mipmap/ic_launcher"
         android:banner="@drawable/banner"
         android:supportsRtl="false"

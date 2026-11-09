@@ -117,7 +117,7 @@ async def run(args: argparse.Namespace) -> None:
         await db.commit()
 
         uri = pyotp.totp.TOTP(totp_secret).provisioning_uri(
-            name=args.email, issuer_name="SignFlow"
+            name=args.email, issuer_name="Vitrail"
         )
         sep = "=" * 60
         print(f"\n{sep}\n  SUPER-ADMIN CRÉÉ\n{sep}")

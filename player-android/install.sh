@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SignFlow Player — Android TV deploy script
+# Vitrail Player — Android TV deploy script
 # Requires: Android SDK (adb), device connected via ADB (USB or TCP)
 #
 # Usage:
@@ -73,7 +73,7 @@ if [[ "${RELEASE_NOTE:-false}" == "true" ]]; then
 fi
 
 echo ""
-echo "SignFlow Player installed successfully."
+echo "Vitrail Player installed successfully."
 echo ""
 echo "Next steps:"
 echo "  1. The setup wizard will appear on first launch"

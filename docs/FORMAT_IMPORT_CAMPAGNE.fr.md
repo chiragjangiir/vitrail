@@ -3,7 +3,7 @@
 🇬🇧 [English version](FORMAT_IMPORT_CAMPAGNE.md)
 
 > Un annonceur (ou une agence) fournit un **fichier JSON** décrivant sa campagne ; le
-> scheduler l'importe dans SignFlow depuis `/campaigns` → **Importer**. L'import passe
+> scheduler l'importe dans Vitrail depuis `/campaigns` → **Importer**. L'import passe
 > TOUJOURS par un **dry-run** (aperçu + projection d'occupation SOV) avant création.
 > La campagne est créée en **draft** ; les créatifs pointés par URL sont téléchargés en
 > tâche de fond puis passent le pipeline média normal (transcode, renditions,

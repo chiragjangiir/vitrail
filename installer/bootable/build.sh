@@ -77,7 +77,7 @@ CMDLINE="modules=loop,squashfs,sd-mod,usb-storage,vfat console=tty1 quiet"
 cat > "$OUT/boot/grub/grub.cfg" <<EOF
 set timeout=3
 set default=0
-menuentry "SignFlow - Validation materielle du player" {
+menuentry "Vitrail - Validation materielle du player" {
     linux /boot/vmlinuz-lts ${CMDLINE}
     initrd /boot/initramfs-lts
 }

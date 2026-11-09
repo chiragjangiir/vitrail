@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ════════════════════════════════════════════════════════════════════════════
-#  SignFlow CMS — Demarrage dev / production (Linux / Ubuntu)
+#  Vitrail — Demarrage dev / production (Linux / Ubuntu)
 #  Usage    : ./demo-start.sh
 #  Options  : ./demo-start.sh --quick    (DB + MinIO + Backend uniquement)
 #             ./demo-start.sh --full     (+ Mailpit)
@@ -42,7 +42,7 @@ cd "$SCRIPT_DIR"
 clear
 echo ""
 cyan "  ╔══════════════════════════════════════════════════════╗"
-cyan "  ║   SignFlow CMS  —  Demarrage                        ║"
+cyan "  ║   Vitrail       —  Demarrage                        ║"
 cyan "  ╚══════════════════════════════════════════════════════╝"
 echo ""
 

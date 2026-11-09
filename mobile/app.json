@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "SignFlow",
+    "name": "Vitrail",
     "slug": "signflow",
     "version": "0.1.0",
     "orientation": "portrait",
@@ -13,8 +13,8 @@
       "supportsTablet": false,
       "bundleIdentifier": "io.signflow.app",
       "infoPlist": {
-        "NSFaceIDUsageDescription": "SignFlow uses Face ID to securely unlock the app.",
-        "NSCameraUsageDescription": "SignFlow uses the camera to scan QR codes."
+        "NSFaceIDUsageDescription": "Vitrail uses Face ID to securely unlock the app.",
+        "NSCameraUsageDescription": "Vitrail uses the camera to scan QR codes."
       }
     },
     "android": {
@@ -29,7 +29,7 @@
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "SignFlow uses Face ID to securely unlock the app."
+          "faceIDPermission": "Vitrail uses Face ID to securely unlock the app."
         }
       ],
       [

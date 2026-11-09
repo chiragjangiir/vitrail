@@ -1,5 +1,5 @@
 [Unit]
-Description=SignFlow auto-provision depuis clé USB (%i)
+Description=Vitrail auto-provision depuis clé USB (%i)
 After=graphical.target systemd-udevd.service
 # Ne pas ré-exécuter en boucle si le script échoue.
 StartLimitIntervalSec=0

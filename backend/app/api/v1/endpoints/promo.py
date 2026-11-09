@@ -82,7 +82,7 @@ _CUTOUT_MODEL = "fal-ai/birefnet"
 # Modèle de fond (négatif supporté → évite texte/produit/personne dans le fond).
 _BG_MODEL = "fal-ai/flux/dev"
 
-_UA = "Mozilla/5.0 (compatible; SignFlowPromoBot/1.0)"
+_UA = "Mozilla/5.0 (compatible; VitrailPromoBot/1.0)"
 _MAX_IMAGE_BYTES = 15 * 1024 * 1024
 
 

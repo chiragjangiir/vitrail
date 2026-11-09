@@ -1,4 +1,4 @@
-# SignFlow — Clé USB bootable de validation matérielle
+# Vitrail — Clé USB bootable de validation matérielle
 
 🇬🇧 [English version](README.md)
 
@@ -8,7 +8,7 @@ la clé** (dossier `rapports/`) et affiche le verdict à l'écran :
 
     VALIDÉ · VALIDÉ AVEC RÉSERVES · NON VALIDÉ
 
-Idéal pour tester un boîtier **nu** (sans OS) avant d'installer SignFlow.
+Idéal pour tester un boîtier **nu** (sans OS) avant d'installer Vitrail.
 
 ## Comment ça marche
 

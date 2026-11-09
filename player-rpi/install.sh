@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install.sh -- SignFlow Player installation on Raspberry Pi OS Trixie (arm64)
+# install.sh -- Vitrail Player installation on Raspberry Pi OS Trixie (arm64)
 # Tested on: Raspberry Pi 5, RPi OS Trixie (Debian 13), Wayland/labwc-pi
 # Display: cage kiosk Wayland compositor (lightdm user-session=signflow-player)
 #
@@ -45,7 +45,7 @@ else
   BOOT_CONFIG=/boot/config.txt
 fi
 
-echo "=== SignFlow Player v1.7.0 -- Raspberry Pi OS Trixie (Wayland) ==="
+echo "=== Vitrail Player -- Raspberry Pi OS Trixie (Wayland) ==="
 echo "    Player directory : $PLAYER_DIR"
 echo "    User             : $SERVICE_USER"
 echo "    Overlay rootfs   : $ENABLE_OVERLAY"
@@ -124,8 +124,8 @@ echo "[5/7] Configuring cage session and start script..."
 mkdir -p "$WAYLAND_SESSIONS_DIR"
 cat > "$WAYLAND_SESSIONS_DIR/signflow-player.desktop" <<EOF
 [Desktop Entry]
-Name=SignFlow Player
-Comment=SignFlow digital signage kiosk
+Name=Vitrail Player
+Comment=Vitrail digital signage kiosk
 Exec=cage -- $START_SCRIPT
 Type=Application
 EOF
@@ -315,7 +315,7 @@ mkdir -p /var/lib/signflow
 chown "$SERVICE_USER:$SERVICE_USER" /var/lib/signflow
 cat > /etc/systemd/system/signflow-ntp-apply.service <<'UNIT'
 [Unit]
-Description=SignFlow NTP apply (reads /var/lib/signflow/ntp_request)
+Description=Vitrail NTP apply (reads /var/lib/signflow/ntp_request)
 
 [Service]
 Type=oneshot
@@ -473,7 +473,7 @@ echo "  2. Reboot the Raspberry Pi:"
 echo "       sudo reboot"
 echo ""
 echo "  3. The player will start automatically (cage kiosk, fullscreen)."
-echo "     The First-Boot Wizard will appear -- enter your SignFlow backend URL"
+echo "     The First-Boot Wizard will appear -- enter your Vitrail server URL"
 echo "     and provisioning token (sfp_... token from CMS > Players > Provisioning)."
 echo ""
 echo "  4. Config file (if you prefer to edit manually):"

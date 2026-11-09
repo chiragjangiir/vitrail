@@ -279,7 +279,7 @@ _ICON = {PASS: "OK ", WARN: "!! ", FAIL: "XX ", INFO: ".. "}
 
 def print_console(rep: dict) -> None:
     color = sys.stdout.isatty()
-    print(f"\n  SignFlow — Vérification de capacités  ·  {rep['hostname']}  ·  "
+    print(f"\n  Vitrail — Vérification de capacités  ·  {rep['hostname']}  ·  "
           f"profil {rep['profile']}")
     print("  " + "-" * 62)
     for c in rep["checks"]:
@@ -305,14 +305,14 @@ def html_report(rep: dict) -> str:
     vcol = {"VALIDÉ": "#2E7D32", "VALIDÉ AVEC RÉSERVES": "#E65100",
             "NON VALIDÉ": "#C62828"}[rep["verdict"]]
     return f"""<!doctype html><html lang="fr"><head><meta charset="utf-8">
-<title>SignFlow — Capacités {rep['hostname']}</title>
+<title>Vitrail — Capacités {rep['hostname']}</title>
 <style>body{{font-family:Inter,system-ui,sans-serif;color:#1C1E2A;background:#F8F7F5;
 padding:28px;max-width:760px;margin:auto}}h1{{font-size:18px}}table{{width:100%;
 border-collapse:collapse;background:#fff;border:1px solid #e5e7eb;border-radius:8px;
 overflow:hidden}}td{{padding:8px 12px;border-bottom:1px solid #f1f1f1;font-size:14px}}
 .verdict{{margin-top:16px;padding:12px 16px;border-radius:8px;color:#fff;font-weight:600;
 background:{vcol}}}small{{color:#6b7280}}</style></head><body>
-<h1>SignFlow — Vérification de capacités</h1>
+<h1>Vitrail — Vérification de capacités</h1>
 <small>{rep['hostname']} · profil {rep['profile']} · {rep['generated_at']}</small>
 <table>{rows}</table>
 <div class="verdict">VERDICT : {rep['verdict']}</div>

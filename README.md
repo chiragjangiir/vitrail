@@ -2,6 +2,12 @@
 
 # Vitrail
 
+<p align="center">
+  <a href="LICENSE"><img alt="Licence: AGPL-3.0-or-later" src="https://img.shields.io/badge/licence-AGPL--3.0--or--later-blue"></a>
+  <a href="https://github.com/edkahall/vitrail/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/edkahall/vitrail"></a>
+  <a href="https://github.com/edkahall/vitrail/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/edkahall/vitrail/actions/workflows/ci.yml/badge.svg"></a>
+</p>
+
 **Vitrail** is a free and open-source **digital signage platform**: a multi-tenant web CMS plus
 players for **Linux, Windows, Raspberry Pi, Android, ChromeOS (PWA), a Chrome extension and
 BrightSign**. It is self-hosted and runs entirely on your own server. No cloud account is needed,
@@ -28,10 +34,6 @@ and nothing phones home.
 - **Notifications:** webhooks (HMAC-signed) and email
 - **Interface in 5 languages** (EN, FR, DE, ES, PT); players display English
 
-> The project was born under the working name *SignFlow*. Technical identifiers still carry it
-> (`SIGNFLOW_*` variables, the `X-SignFlow-*` webhook headers, the Android package
-> `app.signflow.player`) so that existing installations keep working.
-
 ---
 
 ## 📘 Getting started
@@ -41,41 +43,6 @@ and nothing phones home.
 Part 1 gets a server and a first screen running in about 15 minutes, on your own machine and
 any web browser. Part 2 covers production: sizing (with or without a GPU), HTTPS, every player
 platform, updates, backups, the Telegram assistant.
-
-### 🤖 Install with an AI assistant
-
-This repository ships a [`CLAUDE.md`](CLAUDE.md) that briefs an AI assistant on Vitrail: the
-installation steps, the checks to run after each one, the pitfalls met on real installs, and
-safety rules (ask before anything destructive, never print secrets).
-
-- **With [Claude Code](https://claude.com/claude-code)**: clone the repository on your server
-  and run `claude` in it. Claude reads `CLAUDE.md` automatically and can walk you through the
-  installation, run the checks with you and help you troubleshoot.
-- **In a chat** (claude.ai or another assistant): download
-  [`CLAUDE.md`](https://raw.githubusercontent.com/edkahall/vitrail/main/CLAUDE.md), add it to
-  the conversation and ask for help installing Vitrail.
-
-The assistant answers in your language. It is the same content as the guide, written for an
-assistant: the guide stays the reference.
-
----
-
-## Quick start (development)
-
-```bash
-cp .env.example .env            # fill in the secrets (see the comments in the file)
-docker compose up -d
-make dev-init                   # migrations + MinIO bucket (first run only)
-docker compose exec -T backend python3 /app/scripts/bootstrap.py   # first organisation + admin (prints the credentials)
-```
-
-The base `docker-compose.yml` publishes **no ports** for postgres, redis, backend or frontend.
-Put your port bindings in a `docker-compose.override.yml` (gitignored). That way the stack can
-share a machine with other services.
-
-- Frontend: `cd frontend && npm ci && npm run dev`
-- Backend tests: `make test` (needs postgres, redis and minio running)
-- End-to-end tests: `cd frontend && npx playwright test`
 
 ## Installing a server
 
@@ -115,6 +82,24 @@ image** for a new Raspberry Pi that needs no intervention at first boot. See
 One security rule never changes: **connections always go from the player to the server**. No
 inbound port is opened on the player's network.
 
+## 🤖 Install with an AI assistant
+
+This repository ships a [`CLAUDE.md`](CLAUDE.md) that briefs an AI assistant on Vitrail: the
+installation steps, the checks to run after each one, the pitfalls met on real installs, and
+safety rules (ask before anything destructive, never print secrets).
+
+- **With [Claude Code](https://claude.com/claude-code)**: clone the repository on your server
+  and run `claude` in it. Claude reads `CLAUDE.md` automatically and can walk you through the
+  installation, run the checks with you and help you troubleshoot.
+- **In a chat** (claude.ai or another assistant): download
+  [`CLAUDE.md`](https://raw.githubusercontent.com/edkahall/vitrail/main/CLAUDE.md), add it to
+  the conversation and ask for help installing Vitrail.
+
+The assistant answers in your language. It is the same content as the guide, written for an
+assistant: the guide stays the reference.
+
+---
+
 ## Repository layout
 
 ```
@@ -136,6 +121,33 @@ docs/              Technical documentation and guides
 
 The user manual is built into the interface (**Help** menu, 5 languages). Its source lives in
 `frontend/public/help/`.
+
+## Development
+
+To work on the code rather than run a server:
+
+```bash
+cp .env.example .env            # fill in the secrets (see the comments in the file)
+docker compose up -d
+make dev-init                   # migrations + MinIO bucket (first run only)
+docker compose exec -T backend python3 /app/scripts/bootstrap.py   # first organisation + admin (prints the credentials)
+```
+
+The base `docker-compose.yml` publishes **no ports** for postgres, redis, backend or frontend.
+Put your port bindings in a `docker-compose.override.yml` (gitignored). That way the stack can
+share a machine with other services.
+
+- Frontend: `cd frontend && npm ci && npm run dev`
+- Backend tests: `make test` (needs postgres, redis and minio running)
+- End-to-end tests: `cd frontend && npx playwright test`
+
+## Technical notes
+
+The project was born under the working name *SignFlow*. Technical identifiers still carry it
+(`SIGNFLOW_*` variables, the `X-SignFlow-*` webhook headers, the Android package
+`app.signflow.player`, the server directory `/opt/signflow`, the Windows player's install folder
+and scheduled task "SignFlow Player") so that existing installations keep working. Everything
+shown on screen says Vitrail.
 
 ## Contributing
 

@@ -40,7 +40,7 @@ async def bootstrap() -> None:
     admin_password = os.environ.get("BOOTSTRAP_ADMIN_PASSWORD") or (
         secrets.token_urlsafe(12) + "aA1!"
     )
-    org_name = os.environ.get("BOOTSTRAP_ORG_NAME", "SignFlow")
+    org_name = os.environ.get("BOOTSTRAP_ORG_NAME", "Vitrail")
     org_slug = os.environ.get("BOOTSTRAP_ORG_SLUG", "signflow")
     # Player de demo : utile en dev, hors sujet chez un client. Desactive par defaut.
     demo_player = os.environ.get("BOOTSTRAP_DEMO_PLAYER", "").strip()
@@ -98,7 +98,7 @@ async def bootstrap() -> None:
         print("  Bootstrap OK")
         print(sep)
         totp_uri = pyotp.totp.TOTP(totp_secret).provisioning_uri(
-            name=admin_email, issuer_name="SignFlow"
+            name=admin_email, issuer_name="Vitrail"
         )
         print(f"  Admin        : {admin_email}")
         print(f"  Mot de passe : {admin_password}")

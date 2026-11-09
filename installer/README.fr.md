@@ -1,8 +1,8 @@
-# SignFlow — Installeur terrain (§XXIX)
+# Vitrail — Installeur terrain (§XXIX)
 
 🇬🇧 [English version](README.md)
 
-Outil CLI de provisioning « **1 payload, plusieurs canaux** ». Pose SignFlow sur un player par
+Outil CLI de provisioning « **1 payload, plusieurs canaux** ». Pose Vitrail sur un player par
 un technicien, avec un minimum de gestes et zéro connaissance des détails par OS.
 
 > **Statut : les 3 canaux réseau sont validés sur matériel (2026-08-09).**

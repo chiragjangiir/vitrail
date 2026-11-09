@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ════════════════════════════════════════════════════════════════════════════
-#  SignFlow CMS — Arret propre des services (Linux / Ubuntu)
+#  Vitrail — Arret propre des services (Linux / Ubuntu)
 #  Usage    : ./demo-stop.sh
 #  Options  : ./demo-stop.sh --volumes   (supprime aussi les volumes Docker)
 #             ./demo-stop.sh --prune     (nettoie images/reseaux orphelins)
@@ -39,7 +39,7 @@ cd "$SCRIPT_DIR"
 clear
 echo ""
 cyan "  ╔══════════════════════════════════════════════════════╗"
-cyan "  ║   SignFlow CMS  —  Arret                            ║"
+cyan "  ║   Vitrail       —  Arret                            ║"
 cyan "  ╚══════════════════════════════════════════════════════╝"
 echo ""
 
@@ -59,7 +59,7 @@ DOCKER_VER=$(docker info --format "{{.ServerVersion}}" 2>/dev/null)
 ok "Docker $DOCKER_VER"
 
 # ── 2. Arret des containers ───────────────────────────────────────────────────
-step 2 "Arret des containers SignFlow"
+step 2 "Arret des containers Vitrail"
 
 DOWN_ARGS=""
 if $VOLUMES; then
@@ -84,7 +84,7 @@ fi
 
 # ── 4. Verification finale ────────────────────────────────────────────────────
 echo ""
-step 4 "Verification — containers SignFlow restants"
+step 4 "Verification — containers Vitrail restants"
 echo ""
 
 REMAINING=$(docker compose ps --filter "status=running" --format "{{.Name}}" 2>/dev/null || true)
@@ -92,7 +92,7 @@ if [[ -n "$REMAINING" ]]; then
     warn "Ces containers sont encore actifs :"
     echo "$REMAINING" | while IFS= read -r c; do yellow "      $c"; done
 else
-    ok "Aucun container SignFlow actif"
+    ok "Aucun container Vitrail actif"
 fi
 
 # ── Resume ────────────────────────────────────────────────────────────────────

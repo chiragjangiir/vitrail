@@ -1,4 +1,4 @@
-# SignFlow Player — Linux
+# Vitrail Player — Linux
 
 🇬🇧 [English version](README.md)
 

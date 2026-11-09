@@ -1,4 +1,4 @@
-# Guide d'intégration API — SignFlow CMS
+# Guide d'intégration API — Vitrail
 
 🇬🇧 [English version](API_INTEGRATION.md)
 

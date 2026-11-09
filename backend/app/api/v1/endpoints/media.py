@@ -1087,7 +1087,7 @@ async def isrc_lookup(
             resp = await http.get(
                 f"https://musicbrainz.org/ws/2/isrc/{norm}",
                 params={"fmt": "json", "inc": "artist-credits+releases"},
-                headers={"User-Agent": "SignFlow/1.0 (signage rights reporting)"},
+                headers={"User-Agent": "Vitrail/1.0 (signage rights reporting)"},
             )
         if resp.status_code != 200:
             return empty

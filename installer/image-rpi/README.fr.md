@@ -1,8 +1,8 @@
-# SignFlow — Image carte SD greenfield (Raspberry Pi)
+# Vitrail — Image carte SD greenfield (Raspberry Pi)
 
 🇬🇧 [English version](README.md)
 
-Customise l'**image officielle Raspberry Pi OS Lite (arm64)** en image d'appliance SignFlow **prête
+Customise l'**image officielle Raspberry Pi OS Lite (arm64)** en image d'appliance Vitrail **prête
 à flasher** : injecte `player-rpi` + un **service systemd de premier boot** qui lit le payload de
 provisioning, installe le player (via `player-rpi/install.sh`) et sème le `config.json` → au 2ᵉ boot
 le RPi diffuse. « Customisation type Pi Imager », côté serveur.

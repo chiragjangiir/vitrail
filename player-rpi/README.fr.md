@@ -1,4 +1,4 @@
-# SignFlow Player — Raspberry Pi
+# Vitrail Player — Raspberry Pi
 
 🇬🇧 [English version](README.md)
 

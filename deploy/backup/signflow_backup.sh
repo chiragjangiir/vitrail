@@ -44,7 +44,7 @@ tg_send() {  # message Telegram best-effort (réutilise le bot Jeanine)
 }
 
 STEP=init
-trap 'echo "[$(date -Is)] FAILED at step $STEP"; tg_send "⚠️ SignFlow backup FAILED (étape : $STEP) — voir ~/signflow_backups/backup.log"' ERR
+trap 'echo "[$(date -Is)] FAILED at step $STEP"; tg_send "⚠️ Vitrail backup FAILED (étape : $STEP) — voir ~/signflow_backups/backup.log"' ERR
 
 rclone_files() {  # rclone pour les fichiers du staging
   docker run --rm --user "$(id -u):$(id -g)" \
@@ -97,7 +97,7 @@ find "$STAGING" -type f -mtime "+${KEEP_LOCAL_DAYS}" -delete
 STEP=disk_check
 USAGE=$(df --output=pcent / | tail -1 | tr -dc '0-9')
 if [[ "$USAGE" -gt "$DISK_ALERT_PCT" ]]; then
-  tg_send "⚠️ SignFlow : disque serveur à ${USAGE}% (seuil ${DISK_ALERT_PCT}%)"
+  tg_send "⚠️ Vitrail : disque serveur à ${USAGE}% (seuil ${DISK_ALERT_PCT}%)"
 fi
 
 # ── 7. Dead man's switch Uptime Kuma ─────────────────────────────────────────
