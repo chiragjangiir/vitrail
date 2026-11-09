@@ -26,8 +26,7 @@ player with a minimum of steps and zero knowledge of the per-OS details.
 > target OSes (Android, Debian 12, Windows 11, RPi, BrightSign). Chosen method = **cloned golden
 > master (Clonezilla/PXE) + injection of a per-machine config bundle** (token/name/network), on the
 > generalized BrightSign model. The "bare x86 box → Alpine+Chromium appliance" channel (greenfield
-> x86) was **abandoned** (yet another player type nobody asked for, too fragile). See
-> `docs/PLAN_PROVISIONING_PLAYERS.md`.
+> x86) was **abandoned** (yet another player type nobody asked for, too fragile).
 
 ## Principle
 
@@ -156,7 +155,7 @@ and `ssh` (Linux/RPi) remain external system tools, not embedded in the exe.
 | **Linux / RPi** (installed) | SSH/SCP | SSH enabled + credentials. |
 | **Windows** (installed) | WinRM/PSSession | WinRM enabled (`Enable-PSRemoting -Force`) + **administrator** account. `pywinrm` required on the tool side. |
 | **BrightSign** | SD card | Generate the complete SD card from the CMS, copy the produced `config.json` onto it. ⚠️ Driver fixed (`provisioning_token` → `token`); never validated on hardware against the ONLINE criterion. |
-| **Debian/Windows/RPi** (to be prepared) | **cloned master + config bundle** | Clone an OS+player master, inject a bundle (token/name/network). See `docs/PLAN_PROVISIONING_PLAYERS.md`. |
+| **Debian/Windows/RPi** (to be prepared) | **cloned master + config bundle** | Clone an OS+player master, inject a bundle (token/name/network). |
 | ChromeOS / extension | — | Out of scope (Google / browser enrollment). |
 
 ## Security
@@ -236,5 +235,5 @@ config, default = `--winrm-user`), `--source` (remote `player-windows` folder �
 
 > Without `--source`, the driver **only drops the config** (player assumed already installed). Static
 > network configuration is not applied automatically on Windows (MVP) — coming via the **config
-> bundle** (`docs/PLAN_PROVISIONING_PLAYERS.md`). A **blank Windows box** = install Windows + the
+> bundle**. A **blank Windows box** = install Windows + the
 > player once, turn it into a **cloned master**, then inject the bundle per machine.

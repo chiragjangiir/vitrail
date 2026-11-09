@@ -32,7 +32,7 @@ La coque native Electron (`main.js` + `preload.js`) est remplacée par une PWA :
 > renderer Electron** : appliquer les correctifs des deux côtés, comme pour les autres
 > surfaces de rendu (le parc en compte 7).
 
-## Périmètre par phase (cf. `docs/PLAN_PORTAGE_CHROMEOS.md`)
+## Périmètre par phase
 
 | Phase | Contenu | État |
 |-------|---------|------|
@@ -102,7 +102,7 @@ Re-synchroniser la copie après un changement de source :
   → MinIO doit renvoyer `Access-Control-Allow-Origin` (défaut MinIO = `*`, donc OK en général).
   Si CORS absent : repli **gracieux** = l'url MinIO de streaming est conservée (online marche,
   pas d'offline pour cet asset). Alternative robuste (+ règle le média WAN) = proxy backend
-  same-origin — noté dans `EVOLUTIONS.md`.
+  same-origin.
 
 ## Limites assumées
 

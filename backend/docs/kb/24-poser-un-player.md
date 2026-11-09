@@ -16,7 +16,7 @@ jeton permanent, et apparaît **en ligne**.
 cause, et on cherche au mauvais endroit.
 
 📄 Procédure complète, pas à pas, pour le technicien : `docs/RUNBOOK_POSE_PLAYER.md`.
-Boîtiers Android (pièges Device Owner) : `docs/RUNBOOK_POSE_ANDROID_TV.md`.
+Boîtiers Android (pièges Device Owner) : `player-android/README.md`.
 
 ## À préparer une seule fois
 

@@ -9,7 +9,7 @@ touch screens, phones. Package `app.vitrail.player`.
 
 - **Field (recommended)**: `docs/RUNBOOK_POSE_PLAYER.md` — `signflow-provision` ADB channel
   (`--os android --ip <ip>`, APK pushed + provisioned in one command).
-- **Android TV / Google TV boxes**: `docs/RUNBOOK_POSE_ANDROID_TV.md` — kiosk = become the
+- **Android TV / Google TV boxes**: kiosk = become the
   **launcher** (on Google TV `set-home-activity` is not enough: disable the HOME packages),
   `appops … REQUEST_INSTALL_PACKAGES allow` for OTA, `adb tcpip 5555` before anything else.
   ⚠️ **Google TV without Device Owner ≠ Android TV**: some OSes (consumer Google TV,

@@ -32,7 +32,7 @@ The native Electron shell (`main.js` + `preload.js`) is replaced by a PWA:
 > Electron renderer anymore**: apply fixes on both sides, as for the other rendering
 > surfaces (the fleet has 7 of them).
 
-## Scope by phase (see `docs/PLAN_PORTAGE_CHROMEOS.md`)
+## Scope by phase
 
 | Phase | Content | Status |
 |-------|---------|--------|
@@ -102,7 +102,7 @@ Re-sync the copy after a source change:
   → MinIO must return `Access-Control-Allow-Origin` (MinIO default = `*`, so usually OK).
   If CORS is missing: **graceful** fallback = the MinIO streaming url is kept (online works,
   no offline for that asset). Robust alternative (+ fixes WAN media) = same-origin backend
-  proxy — noted in `EVOLUTIONS.md`.
+  proxy.
 
 ## Accepted limitations
 

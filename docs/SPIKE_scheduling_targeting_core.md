@@ -2,7 +2,7 @@
 
 🇫🇷 [Version française](SPIKE_scheduling_targeting_core.fr.md)
 
-> **Goal of the spike**: move from the conceptual framing (EVOLUTIONS.md § « Médiathèque & Programmation », items 3+4) to a **technical design ready to code**. Check that the core (a) TZ-aware rule evaluation + (b) target resolution **fits together** with the three consumers: item-rules (item 4), Governance §XVIII Phase 2, Retail Media (Phase 3).
+> **Goal of the spike**: move from the conceptual framing (« Médiathèque & Programmation », items 3+4) to a **technical design ready to code**. Check that the core (a) TZ-aware rule evaluation + (b) target resolution **fits together** with the three consumers: item-rules (item 4), Governance §XVIII Phase 2, Retail Media (Phase 3).
 >
 > **Spike verdict: GO.** The core is small, the three consumers fit into it cleanly, and the friction points (divergent target vocabulary, overnight windows, multi-TZ) are identified and settled below. Date: 2026-06-03.
 

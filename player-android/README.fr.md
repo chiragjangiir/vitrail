@@ -9,7 +9,7 @@ Application **native Kotlin** (pas Electron) pour Android 9+ (`minSdk 28`) — b
 
 - **Terrain (recommandé)** : `docs/RUNBOOK_POSE_PLAYER.md` — canal `signflow-provision` ADB
   (`--os android --ip <ip>`, APK poussé + provisionné en une commande).
-- **Boîtiers Android TV / Google TV** : `docs/RUNBOOK_POSE_ANDROID_TV.md` — kiosque = passer
+- **Boîtiers Android TV / Google TV** : kiosque = passer
   **launcher** (sur Google TV `set-home-activity` ne suffit pas : désactiver les paquets HOME),
   `appops … REQUEST_INSTALL_PACKAGES allow` pour l'OTA, `adb tcpip 5555` avant tout.
   ⚠️ **Google TV sans Device Owner ≠ Android TV** : certains OS (Google TV grand public,

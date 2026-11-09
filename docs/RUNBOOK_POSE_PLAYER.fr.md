@@ -7,10 +7,9 @@ nue), Windows 11 (WinRM, machine déjà installée), Linux/RPi (SSH, machine dé
 
 > **Ce document dit comment POSER un player chez un client.**
 > À ne pas confondre avec :
-> - `installer/RUNBOOK_TEST_HW.md` — comment **tester** les canaux (recette interne) ;
-> - `docs/RUNBOOK_POSE_ANDROID_TV.md` — la pose sur **boîtier Android TV**, qui a ses propres
->   pièges (Device Owner, launcher, factory reset) ;
-> - `docs/RUNBOOK_DIAGNOSTIC.md` — quand un player **déjà posé** ne va pas.
+> - `player-android/README.md` — les boîtiers Android : mode kiosque (Device Owner), lanceur,
+>   récupération d'un boîtier ;
+> - la section 9 ci-dessous — quand un player **déjà posé** ne va pas.
 
 ---
 
@@ -74,7 +73,7 @@ Vérifier les canaux disponibles : `signflow-provision --selftest`.
 | **Raspberry Pi neuf** (rien dessus) | Carte SD | insérer la carte, allumer — **c'est tout** |
 | **PC Windows déjà installé** | WinRM | ouvrir WinRM une fois (§5.1) |
 | **Linux / RPi déjà en service** | SSH | aucun si SSH est déjà ouvert |
-| **Boîtier Android** | ADB | activer le débogage USB → `docs/RUNBOOK_POSE_ANDROID_TV.md` |
+| **Boîtier Android** | ADB | activer le débogage USB → `player-android/README.md` |
 | **BrightSign** | ZIP sur carte SD | copier le `config.json` produit à la racine d'une SD déjà préparée (ZIP du CMS) |
 
 **Règle générale** : l'outil ne peut pas ouvrir la porte à votre place. Un **foothold** (WinRM,
@@ -275,4 +274,3 @@ qu'il **ne lit pas le fichier que vous regardez**. Le répertoire est
 `%APPDATA%\signflow-player-windows` sur Windows. Le nom est **dérivé du `package.json`** du player
 (`app.getPath('userData')`) — jamais réécrit à la main.
 
-Pour la suite, voir `docs/RUNBOOK_DIAGNOSTIC.md`.

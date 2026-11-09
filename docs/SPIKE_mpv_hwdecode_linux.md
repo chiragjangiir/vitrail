@@ -2,7 +2,7 @@
 
 🇫🇷 [Version française](SPIKE_mpv_hwdecode_linux.fr.md)
 
-> Status: **DESIGN** (2026-06-09). Follows up on the note `EVOLUTIONS.md § Décodage HW Intel/Linux via mpv`
+> Status: **DESIGN** (2026-06-09). Follows up on the note « Décodage HW Intel/Linux via mpv »
 > and the verdict: **VA-API is unreachable in stock Electron on
 > Intel/Linux** (frame pool cannot be allocated, DO NOT retry the flags — see `vaapi_profiles.js`),
 > whereas **mpv decodes 4K H.264 in HW VAAPI** on the same hardware. Trigger: a possible customer

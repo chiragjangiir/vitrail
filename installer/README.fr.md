@@ -26,7 +26,7 @@ un technicien, avec un minimum de gestes et zéro connaissance des détails par 
 > retenue = **master doré cloné (Clonezilla/PXE) + injection d'un bundle de config par machine**
 > (token/nom/réseau), sur le modèle BrightSign généralisé. Le canal « boîtier x86 nu → appliance
 > Alpine+Chromium » (greenfield x86) a été **abandonné** (énième type de player non demandé, trop
-> fragile). Cf. `docs/PLAN_PROVISIONING_PLAYERS.md`.
+> fragile).
 
 ## Principe
 
@@ -132,7 +132,7 @@ marche pour Android/SSH/BrightSign mais pas WinRM — `--selftest` le signale). 
 | **Linux / RPi** (installé) | SSH/SCP | SSH activé + identifiants. |
 | **Windows** (installé) | WinRM/PSSession | WinRM activé (`Enable-PSRemoting -Force`) + compte **administrateur**. `pywinrm` requis côté outil. |
 | **BrightSign** | Carte SD | Générer la SD complète depuis le CMS, y copier le `config.json` produit. ⚠️ Driver corrigé le 2026-08-16 (`provisioning_token` → `token`) ; jamais validé HW au critère ONLINE. |
-| **Debian/Windows/RPi** (à préparer) | **master cloné + bundle de config** | Cloner un master OS+player, injecter un bundle (token/nom/réseau). Cf. `docs/PLAN_PROVISIONING_PLAYERS.md`. |
+| **Debian/Windows/RPi** (à préparer) | **master cloné + bundle de config** | Cloner un master OS+player, injecter un bundle (token/nom/réseau). |
 | ChromeOS / extension | — | Hors périmètre (enrôlement Google / navigateur). |
 
 ## Sécurité
@@ -210,5 +210,5 @@ défaut = `--winrm-user`), `--source` (dossier `player-windows` distant → lanc
 
 > Sans `--source`, le driver **ne dépose que la config** (player supposé déjà installé). La config
 > statique réseau n'est pas appliquée automatiquement sous Windows (MVP) — à venir via le **bundle
-> de config** (`docs/PLAN_PROVISIONING_PLAYERS.md`). Un **boîtier Windows vierge** = installer
+> de config**. Un **boîtier Windows vierge** = installer
 > Windows + player une fois, en faire un **master cloné**, puis injecter le bundle par machine.

@@ -7,10 +7,9 @@
 
 > **This document explains how to INSTALL a player at a customer site.**
 > Not to be confused with:
-> - `installer/RUNBOOK_TEST_HW.md` — how to **test** the channels (internal acceptance procedure);
-> - `docs/RUNBOOK_POSE_ANDROID_TV.md` — installation on an **Android TV box**, which has its own
->   pitfalls (Device Owner, launcher, factory reset);
-> - `docs/RUNBOOK_DIAGNOSTIC.md` — when a player that is **already installed** misbehaves.
+> - `player-android/README.md` — Android boxes: kiosk mode (Device Owner), launcher,
+>   taking a device back;
+> - section 9 below — when a player that is **already installed** misbehaves.
 
 ---
 
@@ -74,7 +73,7 @@ Check the available channels: `signflow-provision --selftest`.
 | **New Raspberry Pi** (nothing on it) | SD card | insert the card, power on — **that's all** |
 | **Windows PC already installed** | WinRM | open WinRM once (§5.1) |
 | **Linux / RPi already in service** | SSH | none if SSH is already open |
-| **Android box** | ADB | enable USB debugging → `docs/RUNBOOK_POSE_ANDROID_TV.md` |
+| **Android box** | ADB | enable USB debugging → `player-android/README.md` |
 | **BrightSign** | ZIP on SD card | copy the generated `config.json` to the root of an already prepared SD card (ZIP from the CMS) |
 
 **General rule**: the tool cannot open the door for you. A **foothold** (WinRM, SSH, ADB,
@@ -278,4 +277,3 @@ linux/rpi (`signflow-player-rpi`, `signflow-player`), and `%APPDATA%\signflow-pl
 Windows. The name is **derived from the player's `package.json`** (`app.getPath('userData')`) —
 never rewritten by hand.
 
-For what comes next, see `docs/RUNBOOK_DIAGNOSTIC.md`.

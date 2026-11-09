@@ -2,7 +2,7 @@
 
 🇬🇧 [English version](SPIKE_scheduling_targeting_core.md)
 
-> **But du spike** : passer du cadrage conceptuel (EVOLUTIONS.md § « Médiathèque & Programmation », items 3+4) à un **design technique prêt à coder**. Vérifier que le noyau (a) éval de règle TZ-aware + (b) résolution de cible **s'emboîte** avec les trois consommateurs : item-rules (item 4), Gouvernance §XVIII Phase 2, Retail Media (Phase 3).
+> **But du spike** : passer du cadrage conceptuel (« Médiathèque & Programmation », items 3+4) à un **design technique prêt à coder**. Vérifier que le noyau (a) éval de règle TZ-aware + (b) résolution de cible **s'emboîte** avec les trois consommateurs : item-rules (item 4), Gouvernance §XVIII Phase 2, Retail Media (Phase 3).
 >
 > **Verdict du spike : GO.** Le noyau est petit, les trois consommateurs s'y emboîtent proprement, et les frottements (vocabulaire de cible divergent, fenêtres overnight, multi-TZ) sont identifiés et tranchés ci-dessous. Date : 2026-06-03.
 

@@ -16,7 +16,7 @@ permanent token, and appears **online**.
 cause, and you look in the wrong place.
 
 📄 Full step-by-step procedure for the technician: `docs/RUNBOOK_POSE_PLAYER.md`.
-Android boxes (Device Owner pitfalls): `docs/RUNBOOK_POSE_ANDROID_TV.md`.
+Android boxes (Device Owner pitfalls): `player-android/README.md`.
 
 ## To prepare only once
 

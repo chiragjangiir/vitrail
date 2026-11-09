@@ -2,7 +2,7 @@
 
 🇬🇧 [English version](SPIKE_mpv_hwdecode_linux.md)
 
-> Statut : **DESIGN** (2026-06-09). Fait suite à la note `EVOLUTIONS.md § Décodage HW Intel/Linux via mpv`
+> Statut : **DESIGN** (2026-06-09). Fait suite à la note « Décodage HW Intel/Linux via mpv »
 > et au verdict : **VA-API inaccessible dans Electron stock sur
 > Intel/Linux** (frame pool non allouable, NE PAS re-tenter les flags — cf. `vaapi_profiles.js`),
 > alors que **mpv décode le 4K H.264 en HW VAAPI** sur le même hardware. Déclencheur : remontée

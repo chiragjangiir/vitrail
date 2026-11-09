@@ -2,7 +2,7 @@
 
 🇫🇷 [Version française](SPIKE_offline_first_local_content_store.fr.md)
 
-> Design spike (2026-06-07). Frames the epic from `EVOLUTIONS.md § « Players offline-first / Local Content Store »` in the **actual code** and settles the architecture decisions **before coding**. Same approach as `SPIKE_scheduling_targeting_core.md`.
+> Design spike (2026-06-07). Frames the epic from « Players offline-first / Local Content Store » in the **actual code** and settles the architecture decisions **before coding**. Same approach as `SPIKE_scheduling_targeting_core.md`.
 >
 > **Verdict: GO**, in phases, starting with the **store + single-player download manager (Linux/RPi)** with a **graceful streaming fallback** (zero regression). Q5 (quarantine/purge) already delivered (migration 0031).
 
