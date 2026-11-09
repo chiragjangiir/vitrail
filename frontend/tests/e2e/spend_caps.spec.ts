@@ -75,6 +75,10 @@ test('vider un plafond envoie 0, jamais un champ absent', async ({ page }) => {
   // texte venu — un sélecteur ambigu casse au moindre ajout de colonne.
   await page.getByRole('cell', { name: 'Acme', exact: true }).click()
 
+  // Attendre la valeur ENREGISTRÉE avant de vider : le tiroir s'ouvre avec des champs vides,
+  // puis un effet y pose les valeurs de l'org. Vider trop tôt (runner rapide) laissait l'effet
+  // remettre 50 par-dessus — et le test prouvait alors qu'on vide un champ déjà vide.
+  await expect(page.getByTestId('spend-cap-org')).toHaveValue('50')
   await page.getByTestId('spend-cap-org').fill('')
   await page.getByTestId('spend-cap-save').click()
 
