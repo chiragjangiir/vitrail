@@ -17,6 +17,22 @@ touch screens, phones. Package `app.vitrail.player`.
 - **Local manual install**: `./install.sh [--release] [--ip <ip>]` (gradle build + `adb install`
   + set-home-activity).
 
+## Taking a device back (removing kiosk mode)
+
+Once the app is **Device Owner**, Android refuses to uninstall it
+(`DELETE_FAILED_DEVICE_POLICY_MANAGER`). Release kiosk mode first, then uninstall — no
+factory reset needed:
+
+```bash
+adb shell content call --uri content://app.vitrail.player.admin --method release_device_owner
+#   Result: Bundle[{was_device_owner=true, released=true}]
+adb uninstall app.vitrail.player
+```
+
+Only **adb** (or root) can send this command: any app installed on the device gets a
+`SecurityException` (the caller's UID is checked). Available from player 2.5.36 (release
+v1.0.4); an older install still needs a factory reset.
+
 ## Technical decisions to know
 
 - **WebView + ExoPlayer**: the WebView (shared renderer) renders all non-video content;

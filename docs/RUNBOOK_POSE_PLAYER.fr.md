@@ -225,6 +225,10 @@ Ne pas se contenter du message de l'outil. Trois preuves :
 
 ## 8. Pièges (tous rencontrés en réel)
 
+**Un boîtier Android en mode kiosque ne se désinstalle pas tel quel** (`DELETE_FAILED_DEVICE_POLICY_MANAGER`).
+Pour le récupérer : `adb shell content call --uri content://app.vitrail.player.admin --method release_device_owner`, puis `adb uninstall app.vitrail.player`. Pas de réinitialisation
+d'usine (player 2.5.36 et suivants).
+
 **Re-provisionner un player existant sans `--reattach <id>` crée un DOUBLON.** Récupérer l'`id`
 dans le CMS → Players. À noter : un `--dry-run` **crée aussi** un player côté CMS.
 

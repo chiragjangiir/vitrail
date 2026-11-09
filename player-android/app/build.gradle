@@ -21,8 +21,8 @@ android {
         applicationId "app.vitrail.player"
         minSdk 28
         targetSdk 34
-        versionCode 37
-        versionName "2.5.35"
+        versionCode 38
+        versionName "2.5.36"
     }
 
     signingConfigs {

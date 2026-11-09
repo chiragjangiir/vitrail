@@ -242,6 +242,10 @@ handles the wait — but if a site blocks NTP, the installation will fail and sa
 **A machine without network at the right moment fails cleanly**: the message says so, and a
 reboot retries. Do not re-flash the card because of it.
 
+**An Android box in kiosk mode cannot be uninstalled as is** (`DELETE_FAILED_DEVICE_POLICY_MANAGER`).
+To take it back: `adb shell content call --uri content://app.vitrail.player.admin --method release_device_owner`, then `adb uninstall app.vitrail.player`. No factory reset (player
+2.5.36 and later).
+
 **Windows has no virtio drivers.** On a VM, use a **SATA** disk and an **e1000e** network card,
 otherwise the installer cannot see the disk and the machine has no network.
 

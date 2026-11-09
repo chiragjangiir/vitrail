@@ -88,6 +88,13 @@
             </intent-filter>
         </receiver>
 
+        <!-- Commandes technicien via adb uniquement (UID shell/root vérifié dans le code) :
+             libérer le mode kiosque pour pouvoir désinstaller. Exporté pour qu'adb le joigne. -->
+        <provider
+            android:name=".AdminCommandProvider"
+            android:authorities="${applicationId}.admin"
+            android:exported="true" />
+
     </application>
 
 </manifest>

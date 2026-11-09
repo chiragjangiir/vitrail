@@ -238,6 +238,10 @@ own credentials. A token can enrol several players and can expire.
 existing device needs the re-attach option, otherwise you get a duplicate), and the screen
 plays, or shows the idle screen if nothing is scheduled.
 
+**Taking an Android device back**: in kiosk mode (Device Owner) Android refuses to uninstall
+the app. Run `adb shell content call --uri content://app.vitrail.player.admin --method release_device_owner`, then `adb uninstall app.vitrail.player` — no factory reset. Only adb can
+send this command; apps on the device are refused.
+
 ### Android: your own signing key
 
 **Rule: for trials, the official APK; for a real fleet, your own key.**

@@ -242,6 +242,10 @@ une commande, par SSH (Linux, Raspberry Pi), WinRM (Windows) ou ADB (Android). V
 (ré-enrôler un appareil existant demande l'option de ré-attache, sinon on crée un doublon), et
 l'écran diffuse, ou affiche l'écran de repos si rien n'est programmé.
 
+**Récupérer un boîtier Android** : en mode kiosque (Device Owner), Android refuse de désinstaller
+l'appli. Lancez `adb shell content call --uri content://app.vitrail.player.admin --method release_device_owner`, puis `adb uninstall app.vitrail.player` — sans réinitialisation
+d'usine. Seul adb peut envoyer cette commande ; les applis du boîtier sont refusées.
+
 ### Android : votre propre clé de signature
 
 **Règle : pour un essai, l'APK officiel ; pour un vrai parc, votre propre clé.**

@@ -17,6 +17,22 @@ Application **native Kotlin** (pas Electron) pour Android 9+ (`minSdk 28`) — b
 - **Manuelle locale** : `./install.sh [--release] [--ip <ip>]` (build gradle + `adb install`
   + set-home-activity).
 
+## Récupérer un boîtier (retirer le mode kiosque)
+
+Une fois l'appli **Device Owner**, Android refuse de la désinstaller
+(`DELETE_FAILED_DEVICE_POLICY_MANAGER`). Libérez d'abord le mode kiosque, puis désinstallez —
+sans réinitialisation d'usine :
+
+```bash
+adb shell content call --uri content://app.vitrail.player.admin --method release_device_owner
+#   Result: Bundle[{was_device_owner=true, released=true}]
+adb uninstall app.vitrail.player
+```
+
+Seul **adb** (ou root) peut envoyer cette commande : toute appli installée sur le boîtier reçoit
+une `SecurityException` (l'UID de l'appelant est vérifié). Disponible à partir du player 2.5.36
+(release v1.0.4) ; une installation plus ancienne exige encore une réinitialisation d'usine.
+
 ## Décisions techniques à connaître
 
 - **WebView + ExoPlayer** : la WebView (renderer partagé) rend tout le contenu non-vidéo ;
