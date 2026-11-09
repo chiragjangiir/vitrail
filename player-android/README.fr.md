@@ -26,10 +26,12 @@ Application **native Kotlin** (pas Electron) pour Android 9+ (`minSdk 28`) — b
 - **Debug et release = deux apps distinctes** : le debug est suffixé `.debug`
   (`applicationIdSuffix`). Passer en release = installation à neuf (re-provisionner), puis
   `adb uninstall app.signflow.player.debug`.
-- **Signature release** : `keystore.properties` (gitignoré) + `signflow-release.jks`. Sans
-  keystore le build release sort **non signé** (non installable) — le build debug, lui, passe.
-  ⚠️ Le keystore doit être **sauvegardé** : le perdre = plus aucune mise à jour possible du
-  package sans désinstaller (Android exige la même clé).
+- **Signature release** : `keystore.properties` (gitignoré) qui pointe vers votre clé `.jks`.
+  Sans lui, le build release sort **non signé** (non installable) — le build debug, lui, passe.
+  **Pour un vrai parc, signez avec votre propre clé** (APK officiel = essais seulement) : la
+  créer, la sauvegarder, compiler avec → [`docs/GUIDE.fr.md`, « Android : votre propre clé de signature »](../docs/GUIDE.fr.md#android--votre-propre-clé-de-signature).
+  ⚠️ Perdre la clé = plus aucune mise à jour possible sans désinstaller chaque appareil
+  (Android exige la même clé).
 - **OTA par APK depuis le serveur** : le player télécharge le bundle
   (`player-bundles/android/<version>.apk`, **URL relative** résolue contre son `backend_url` —
   jamais d'URL MinIO pré-signée, elle expire) et installe via **`PackageInstaller`** :

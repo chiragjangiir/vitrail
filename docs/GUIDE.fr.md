@@ -230,7 +230,7 @@ identifiants. Un jeton peut enrôler plusieurs players et expirer.
 | **Linux** (Debian 12) | mini-PC, NUC ; le meilleur choix pour la 4K et les murs d'images | sur une machine dédiée à l'écran : `sudo git clone --depth 1 https://github.com/edkahall/vitrail /opt/signflow`, puis `sudo bash /opt/signflow/player-linux/install.sh signflow https://cms.example.com` (session kiosque, connexion automatique, démarrage auto), puis placer le jeton `sfp_` dans `player_token` de `~signflow/.config/signflow-player/config.json` et redémarrer — ou laisser `signflow-provision` tout faire |
 | **Raspberry Pi** 4/5 (Raspberry Pi OS) | écrans Full HD économiques, players audio seuls | idem avec `player-rpi/install.sh` : un assistant à l'écran demande l'adresse du serveur et le jeton ; ou construire une image SD prête à flasher qui s'enrôle seule au premier démarrage (`installer/image-rpi/`) |
 | **Windows** 10/11 | PC d'affichage Windows existants | copier `player-windows/` sur le PC et lancer `install.ps1` en administrateur |
-| **Android** 9+ (box Android TV, tablettes) | players à bas coût | installer l'APK de la page [Releases](https://github.com/edkahall/vitrail/releases) (`adb install`), puis saisir l'adresse du serveur et le jeton ; pour un kiosque verrouillé, voir [`player-android/README.md`](../player-android/README.fr.md) |
+| **Android** 9+ (box Android TV, tablettes) | players à bas coût | **pour un essai** : l'APK de la page [Releases](https://github.com/edkahall/vitrail/releases) ; **pour un vrai parc** : un APK signé avec **votre propre clé** (voir [Android : votre propre clé de signature](#android--votre-propre-clé-de-signature)). L'installer (`adb install`), puis saisir l'adresse du serveur et le jeton ; pour un kiosque verrouillé, voir [`player-android/README.md`](../player-android/README.fr.md) |
 | **BrightSign** | lecteurs professionnels | **Players → Provisioning** génère une carte SD prête à copier |
 
 **Poser beaucoup de players** : l'outil `signflow-provision` enrôle un appareil à distance en
@@ -241,6 +241,74 @@ une commande, par SSH (Linux, Raspberry Pi), WinRM (Windows) ou ADB (Android). V
 **Vérifier un player** : il est **en ligne** dans **Players**, il n'apparaît qu'une seule fois
 (ré-enrôler un appareil existant demande l'option de ré-attache, sinon on crée un doublon), et
 l'écran diffuse, ou affiche l'écran de repos si rien n'est programmé.
+
+### Android : votre propre clé de signature
+
+**Règle : pour un essai, l'APK officiel ; pour un vrai parc, votre propre clé.**
+
+Android n'installe une mise à jour que si elle est signée avec **la même clé** que
+l'application déjà présente sur l'appareil. Celui qui détient la clé de l'APK que vous avez
+installé est donc le seul à pouvoir produire des mises à jour pour vos appareils.
+
+- L'APK de la page Releases est signé avec la clé **du projet**. Il convient pour essayer
+  Vitrail. Mais un parc installé avec lui dépend du projet pour recevoir ses mises à jour
+  Android : si le projet cesse de publier des releases, ou si la clé est perdue, vos
+  appareils ne pourront être mis à jour qu'en désinstallant et en ré-enrôlant chacun d'eux.
+- Avec **votre propre clé**, vous ne dépendez de personne : vous recompilez l'APK quand vous
+  le voulez (avec vos correctifs ou ceux de la communauté) et vous mettez votre parc à jour
+  vous-même.
+- **Choisissez dès le départ.** L'APK officiel et le vôtre portent le même nom de paquet
+  (`app.signflow.player`) mais pas la même clé : faire passer un appareil de l'un à l'autre
+  impose de le désinstaller, de le réinstaller et de le ré-enrôler.
+
+Dans les deux cas, personne d'autre ne peut mettre vos players à jour : une mise à jour n'est
+installée que si elle vient de **votre** serveur (Réglages → Mises à jour) **et** qu'elle est
+signée avec la bonne clé.
+
+**1. Créer la clé** (une seule fois, sur votre ordinateur ; `keytool` est fourni avec tout
+JDK Java 17 ou plus) :
+
+```bash
+keytool -genkeypair -keystore ma-cle-vitrail.jks -storetype PKCS12 -alias vitrail   -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=Affichage de mon entreprise"
+```
+
+Il demande un mot de passe (en PKCS12, celui de la clé est le même).
+
+**2. La sauvegarder, tout de suite, à au moins deux endroits**, dont un hors ligne (NAS, clé
+USB chiffrée, gestionnaire de mots de passe pour le mot de passe). **Si vous perdez cette clé,
+plus aucune mise à jour ne pourra être installée sur vos players Android** sans réinstaller
+chaque appareil. Si elle fuit, quelqu'un pourrait signer une mise à jour que vos appareils
+accepteraient. Ne la committez jamais dans un dépôt.
+
+**3. Compiler votre APK**, au choix :
+
+- **Sur GitHub** (aucun outil Android à installer) : forkez le dépôt, ajoutez quatre secrets
+  (Settings → Secrets and variables → Actions) : `ANDROID_KEYSTORE_BASE64` (le fichier en
+  base64 : `base64 -w0 ma-cle-vitrail.jks`), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`
+  (`vitrail` ci-dessus) et `ANDROID_KEY_PASSWORD` (le même mot de passe). Poussez ensuite un tag
+  (`git tag v1.0.1-perso && git push origin v1.0.1-perso`) : le workflow `Release players`
+  publie dans votre fork une release dont l'APK est signé avec votre clé. Les notes de release
+  indiquent `release-signed` ; `debug-signed` signifie qu'un secret manque.
+- **Sur votre ordinateur** (SDK Android + JDK 17) : copiez la clé dans `player-android/`, créez
+  `player-android/keystore.properties` (tous deux sont ignorés par git) :
+
+  ```properties
+  storeFile=ma-cle-vitrail.jks
+  storePassword=…
+  keyAlias=vitrail
+  keyPassword=…
+  ```
+
+  puis `cd player-android && ./gradlew assembleRelease`. L'APK se trouve dans
+  `app/build/outputs/apk/release/`.
+
+**4. Vérifier la signature** avant de déployer (`apksigner` fait partie des build-tools du
+SDK Android) : `apksigner verify --print-certs app-release.apk` doit afficher votre certificat.
+
+**5. L'utiliser partout** : installez-le sur les nouveaux appareils (`adb install`, ou
+`signflow-provision --os android --apk app-release.apk`), et importez dans **Réglages → Mises à
+jour** les APK compilés plus tard avec la même clé et un `versionCode` supérieur pour mettre le
+parc à jour.
 
 ## 7. Mises à jour
 
@@ -274,11 +342,9 @@ l'approuvez**.
 Les players Web/ChromeOS, l'extension Chrome et BrightSign se mettent à jour avec le serveur.
 
 **Construire les paquets vous-même** (fork, build personnalisé) : poussez un tag `v*`, et le
-workflow GitHub Actions `Release players` les construit et publie une release. Une mise à jour
-Android doit être signée avec **la même clé** que l'application installée : ajoutez votre
-keystore en secrets du dépôt (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
-`ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`) ; sans eux, le workflow produit un APK signé en
-mode debug.
+workflow GitHub Actions `Release players` les construit et publie une release. Pour Android,
+voir [Android : votre propre clé de signature](#android--votre-propre-clé-de-signature) : une
+mise à jour doit être signée avec **la même clé** que l'application installée.
 
 ## 8. Assistant Telegram (« Jeanine »)
 

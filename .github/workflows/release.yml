@@ -115,6 +115,9 @@ jobs:
             if [ "$signing" = "debug-signed" ]; then
               echo "  A debug-signed APK cannot update an app signed with another key."
             fi
+            echo "  Built by the official repository, this APK is meant for **trials**. For a real fleet,"
+            echo "  build it with your own signing key so your updates never depend on this project: see"
+            echo "  docs/GUIDE.md, \"Android: your own signing key\"."
             echo
             echo "First installation and full instructions: see docs/GUIDE.md."
           } > ../NOTES.md

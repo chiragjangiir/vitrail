@@ -226,7 +226,7 @@ own credentials. A token can enrol several players and can expire.
 | **Linux** (Debian 12) | mini-PCs, NUCs; best for 4K and video walls | on a machine dedicated to the screen: `sudo git clone --depth 1 https://github.com/edkahall/vitrail /opt/signflow`, then `sudo bash /opt/signflow/player-linux/install.sh signflow https://cms.example.com` (kiosk session, autologin, autostart), then put the `sfp_` token in `player_token` of `~signflow/.config/signflow-player/config.json` and reboot — or let `signflow-provision` do all of it |
 | **Raspberry Pi** 4/5 (Raspberry Pi OS) | cheap Full HD screens, audio-only players | same, with `player-rpi/install.sh`: an on-screen wizard asks for the server URL and the token; or build a ready-to-flash SD image that enrols itself at first boot (`installer/image-rpi/`) |
 | **Windows** 10/11 | existing Windows signage PCs | copy `player-windows/` to the PC and run `install.ps1` as administrator |
-| **Android** 9+ (Android TV boxes, tablets) | low-cost players | install the APK from the [Releases](https://github.com/edkahall/vitrail/releases) page (`adb install`), then enter the server URL and token; for a locked-down kiosk see [`player-android/README.md`](../player-android/README.md) |
+| **Android** 9+ (Android TV boxes, tablets) | low-cost players | **trials**: the APK from the [Releases](https://github.com/edkahall/vitrail/releases) page; **a real fleet**: an APK signed with **your own key** (see [Android: your own signing key](#android-your-own-signing-key)). Install it (`adb install`), then enter the server URL and token; for a locked-down kiosk see [`player-android/README.md`](../player-android/README.md) |
 | **BrightSign** | professional media players | **Players → Provisioning** generates a ready-to-copy SD card |
 
 **Installing many players**: the `signflow-provision` tool enrols a device remotely over SSH
@@ -237,6 +237,70 @@ own credentials. A token can enrol several players and can expire.
 **Checking a player**: it is **online** in **Players**, it appears only once (re-enrolling an
 existing device needs the re-attach option, otherwise you get a duplicate), and the screen
 plays, or shows the idle screen if nothing is scheduled.
+
+### Android: your own signing key
+
+**Rule: for trials, the official APK; for a real fleet, your own key.**
+
+Android only installs an update if it is signed with **the same key** as the app already on
+the device. Whoever holds the key of the APK you installed is therefore the only one who can
+ever produce updates for your devices.
+
+- The APK on the Releases page is signed with the **project's** key. It is fine for trying
+  Vitrail. But a fleet installed with it depends on the project to receive Android updates:
+  if the project stops publishing releases, or the key is lost, your devices can only be
+  updated by uninstalling and re-enrolling each one.
+- With **your own key**, you depend on nobody: you can rebuild the APK whenever you want
+  (with your fixes, or the community's) and update your fleet yourself.
+- **Choose at the start.** The official APK and yours share the same package name
+  (`app.signflow.player`) but not the same key, so moving a device from one to the other
+  means uninstalling, reinstalling and re-enrolling it.
+
+Nobody else can update your players either way: an update is only installed if it comes
+from **your** server (Settings → Updates) **and** is signed with the right key.
+
+**1. Create the key** (once, on your own computer; `keytool` comes with any Java JDK 17+):
+
+```bash
+keytool -genkeypair -keystore my-vitrail.jks -storetype PKCS12 -alias vitrail   -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=My company signage"
+```
+
+It asks for a password (with PKCS12, the key password is the same).
+
+**2. Back it up, now, in at least two places**, one of them offline (NAS, encrypted USB
+drive, password manager for the password). **If you lose this key, no update can ever be
+installed on your Android players again** without reinstalling every device. If it leaks,
+someone could sign an update your devices would accept. Never commit it to a repository.
+
+**3. Build your APK**, with either method:
+
+- **On GitHub** (no Android tooling needed): fork the repository, add four repository
+  secrets (Settings → Secrets and variables → Actions): `ANDROID_KEYSTORE_BASE64` (the file
+  in base64: `base64 -w0 my-vitrail.jks`), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`
+  (`vitrail` above) and `ANDROID_KEY_PASSWORD` (the same password). Then push a tag
+  (`git tag v1.0.1-mine && git push origin v1.0.1-mine`): the `Release players` workflow
+  publishes a release in your fork with an APK signed by your key. The release notes say
+  `release-signed`; `debug-signed` means a secret is missing.
+- **On your computer** (Android SDK + JDK 17): copy the key into `player-android/`, create
+  `player-android/keystore.properties` (both are ignored by git):
+
+  ```properties
+  storeFile=my-vitrail.jks
+  storePassword=…
+  keyAlias=vitrail
+  keyPassword=…
+  ```
+
+  then `cd player-android && ./gradlew assembleRelease`. The APK is in
+  `app/build/outputs/apk/release/`.
+
+**4. Check the signature** before deploying (`apksigner` is in the Android SDK build-tools):
+`apksigner verify --print-certs app-release.apk` must show your certificate.
+
+**5. Use it everywhere**: install it on new devices (`adb install`, or
+`signflow-provision --os android --apk app-release.apk`), and import the same kind of APK,
+built later with the same key and a higher `versionCode`, in **Settings → Updates** to update
+the fleet.
 
 ## 7. Updates
 
@@ -269,11 +333,9 @@ Players update **over the air**, from your server, and **only when you approve i
 Web/ChromeOS players, the Chrome extension and BrightSign are updated with the server itself.
 
 **Building the packages yourself** (fork, custom build): push a tag `v*` and the
-`Release players` GitHub Actions workflow builds them and publishes a release. Android
-updates must be signed with the **same key** as the installed app: add your keystore as
-repository secrets (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
-`ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`); without them, the workflow produces a
-debug-signed APK.
+`Release players` GitHub Actions workflow builds them and publishes a release. For Android,
+see [Android: your own signing key](#android-your-own-signing-key): an update must be signed
+with the **same key** as the installed app.
 
 ## 8. Telegram assistant (“Jeanine”)
 

@@ -73,6 +73,14 @@ Walk through, in this order, only what they need: sizing (with/without GPU, see
 platform (`docs/GUIDE.md` §6, `installer/README.md`, `docs/RUNBOOK_POSE_PLAYER.md`) →
 updates → backups → optional services (SMTP, AI keys, Telegram assistant).
 
+**Android players: ask early whether this is a trial or a real fleet.** The APK on the
+Releases page is signed with the project's key: fine for a trial, but a fleet installed with
+it can only get Android updates from the project. For a real fleet, the operator must create
+**their own signing key**, back it up in two places, and build the APK with it
+(`docs/GUIDE.md` §6, "Android: your own signing key"). Say it before the first device is
+installed: switching keys later means reinstalling and re-enrolling every device. Never ask
+the user to paste the key or its password into the conversation.
+
 ---
 
 ## Pitfalls actually met — check these first

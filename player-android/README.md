@@ -26,10 +26,12 @@ touch screens, phones. Package `app.signflow.player`.
 - **Debug and release = two distinct apps**: debug is suffixed `.debug`
   (`applicationIdSuffix`). Switching to release = fresh install (re-provision), then
   `adb uninstall app.signflow.player.debug`.
-- **Release signing**: `keystore.properties` (gitignored) + `signflow-release.jks`. Without
-  a keystore the release build comes out **unsigned** (not installable) — the debug build still works.
-  ⚠️ The keystore must be **backed up**: losing it = no more updates possible for the
-  package without uninstalling (Android requires the same key).
+- **Release signing**: `keystore.properties` (gitignored) pointing to your `.jks` key. Without
+  it the release build comes out **unsigned** (not installable) — the debug build still works.
+  **For a real fleet, sign with your own key** (official APK = trials only): how to create it,
+  back it up and build with it → [`docs/GUIDE.md`, "Android: your own signing key"](../docs/GUIDE.md#android-your-own-signing-key).
+  ⚠️ Losing the key = no more updates possible without uninstalling every device (Android
+  requires the same key).
 - **OTA by APK from the server**: the player downloads the bundle
   (`player-bundles/android/<version>.apk`, **relative URL** resolved against its `backend_url` —
   never a pre-signed MinIO URL, it expires) and installs it via **`PackageInstaller`**:
