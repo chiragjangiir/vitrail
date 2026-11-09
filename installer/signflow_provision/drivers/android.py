@@ -14,7 +14,7 @@ import time
 
 from .base import Driver, DriverError, require_tool, run
 
-PACKAGE = "app.signflow.player"
+PACKAGE = "app.vitrail.player"
 SETUP_ACTIVITY = f"{PACKAGE}/.SetupActivity"
 MAIN_ACTIVITY = f"{PACKAGE}/.MainActivity"
 ADMIN_COMPONENT = f"{PACKAGE}/.SignFlowAdminReceiver"

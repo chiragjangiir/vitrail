@@ -202,7 +202,7 @@ On Linux/RPi, `python3` is already present → run the `.py` directly.
 The Android app accepts a **provisioning intent** (no keyboard driving):
 
 ```
-adb shell am start -n app.signflow.player/.SetupActivity \
+adb shell am start -n app.vitrail.player/.SetupActivity \
   -e backend_url https://cms.example.com -e token sfp_…
 ```
 

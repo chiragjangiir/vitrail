@@ -1,4 +1,4 @@
-package app.signflow.player
+package app.vitrail.player
 
 import android.util.Base64
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters

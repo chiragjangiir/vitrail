@@ -1,4 +1,4 @@
-package app.signflow.player
+package app.vitrail.player
 
 import android.app.admin.DevicePolicyManager
 import android.content.BroadcastReceiver
@@ -28,6 +28,6 @@ class OtaRebootReceiver : BroadcastReceiver() {
     }
 
     companion object {
-        const val ACTION = "app.signflow.player.OTA_REBOOT"
+        const val ACTION = "app.vitrail.player.OTA_REBOOT"
     }
 }

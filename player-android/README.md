@@ -3,7 +3,7 @@
 🇫🇷 [Version française](README.fr.md)
 
 **Native Kotlin** application (not Electron) for Android 9+ (`minSdk 28`) — Android TV boxes,
-touch screens, phones. Package `app.signflow.player`.
+touch screens, phones. Package `app.vitrail.player`.
 
 ## Installation
 
@@ -25,7 +25,7 @@ touch screens, phones. Package `app.signflow.player`.
   (the WebView of some Amlogic boxes does not composite when idle — screenshots would lie).
 - **Debug and release = two distinct apps**: debug is suffixed `.debug`
   (`applicationIdSuffix`). Switching to release = fresh install (re-provision), then
-  `adb uninstall app.signflow.player.debug`.
+  `adb uninstall app.vitrail.player.debug`.
 - **Release signing**: `keystore.properties` (gitignored) pointing to your `.jks` key. Without
   it the release build comes out **unsigned** (not installable) — the debug build still works.
   **For a real fleet, sign with your own key** (official APK = trials only): how to create it,

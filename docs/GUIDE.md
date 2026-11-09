@@ -253,7 +253,7 @@ ever produce updates for your devices.
 - With **your own key**, you depend on nobody: you can rebuild the APK whenever you want
   (with your fixes, or the community's) and update your fleet yourself.
 - **Choose at the start.** The official APK and yours share the same package name
-  (`app.signflow.player`) but not the same key, so moving a device from one to the other
+  (`app.vitrail.player`) but not the same key, so moving a device from one to the other
   means uninstalling, reinstalling and re-enrolling it.
 
 Nobody else can update your players either way: an update is only installed if it comes

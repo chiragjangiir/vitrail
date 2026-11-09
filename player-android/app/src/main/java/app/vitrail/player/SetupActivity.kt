@@ -1,4 +1,4 @@
-package app.signflow.player
+package app.vitrail.player
 
 import android.content.Intent
 import android.os.Bundle
@@ -69,7 +69,7 @@ class SetupActivity : AppCompatActivity() {
 
         // Provisioning par intent (installeur terrain §XXIX) : l'outil CLI ADB injecte la config
         // sans piloter l'UI clavier virtuel :
-        //   adb shell am start -n app.signflow.player/.SetupActivity \
+        //   adb shell am start -n app.vitrail.player/.SetupActivity \
         //     -e backend_url https://cms.example.com -e token sfp_…
         // Auto-remplit + auto-enregistre. Le token sfp_ reste requis (secret d'enregistrement).
         val extraUrl = intent.getStringExtra("backend_url")?.trim()?.trimEnd('/')

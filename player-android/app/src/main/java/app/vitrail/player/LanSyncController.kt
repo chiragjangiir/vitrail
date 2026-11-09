@@ -1,4 +1,4 @@
-package app.signflow.player
+package app.vitrail.player
 
 import android.content.Context
 import android.net.wifi.WifiManager

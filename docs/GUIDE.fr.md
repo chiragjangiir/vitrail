@@ -258,7 +258,7 @@ installé est donc le seul à pouvoir produire des mises à jour pour vos appare
   le voulez (avec vos correctifs ou ceux de la communauté) et vous mettez votre parc à jour
   vous-même.
 - **Choisissez dès le départ.** L'APK officiel et le vôtre portent le même nom de paquet
-  (`app.signflow.player`) mais pas la même clé : faire passer un appareil de l'un à l'autre
+  (`app.vitrail.player`) mais pas la même clé : faire passer un appareil de l'un à l'autre
   impose de le désinstaller, de le réinstaller et de le ré-enrôler.
 
 Dans les deux cas, personne d'autre ne peut mettre vos players à jour : une mise à jour n'est

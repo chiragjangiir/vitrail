@@ -1,4 +1,4 @@
-package app.signflow.player
+package app.vitrail.player
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -359,7 +359,7 @@ class OtaUpdater(
 
     companion object {
         private const val TAG = "SFOta"
-        private const val OTA_RESULT_ACTION = "app.signflow.player.OTA_RESULT"
+        private const val OTA_RESULT_ACTION = "app.vitrail.player.OTA_RESULT"
 
         /**
          * Délai avant reboot quand l'install attend une confirmation humaine. Les 40 s

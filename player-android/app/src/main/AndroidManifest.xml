@@ -31,7 +31,7 @@
         <!--
             LEANBACK_LAUNCHER: app appears in Android TV home screen grid
             HOME + DEFAULT: app can be set as the default launcher (kiosk mode)
-            Set via ADB: adb shell pm set-home-activity app.signflow.player/.MainActivity
+            Set via ADB: adb shell pm set-home-activity app.vitrail.player/.MainActivity
         -->
         <activity
             android:name=".MainActivity"
@@ -84,7 +84,7 @@
             android:name=".OtaRebootReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="app.signflow.player.OTA_REBOOT" />
+                <action android:name="app.vitrail.player.OTA_REBOOT" />
             </intent-filter>
         </receiver>
 

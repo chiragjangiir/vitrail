@@ -1,4 +1,4 @@
-package app.signflow.player
+package app.vitrail.player
 
 import android.content.BroadcastReceiver
 import android.content.Context

@@ -1,4 +1,4 @@
-package app.signflow.player
+package app.vitrail.player
 
 import android.util.Log
 import fi.iki.elonen.NanoHTTPD

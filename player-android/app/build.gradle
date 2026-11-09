@@ -14,15 +14,15 @@ if (keystorePropsFile.exists()) {
 }
 
 android {
-    namespace 'app.signflow.player'
+    namespace 'app.vitrail.player'
     compileSdk 34
 
     defaultConfig {
-        applicationId "app.signflow.player"
+        applicationId "app.vitrail.player"
         minSdk 28
         targetSdk 34
-        versionCode 36
-        versionName "2.5.34"
+        versionCode 37
+        versionName "2.5.35"
     }
 
     signingConfigs {

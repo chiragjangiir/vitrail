@@ -10,7 +10,7 @@ set -e
 
 APK_DEBUG="app/build/outputs/apk/debug/app-debug.apk"
 APK_RELEASE="app/build/outputs/apk/release/app-release.apk"
-PACKAGE="app.signflow.player"
+PACKAGE="app.vitrail.player"
 RELEASE=false
 DEVICE_IP=""
 
@@ -45,9 +45,9 @@ if $RELEASE; then
   echo "Building release APK (signed — needs keystore.properties + signflow-release.jks)..."
   ./gradlew assembleRelease
   APK="$APK_RELEASE"
-  # Le release = package 'app.signflow.player' ; le debug = 'app.signflow.player.debug' (suffixe).
+  # Le release = package 'app.vitrail.player' ; le debug = 'app.vitrail.player.debug' (suffixe).
   # Ce sont 2 apps DISTINCTES : le release s'installe à neuf (pas de token) → PROVISIONNER via l'écran
-  # de setup ; puis retirer l'ancien debug : adb uninstall app.signflow.player.debug
+  # de setup ; puis retirer l'ancien debug : adb uninstall app.vitrail.player.debug
   RELEASE_NOTE=true
 else
   echo "Building debug APK..."
@@ -68,8 +68,8 @@ adb shell settings put global http_proxy "" 2>/dev/null || true
 
 if [[ "${RELEASE_NOTE:-false}" == "true" ]]; then
   echo ""
-  echo ">>> Release installé (app.signflow.player). PROVISIONNER le token via l'écran de setup."
-  echo ">>> Puis retirer l'ancien debug s'il reste : adb uninstall app.signflow.player.debug"
+  echo ">>> Release installé (app.vitrail.player). PROVISIONNER le token via l'écran de setup."
+  echo ">>> Puis retirer l'ancien debug s'il reste : adb uninstall app.vitrail.player.debug"
 fi
 
 echo ""

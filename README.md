@@ -144,10 +144,10 @@ share a machine with other services.
 ## Technical notes
 
 The project was born under the working name *SignFlow*. Technical identifiers still carry it
-(`SIGNFLOW_*` variables, the `X-SignFlow-*` webhook headers, the Android package
-`app.signflow.player`, the server directory `/opt/signflow`, the Windows player's install folder
-and scheduled task "SignFlow Player") so that existing installations keep working. Everything
-shown on screen says Vitrail.
+(`SIGNFLOW_*` variables, the `X-SignFlow-*` webhook headers, the server directory
+`/opt/signflow`, the Windows player's install folder and scheduled task "SignFlow Player") so
+that existing installations keep working. Everything shown on screen says Vitrail, and the
+Android app is `app.vitrail.player` since v1.0.3.
 
 ## Contributing
 

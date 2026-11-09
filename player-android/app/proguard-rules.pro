@@ -1,4 +1,4 @@
--keep class app.signflow.player.** { *; }
+-keep class app.vitrail.player.** { *; }
 -keepattributes JavascriptInterface
 -keepattributes *Annotation*
 -keep public class * extends android.webkit.WebViewClient

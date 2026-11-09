@@ -176,7 +176,7 @@ Sous Linux/RPi, `python3` est déjà présent → lancer le `.py` directement.
 L'app Android accepte un **intent de provisioning** (pas de pilotage clavier) :
 
 ```
-adb shell am start -n app.signflow.player/.SetupActivity \
+adb shell am start -n app.vitrail.player/.SetupActivity \
   -e backend_url https://cms.example.com -e token sfp_…
 ```
 
