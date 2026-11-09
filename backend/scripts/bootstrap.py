@@ -34,7 +34,7 @@ async def bootstrap() -> None:
     # l'IP du serveur de dev dans le config.json affiche. Inutilisable pour un client --
     # c'est probablement pourquoi `install-ubuntu.sh` ne l'appelait pas du tout, laissant
     # les installations neuves SANS aucun compte pour se connecter.
-    admin_email = os.environ.get("BOOTSTRAP_ADMIN_EMAIL", "admin@signflow.app")
+    admin_email = os.environ.get("BOOTSTRAP_ADMIN_EMAIL", "admin@vitrail.local")
     # Jamais de mot de passe par defaut : a defaut d'etre fourni, on en tire un au hasard et
     # on l'affiche une seule fois (meme politique que les secrets generes du .env).
     admin_password = os.environ.get("BOOTSTRAP_ADMIN_PASSWORD") or (

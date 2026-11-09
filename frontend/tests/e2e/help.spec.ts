@@ -60,12 +60,12 @@ test.describe('User manual (/help)', () => {
     await expect(page.getByRole('heading', { name: 'Bienvenue dans Vitrail' })).toBeVisible()
 
     // La capture du dashboard est rendue, chargée (pas de 404) et ouvre la pleine taille.
-    const shot = page.locator('img[src="/help/img/dashboard.webp"]')
+    const shot = page.locator('img[src="/help/img/fr/dashboard.webp"]')
     await expect(shot).toBeVisible()
     await expect
       .poll(async () => shot.evaluate((el: HTMLImageElement) => el.naturalWidth))
       .toBeGreaterThan(0)
-    await expect(page.locator('a[href="/help/img/dashboard.webp"]')).toHaveAttribute('target', '_blank')
+    await expect(page.locator('a[href="/help/img/fr/dashboard.webp"]')).toHaveAttribute('target', '_blank')
 
     // Légende affichée sous la capture.
     await expect(page.getByText('Le tableau de bord : indicateurs du réseau', { exact: false })).toBeVisible()

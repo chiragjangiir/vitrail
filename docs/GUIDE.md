@@ -85,7 +85,8 @@ cd /opt/signflow
 sudo docker compose exec -T backend python3 /app/scripts/seed_demo_content.py
 ```
 
-All demo content is generated on the spot (no real brand, photo or music).
+All demo content is generated on the spot (no real brand, photo or music). It is in English;
+add `--lang fr` for French names and visuals.
 
 ## 4. Connect your first screen, in a browser
 

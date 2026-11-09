@@ -206,6 +206,40 @@ async def test_activity_feed_names_deleted_resources_from_the_journal(
 
 
 @pytest.mark.asyncio
+async def test_activity_feed_never_calls_deleted_what_it_could_not_look_up(
+    client: AsyncClient, db_session: AsyncSession, org
+) -> None:
+    """« supprimé depuis » ne s'affiche que si la ressource a été CHERCHÉE et pas trouvée.
+
+    Vu sur le tableau de bord (2026-11-09) : un créatif de campagne et deux annonceurs bien
+    vivants étaient marqués « since deleted ». Deux chemins y menaient :
+    - un type que le fil ne sait pas résoudre (`campaign_creative`) : aucun nom en base, donc
+      repli sur le journal — et le repli était pris pour une preuve de disparition ;
+    - un `resource_id` qui n'est pas un identifiant (l'audit des annonceurs y range le NOM).
+    """
+    admin = await _mk_user(db_session, org, org_admin=True, perms=[])
+    db_session.add(CmsAuditLog(
+        id_org=org.id_org, id_user=admin.id_user, action="create",
+        resource_type="campaign_creative", resource_id="777001",
+        detail={"id_media": 1, "media_name": "Offre de saison.jpg"}, source="cms",
+    ))
+    db_session.add(CmsAuditLog(
+        id_org=org.id_org, id_user=admin.id_user, action="create",
+        resource_type="advertiser", resource_id="Verger du Val",
+        detail={"name": "Verger du Val"}, source="cms",
+    ))
+    await db_session.commit()
+
+    body = (await client.get("/api/v1/dashboard/activity", headers=_h(admin))).json()
+    creative = next(i for i in body["items"] if i["resource_type"] == "campaign_creative")
+    assert creative["resource_name"] == "Offre de saison.jpg"
+    assert creative["resource_gone"] is False
+    adv = next(i for i in body["items"] if i["resource_type"] == "advertiser")
+    assert adv["resource_name"] == "Verger du Val"
+    assert adv["resource_gone"] is False
+
+
+@pytest.mark.asyncio
 async def test_activity_feed_is_tenant_scoped(
     client: AsyncClient, db_session: AsyncSession, org
 ) -> None:

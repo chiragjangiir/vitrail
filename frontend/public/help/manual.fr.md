@@ -4,7 +4,7 @@
 
 Vitrail est une plateforme d'affichage dynamique (digital signage) : vous diffusez des contenus (vidéos, images, pages web, flux d'actualité, audio) sur des écrans pilotés par des players, depuis une interface web centralisée.
 
-![Le tableau de bord : indicateurs du réseau, carte du parc, activité récente](img/dashboard.webp)
+![Le tableau de bord : indicateurs du réseau, carte du parc, activité récente](img/fr/dashboard.webp)
 
 ### Les grands concepts
 
@@ -30,7 +30,7 @@ L'écran affiche le contenu quelques secondes après l'enregistrement de la prog
 ## Players
 
 
-![La liste des players : statut, site, version, dernière connexion](img/players.webp)
+![La liste des players : statut, site, version, dernière connexion](img/fr/players.webp)
 ### Enrôler un player
 
 Un player rejoint votre organisation grâce à un **token de provisioning** :
@@ -41,7 +41,7 @@ Un player rejoint votre organisation grâce à un **token de provisioning** :
 
 Au premier démarrage, le player échange le token contre son identité permanente et apparaît dans **Players**. Un token actif peut être **révoqué** (il n'enrôle plus, les players déjà enrôlés continuent) puis supprimé.
 
-![Provisioning : tokens d'enrôlement et génération de payload](img/players-provisioning.webp)
+![Provisioning : tokens d'enrôlement et génération de payload](img/fr/players-provisioning.webp)
 
 ### Provisioning en lot et clé USB
 
@@ -55,7 +55,7 @@ Sans SSH, vous pouvez pousser : résolution, rotation, volume, son, moteur de re
 
 Deux réglages « campagnes » vivent aussi dans ce drawer : **Exclu des campagnes publicitaires** (opt-out) et **plafond d'occupation publicitaire** (voir Campagnes).
 
-![Le drawer d'un player : machine, écran, réseau, actions à distance](img/player-drawer.webp)
+![Le drawer d'un player : machine, écran, réseau, actions à distance](img/fr/player-drawer.webp)
 
 ### Groupes et synchronisation LAN
 
@@ -78,19 +78,19 @@ Un **site** représente un lieu physique (magasin, agence). Chaque player est ra
 
 Au survol d'un site (liste), une infobulle résume ses players et son occupation publicitaire à 7 jours.
 
-![Les sites : fuseau horaire, horaires d'ouverture, coordonnées](img/sites.webp)
+![Les sites : fuseau horaire, horaires d'ouverture, coordonnées](img/fr/sites.webp)
 
-![Les groupes de sites (région, enseigne) utilisables comme cible](img/site-groups.webp)
+![Les groupes de sites (région, enseigne) utilisables comme cible](img/fr/site-groups.webp)
 
 ## Médiathèque
 
 
-![La médiathèque : dossiers, vignettes, filtres par type](img/media.webp)
+![La médiathèque : dossiers, vignettes, filtres par type](img/fr/media.webp)
 ### Importer
 
 **Médiathèque → Importer** : vidéos, images, documents (PDF). L'onglet **Photos libres** puise dans Unsplash/Pexels avec attribution automatique. Une vidéo est transcodée automatiquement en format universel : le contenu précédent reste diffusé pendant le traitement, aucun écran ne passe au noir. Si la politique de **renditions** de l'organisation est active, une vidéo 4K génère aussi une version Full HD — chaque player reçoit la résolution adaptée à son écran.
 
-![Importer des médias (fichiers, photos libres)](img/media-upload.webp)
+![Importer des médias (fichiers, photos libres)](img/fr/media-upload.webp)
 
 ### Organiser
 
@@ -105,15 +105,15 @@ Au survol d'un site (liste), une infobulle résume ses players et son occupation
 - **Quarantaine** : bloquer immédiatement un média sur tout le parc (même hors-ligne), puis le débloquer ou purger son cache.
 - **Conformité** : chaque vidéo porte un verdict (prête / diffusable / non conforme) sur ses caractéristiques d'encodage, avec ré-analyse et mode passthrough (garder le fichier d'origine sans ré-encodage).
 
-![Le drawer d'un média : aperçu, métadonnées, conformité, cycle de vie](img/media-drawer.webp)
+![Le drawer d'un média : aperçu, métadonnées, conformité, cycle de vie](img/fr/media-drawer.webp)
 
 ## Templates
 
 Les **templates** définissent des mises en page multi-zones (vidéo principale + bandeau + logo…). L'éditeur travaille à la **résolution du canvas** déclarée (FHD, 4K, portrait, LED sur mesure) — choisissez la résolution de l'écran cible. Une playlist associée à un template alimente ses zones ; un avertissement s'affiche si la résolution du template ne correspond pas à l'écran ciblé.
 
-![Les templates multi-zones, avec leur résolution de canvas](img/templates.webp)
+![Les templates multi-zones, avec leur résolution de canvas](img/fr/templates.webp)
 
-![L'éditeur de template : zones, calques et propriétés](img/templates-editor.webp)
+![L'éditeur de template : zones, calques et propriétés](img/fr/templates-editor.webp)
 
 ## Playlists
 
@@ -123,11 +123,11 @@ Les **templates** définissent des mises en page multi-zones (vidéo principale 
 
 L'en-tête de l'éditeur et chaque vignette de playlist affichent **le nombre de contenus et la durée totale** de la boucle ; le total suit vos modifications en direct, brouillon compris.
 
-![Les playlists : durée totale, nombre d'items, état de publication](img/playlists.webp)
+![Les playlists : durée totale, nombre d'items, état de publication](img/fr/playlists.webp)
 
-![L'éditeur de playlist : ordre, durées, règles par item, brouillon à publier](img/playlist-editor.webp)
+![L'éditeur de playlist : ordre, durées, règles par item, brouillon à publier](img/fr/playlist-editor.webp)
 
-![Ajouter des médias : recherche, dossiers, multi-sélection](img/playlist-add-media.webp)
+![Ajouter des médias : recherche, dossiers, multi-sélection](img/fr/playlist-add-media.webp)
 
 ### Visualiser une playlist
 
@@ -151,17 +151,17 @@ Un seul niveau d'imbrication ; une playlist référencée comme sous-playlist ne
 
 Ces réglages **suivent le brouillon**, comme les contenus : les modifier fait apparaître le bandeau « Modifications non publiées », et les écrans continuent de jouer la boucle publiée jusqu'à ce que vous cliquiez sur **Publier** (ou, pour une playlist gouvernée sous modération, jusqu'à l'**approbation**).
 
-![Imbriquer une sous-playlist et régler sa rotation (N items par tour)](img/playlist-add-playlist.webp)
+![Imbriquer une sous-playlist et régler sa rotation (N items par tour)](img/fr/playlist-add-playlist.webp)
 
-![La simulation timeline : le déroulé réel tour par tour](img/playlist-simulation.webp)
+![La simulation timeline : le déroulé réel tour par tour](img/fr/playlist-simulation.webp)
 
 ## Paniers audio
 
 Les **paniers audio** diffusent un fond sonore en magasin, indépendant du contenu visuel : musique de fond, jingles à intervalle ou à heure fixe, avec **ducking** automatique (la musique baisse pendant un jingle). Chaque player a un **rôle audio** : contenus standards (son des vidéos), audio seul, ou mixte (fond sonore + vidéos coupées). Le **panneau de contrôle magasin** (LAN) permet à l'équipe sur place d'agir sans compte CMS. Chaque vignette de panier affiche **le nombre de pistes et la durée totale**. Les rapports SACEM s'appuient sur les diffusions prouvées.
 
-![Les paniers audio : musique de fond, jingles, ducking](img/audio-baskets.webp)
+![Les paniers audio : musique de fond, jingles, ducking](img/fr/audio-baskets.webp)
 
-![Le contenu d'un panier audio et ses règles de diffusion](img/audio-baskets-edit.webp)
+![Le contenu d'un panier audio et ses règles de diffusion](img/fr/audio-baskets-edit.webp)
 
 ## Programmation
 
@@ -171,11 +171,11 @@ Une **programmation** dit quoi diffuser (une playlist), où (players, groupes, s
 2. Les players concernés se mettent à jour en quelques secondes.
 3. Le **calendrier unifié** superpose programmes visuels et audio, événements et campagnes (légende à icônes). Filtrez par type (pastilles Tout/Visuels/Audio/Événements/Campagnes) ou par **cible** (groupe de sites, site, player) ; l'**export CSV** suit les filtres actifs. En cas de chevauchement, la **priorité** la plus haute gagne.
 
-![Le calendrier unifié : programmes, événements et campagnes superposés](img/schedules.webp)
+![Le calendrier unifié : programmes, événements et campagnes superposés](img/fr/schedules.webp)
 
-![Créer une programmation : playlist, cibles, fenêtre et priorité](img/schedule-new.webp)
+![Créer une programmation : playlist, cibles, fenêtre et priorité](img/fr/schedule-new.webp)
 
-![Simuler la programmation d'un player sur une journée](img/schedule-simulation.webp)
+![Simuler la programmation d'un player sur une journée](img/fr/schedule-simulation.webp)
 
 Les réseaux à plusieurs niveaux (siège, régions, magasins) composent leur programmation avec la **Gouvernance hiérarchique** — voir la section dédiée plus bas.
 
@@ -183,7 +183,7 @@ Les réseaux à plusieurs niveaux (siège, régions, magasins) composent leur pr
 
 La **Gouvernance** sert aux réseaux où plusieurs niveaux décident de ce qui s'affiche : un siège, des régions, des magasins. Chaque niveau compose **sa** part du programme, et les écrans diffusent la **somme** des niveaux dont ils dépendent. Une installation mono-site n'en a pas besoin : sans nœud, rien ne change (le champ « Nœud propriétaire » ne s'affiche même pas).
 
-![La gouvernance hiérarchique : national, régional, local](img/governance.webp)
+![La gouvernance hiérarchique : national, régional, local](img/fr/governance.webp)
 
 ### Les cinq notions
 
@@ -262,17 +262,17 @@ Un **événement** prend temporairement la priorité sur la programmation : prom
 - À la fin, le player revient exactement à sa programmation (heure courante).
 - Un événement **(ré)activé en cours de fenêtre** avec un média jamais distribué peut mettre quelques minutes à apparaître (le player télécharge d'abord le fichier — jamais d'écran noir). Activez/planifiez à l'avance pour une bascule instantanée.
 
-![Les événements : manuels ou programmés, avec leur état](img/events.webp)
+![Les événements : manuels ou programmés, avec leur état](img/fr/events.webp)
 
-![Un événement : contenu, cible, type, spot horaire, écrans allumés](img/event-edit.webp)
+![Un événement : contenu, cible, type, spot horaire, écrans allumés](img/fr/event-edit.webp)
 
 ## Diffusion à la demande (VOD)
 
 La page **On-Demand** diffuse un contenu immédiatement, par-dessus la programmation, sans toucher aux playlists. Une **config VOD** regroupe des médias et une cible : soit des **players choisis** (d'un même site), soit un **site entier** — dans ce cas tout player ajouté au site plus tard est pris en compte automatiquement ; les médias sont pré-téléchargés, le déclenchement est instantané : **Une fois** ou **En boucle** (jusqu'au Stop). La permission `vod : trigger` seule suffit pour un compte « magasin ». À la fin, la programmation reprend à l'heure courante.
 
-![Les configurations de diffusion à la demande](img/vod.webp)
+![Les configurations de diffusion à la demande](img/fr/vod.webp)
 
-![Une config VOD : médias pré-téléchargés et players cibles](img/vod-edit.webp)
+![Une config VOD : médias pré-téléchargés et players cibles](img/fr/vod-edit.webp)
 
 > Particularités **BrightSign** : le démarrage et l'arrêt peuvent mettre **jusqu'à 2 secondes** (relais local embarqué) — c'est normal. Pendant la diffusion, la playlist est suspendue (un seul flux vidéo matériel sur ces players) puis reprend à l'heure courante. Le pré-téléchargement initial peut prendre du temps sur des fichiers 4K : tant qu'un média n'est pas en cache, il est lu en streaming (démarrage différé).
 
@@ -295,7 +295,7 @@ Un **feed** est une source pollée par le serveur : RSS/Atom, Google News, YouTu
 
 Affichez une page web à l'écran : mode **WebView** (rendu en direct sur le player) ou **capture serveur** (le serveur photographie la page périodiquement — pour les pages qui refusent l'intégration ou exigent une authentification côté serveur). Une page web est un média comme un autre : tags, playlists, programmation.
 
-![Page web (URL Display) : mode WebView ou capture serveur](img/media-web-page.webp)
+![Page web (URL Display) : mode WebView ou capture serveur](img/fr/media-web-page.webp)
 
 ## Génération IA
 
@@ -307,7 +307,7 @@ Vitrail génère images, vidéos, musique et voix à partir d'une description. L
 - **Édition** : détourage (suppression de fond), retouche par instruction, variations multiples, image → vidéo (décrivez seulement le mouvement).
 - Un **estimatif de coût** s'affiche avant chaque génération.
 
-![Génération IA : image, vidéo, musique ou voix à partir d'une description](img/media-generate-ai.webp)
+![Génération IA : image, vidéo, musique ou voix à partir d'une description](img/fr/media-generate-ai.webp)
 
 ## Générateur promo
 
@@ -321,7 +321,7 @@ Le **Générateur promo** fabrique une affiche promotionnelle (image ou vidéo c
 - **L'IA ne fait que le fond** (et le détourage du produit). Prix, remise, nom et mentions légales sont posés par le compositing à partir de votre saisie — donc exacts.
 - **Enchaîner** : « Refaire avec un autre produit » garde marque, mise en page, fond et mentions ; les **préréglages** rappellent une configuration complète.
 
-![Le générateur promo : un parcours en six étapes à gauche, l'aperçu au centre](img/promo.webp)
+![Le générateur promo : un parcours en six étapes à gauche, l'aperçu au centre](img/fr/promo.webp)
 
 ### Mode série — un gabarit, N produits
 
@@ -332,7 +332,7 @@ La bascule **Un visuel / Série**, en haut, remplace l'aperçu par un **tableau*
 - **Une ligne sans prix n'arrête pas la série** : elle est surlignée, nommée dans l'avertissement, et ignorée. Le bouton indique combien de visuels partiront réellement.
 - Chaque visuel est **nommé d'après son produit**, sinon ils arriveraient tous sous le même nom dans la médiathèque.
 
-![Le mode série : une ligne par visuel, la ligne sans prix est nommée et écartée](img/promo-serie.webp)
+![Le mode série : une ligne par visuel, la ligne sans prix est nommée et écartée](img/fr/promo-serie.webp)
 
 ## Chartes de marque
 
@@ -353,9 +353,9 @@ La page **Campagnes** vend vos écrans comme inventaire publicitaire : un annonc
 
 Créez vos **annonceurs** (page Annonceurs) : chacun reçoit un dossier médiathèque « Annonceurs/<nom> » et une ou plusieurs **catégories d'industrie**. Sur chaque **site**, listez les catégories **exclues** : les annonceurs concernés ne peuvent ni cibler ni diffuser sur ce site (appliqué au ciblage, à l'occupation, au devis, au rapport, au portail et à la diffusion).
 
-![Les annonceurs et leurs catégories d'industrie](img/advertisers.webp)
+![Les annonceurs et leurs catégories d'industrie](img/fr/advertisers.webp)
 
-![Un annonceur : catégories, accès au portail, types de campagnes autorisés](img/advertiser-edit.webp)
+![Un annonceur : catégories, accès au portail, types de campagnes autorisés](img/fr/advertiser-edit.webp)
 
 ### Créer et publier une campagne
 
@@ -369,9 +369,9 @@ Une campagne = période (+ fenêtre horaire quotidienne optionnelle), **SOV vend
 - **Calendrier** : Gantt mensuel des campagnes avec charge par jour (ambre/rouge).
 - **Import** : campagne complète depuis un JSON (aperçu dry-run, création en brouillon, publication manuelle), aussi disponible **par API** avec une clé `sfi_`.
 
-![Les campagnes : annonceur, période, SOV, statut et calendrier de charge](img/campaigns.webp)
+![Les campagnes : annonceur, période, SOV, statut et calendrier de charge](img/fr/campaigns.webp)
 
-![Une campagne : cibles, créatifs, SOV réalisable et devis](img/campaign-edit.webp)
+![Une campagne : cibles, créatifs, SOV réalisable et devis](img/fr/campaign-edit.webp)
 
 ### Diffusion, preuve et rapport
 
@@ -397,9 +397,9 @@ La page **Approbations** centralise les demandes d'approbation — aujourd'hui l
 
 Les valideurs (permissions `approvals`) voient la file de l'organisation entière et une **cloche** en topbar ; exports **CSV/PDF** de la file ; les demandes en statut terminal peuvent être retirées de la liste (trace conservée en audit).
 
-![La file des validations, avec recherche et exports](img/approvals.webp)
+![La file des validations, avec recherche et exports](img/fr/approvals.webp)
 
-![La revue d'une demande : créatifs, occupation projetée, décision](img/approval-review.webp)
+![La revue d'une demande : créatifs, occupation projetée, décision](img/fr/approval-review.webp)
 
 ## Rapports et analytics
 
@@ -449,7 +449,7 @@ Chaque player connaît ses fenêtres d'allumage **14 jours à l'avance** : serve
 
 Chaque vidéo importée est **ré-encodée** pour que tous les écrans puissent la lire — c'est la tâche la plus lourde du serveur. La page **Paramètres → Serveur** dit pourquoi elle prend le temps qu'elle prend.
 
-![La page Serveur : capacité d'encodage, débits constatés, file d'attente](img/server.webp)
+![La page Serveur : capacité d'encodage, débits constatés, file d'attente](img/fr/server.webp)
 
 **Capacité d'encodage** — la ligne qui explique presque tout : **accélération matérielle active** ou non. Sans carte graphique exploitable, les encodages tournent sur le processeur et sont bien plus lents. **Débits constatés** = les vitesses réellement mesurées sur vos propres fichiers. **Disque de travail** = l'espace libre là où le worker écrit ses fichiers temporaires.
 

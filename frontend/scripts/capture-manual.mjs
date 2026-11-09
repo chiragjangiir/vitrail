@@ -14,7 +14,13 @@
  * VARIABLES
  *   SF_BASE   URL du CMS à capturer            (défaut : http://localhost:8080)
  *   SF_TOKEN  jeton d'accès org-admin          (obligatoire)
- *   SF_OUT    dossier de sortie                (défaut : public/help/img)
+ *   SF_OUT    dossier de sortie                (défaut : public/help/img/<langue du compte>)
+ *   SF_API    URL de l'API si elle n'est pas servie par SF_BASE (banc de dev : interface sur
+ *             :3010, API sur :8010) — défaut : SF_BASE
+ *
+ * LANGUE. Les captures sont prises dans la langue du COMPTE (champ `locale`) et rangées dans
+ * img/<langue>/ : img/en/ sert le README et les manuels en/de/es/pt, img/fr/ le manuel français.
+ * Les données affichées viennent de `backend/scripts/seed_demo_content.py --lang <langue>`.
  *
  * ⚠️ Le jeton n'est JAMAIS écrit dans ce fichier ni journalisé : il est forgé côté serveur
  * et passé par l'environnement. Il expire en quelques minutes — c'est voulu.
@@ -46,7 +52,7 @@ try {
 
 const BASE = process.env.SF_BASE ?? 'http://localhost:8080'
 const TOKEN = process.env.SF_TOKEN
-const OUT = process.env.SF_OUT ?? path.join(process.cwd(), 'public', 'help', 'img')
+const API = process.env.SF_API ?? BASE
 
 if (!TOKEN) {
   console.error('SF_TOKEN manquant — forge un jeton org-admin et passe-le par l’environnement.')
@@ -82,12 +88,12 @@ const cliquerTexte = (nom) => async (page) => {
 // reponse est vide (`/vod/`) ou fait matcher une AUTRE route (`/campaigns/advertisers` est
 // lu comme `/campaigns/{id}` et repond 422). Les chemins ci-dessous sont ceux qui rendent
 // 200, verifies un par un.
-const ouvrirParNom = (chemin, cle) => async (page) => {
-  const r = await fetch(`${BASE}/api/v1${chemin}`, {
+const ouvrirParNom = (chemin, cle, filtre = () => true) => async (page) => {
+  const r = await fetch(`${API}/api/v1${chemin}`, {
     headers: { Authorization: `Bearer ${TOKEN}` }, redirect: 'manual',
   })
   const j = await r.json()
-  const liste = Array.isArray(j) ? j : (j.items ?? [])
+  const liste = (Array.isArray(j) ? j : (j.items ?? [])).filter(filtre)
   if (!liste.length) throw new Error(`aucune donnee sur ${chemin}`)
   const nom = liste[0][cle]
   await page.getByText(nom, { exact: false }).first().click({ timeout: 10000 })
@@ -105,7 +111,9 @@ const SHOTS = [
 
   // ── Parc ──────────────────────────────────────────────────────────────────────────
   { name: 'players', url: '/players' },
-  { name: 'player-drawer', url: '/players', act: ouvrirParNom('/players/', 'player_name') },
+  // Un player EN LIGNE : la fiche d'un écran hors ligne n'a ni capture ni contenu en cours.
+  { name: 'player-drawer', url: '/players',
+    act: ouvrirParNom('/players/', 'player_name', (p) => p.status === 'online') },
   { name: 'players-provisioning', url: '/settings/players/provisioning' },
   { name: 'sites', url: '/sites' },
   { name: 'site-groups', url: '/sites', act: cliquerTexte(/groupe|group/i) },
@@ -127,14 +135,21 @@ const SHOTS = [
     act: async (page) => {
       await page.getByTestId('promo-mode-serie').click({ timeout: 10000 })
       await page.getByTestId('serie-paste-toggle').click()
-      await page.getByTestId('serie-paste-area').fill([
+      await page.getByTestId('serie-paste-area').fill((ME.locale === 'fr' ? [
         'Produit;Prix;Prix barré',
         'Tarte aux pommes;12,90;15,90',
         'Pain au levain 1 kg;5,40;6,20',
         'Coffret café moulu;18,00;22,00',
         'Confiture artisanale;;7,50',
         'Panier petit-déjeuner;24,00;29,00',
-      ].join('\n'))
+      ] : [
+        'Product;Price;Was',
+        'Apple tart;12.90;15.90',
+        'Sourdough loaf 1 kg;5.40;6.20',
+        'Ground coffee box;18.00;22.00',
+        'Artisan jam;;7.50',
+        'Breakfast basket;24.00;29.00',
+      ]).join('\n'))
       await page.getByTestId('serie-paste-apply').click()
       await page.waitForTimeout(1500)
     },
@@ -175,7 +190,7 @@ const SHOTS = [
 // l'utilisateur, sinon le garde de route renvoie vers /login. On recupere donc le compte
 // avec le jeton AVANT d'ouvrir le navigateur — et si cet appel echoue, on s'arrete ici
 // plutot que de capturer 16 fois la page de connexion.
-const meRes = await fetch(`${BASE}/api/v1/users/me`, {
+const meRes = await fetch(`${API}/api/v1/users/me`, {
   headers: { Authorization: `Bearer ${TOKEN}` },
 })
 if (!meRes.ok) {
@@ -183,12 +198,18 @@ if (!meRes.ok) {
   process.exit(1)
 }
 const ME = await meRes.json()
+const OUT = process.env.SF_OUT
+  ?? path.join(process.cwd(), 'public', 'help', 'img', ME.locale === 'fr' ? 'fr' : 'en')
 console.log(`Session : ${ME.email} (org ${ME.id_org}), roles ${(ME.roles ?? []).join(', ')}`)
 
 await mkdir(OUT, { recursive: true })
 
 const browser = await chromium.launch({ channel: 'chrome' })
-const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
+const LOCALE = ME.locale || 'en'
+const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, locale: LOCALE })
+// La langue de l'interface vient du cookie `locale` (sinon de la langue du NAVIGATEUR) : sans lui,
+// un Chrome français capture une interface française quel que soit le compte.
+await context.addCookies([{ name: 'locale', value: LOCALE, url: BASE }])
 
 // Session : on dépose le jeton AVANT tout chargement d'application, sur la bonne origine.
 // Clés des bulles d'aide, lues DANS le composant plutôt que recopiées : une liste figée
@@ -222,7 +243,7 @@ const premierId = async (chemin, cle) => {
   // le port (`http://localhost/...`), et la requete part alors sur le vhost TLS voisin
   // — l'erreur qu'on recoit parle alors de certificat auto-signe, ce qui envoie chercher a
   // 100 lieues du vrai probleme. On refuse de suivre, et on le DIT.
-  const r = await fetch(`${BASE}/api/v1${chemin}`, {
+  const r = await fetch(`${API}/api/v1${chemin}`, {
     headers: { Authorization: `Bearer ${TOKEN}` },
     redirect: 'manual',
   })
@@ -276,10 +297,12 @@ for (const shot of SHOTS) {
   }
 }
 
-await browser.close()
-
 console.log('\n--- résultat ---')
 for (const [n, s, u] of resultats) console.log(`  ${s.padEnd(12)} ${n.padEnd(24)} ${u}`)
 const ko = resultats.filter(([, s]) => s !== 'OK').length
 console.log(`\n${resultats.length - ko} capture(s) réussie(s), ${ko} en échec.`)
+// Sous Windows, la fermeture de Chrome peut ne jamais rendre la main (verrou sur ses fichiers
+// temporaires) : le script restait bloqué APRÈS avoir tout produit. Le bilan est déjà affiché ;
+// on laisse 10 s à la fermeture, puis on sort quoi qu'il arrive.
+await Promise.race([browser.close(), new Promise((r) => setTimeout(r, 10000))])
 process.exit(ko ? 1 : 0)

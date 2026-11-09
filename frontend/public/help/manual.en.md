@@ -4,7 +4,7 @@
 
 Vitrail is a digital signage platform: you broadcast content (videos, images, web pages, news feeds, audio) to screens driven by players, from a central web interface.
 
-![The dashboard: network KPIs, fleet map, recent activity](img/dashboard.webp)
+![The dashboard: network KPIs, fleet map, recent activity](img/en/dashboard.webp)
 
 ### Key concepts
 
@@ -30,7 +30,7 @@ The screen shows the content a few seconds after the schedule is saved.
 ## Players
 
 
-![The player list: status, site, version, last seen](img/players.webp)
+![The player list: status, site, version, last seen](img/en/players.webp)
 ### Enrolling a player
 
 A player joins your organization with a **provisioning token**:
@@ -41,7 +41,7 @@ A player joins your organization with a **provisioning token**:
 
 On first start, the player exchanges the token for its permanent identity and appears under **Players**. An active token can be **revoked** (it no longer enrolls; already-enrolled players keep working) and then deleted.
 
-![Provisioning: enrollment tokens and payload generation](img/players-provisioning.webp)
+![Provisioning: enrollment tokens and payload generation](img/en/players-provisioning.webp)
 
 ### Batch provisioning and USB key
 
@@ -55,7 +55,7 @@ Without SSH, you can push: resolution, rotation, volume, sound, rendering engine
 
 Two "campaign" settings also live in this drawer: **Excluded from ad campaigns** (opt-out) and the **ad occupancy cap** (see Campaigns).
 
-![A player's drawer: machine, screen, network, remote actions](img/player-drawer.webp)
+![A player's drawer: machine, screen, network, remote actions](img/en/player-drawer.webp)
 
 ### Groups and LAN sync
 
@@ -78,19 +78,19 @@ A **site** represents a physical location (store, branch). Each player is attach
 
 Hovering a site (list) shows a tooltip with its players and its 7-day ad occupancy.
 
-![Sites: time zone, opening hours, coordinates](img/sites.webp)
+![Sites: time zone, opening hours, coordinates](img/en/sites.webp)
 
-![Site groups (region, banner) usable as a target](img/site-groups.webp)
+![Site groups (region, banner) usable as a target](img/en/site-groups.webp)
 
 ## Media Library
 
 
-![The media library: folders, thumbnails, type filters](img/media.webp)
+![The media library: folders, thumbnails, type filters](img/en/media.webp)
 ### Importing
 
 **Media Library → Import**: videos, images, documents (PDF). The **Free Photos** tab draws from Unsplash/Pexels with automatic attribution. A video is automatically transcoded to a universal format: the previous content keeps playing during processing, no screen ever goes black. If the organization's **renditions** policy is active, a 4K video also generates a Full HD version — each player receives the resolution suited to its screen.
 
-![Importing media (files, free photos)](img/media-upload.webp)
+![Importing media (files, free photos)](img/en/media-upload.webp)
 
 ### Organizing
 
@@ -105,15 +105,15 @@ Hovering a site (list) shows a tooltip with its players and its 7-day ad occupan
 - **Quarantine**: instantly block a media across the fleet (even offline), then unblock or purge its cache.
 - **Conformance**: each video carries a verdict (ready / playable / non-conformant) about its encoding, with re-analysis and a passthrough mode (keep the original file without re-encoding).
 
-![A media's drawer: preview, metadata, compliance, lifecycle](img/media-drawer.webp)
+![A media's drawer: preview, metadata, compliance, lifecycle](img/en/media-drawer.webp)
 
 ## Templates
 
 **Templates** define multi-zone layouts (main video + ticker + logo…). The editor works at the declared **canvas resolution** (FHD, 4K, portrait, custom LED) — choose the resolution of the target screen. A playlist bound to a template feeds its zones; a warning appears if the template resolution does not match the targeted screen.
 
-![Multi-zone templates, with their canvas resolution](img/templates.webp)
+![Multi-zone templates, with their canvas resolution](img/en/templates.webp)
 
-![The template editor: zones, layers and properties](img/templates-editor.webp)
+![The template editor: zones, layers and properties](img/en/templates-editor.webp)
 
 ## Playlists
 
@@ -123,11 +123,11 @@ Hovering a site (list) shows a tooltip with its players and its 7-day ad occupan
 
 The editor header and each playlist card show **the number of items and the total duration** of the loop; the total follows your edits live, draft included.
 
-![Playlists: total duration, item count, publication state](img/playlists.webp)
+![Playlists: total duration, item count, publication state](img/en/playlists.webp)
 
-![The playlist editor: order, durations, per-item rules, draft to publish](img/playlist-editor.webp)
+![The playlist editor: order, durations, per-item rules, draft to publish](img/en/playlist-editor.webp)
 
-![Adding media: search, folders, multi-selection](img/playlist-add-media.webp)
+![Adding media: search, folders, multi-selection](img/en/playlist-add-media.webp)
 
 ### Previewing a playlist
 
@@ -151,17 +151,17 @@ Only one nesting level is allowed; a playlist referenced as a sub-playlist canno
 
 These settings **follow the draft**, just like content: changing them raises the “Unpublished changes” banner, and the screens keep playing the published loop until you click **Publish** (or, for a governed playlist under moderation, until it is **approved**).
 
-![Nesting a sub-playlist and setting its rotation (N items per loop)](img/playlist-add-playlist.webp)
+![Nesting a sub-playlist and setting its rotation (N items per loop)](img/en/playlist-add-playlist.webp)
 
-![The timeline simulation: the real loop-by-loop playout](img/playlist-simulation.webp)
+![The timeline simulation: the real loop-by-loop playout](img/en/playlist-simulation.webp)
 
 ## Audio baskets
 
 **Audio baskets** provide in-store background audio, independent from visual content: background music, jingles at intervals or fixed times, with automatic **ducking** (music lowers during a jingle). Each player has an **audio role**: standard content (video sound), audio only, or mixed (background audio + muted videos). The **store control panel** (LAN) lets on-site staff act without a CMS account. Each basket card shows **the number of tracks and the total duration**. SACEM-style reports rely on proven plays.
 
-![Audio baskets: background music, jingles, ducking](img/audio-baskets.webp)
+![Audio baskets: background music, jingles, ducking](img/en/audio-baskets.webp)
 
-![An audio basket's content and playout rules](img/audio-baskets-edit.webp)
+![An audio basket's content and playout rules](img/en/audio-baskets-edit.webp)
 
 ## Scheduling
 
@@ -171,11 +171,11 @@ A **schedule** says what to broadcast (a playlist), where (players, groups, site
 2. The players update within seconds.
 3. The **unified calendar** overlays visual and audio programs, events and campaigns (icon legend). Filter by type (All/Visual/Audio/Events/Campaigns pills) or by **target** (site group, site, player); the **CSV export** follows the active filters. When rules overlap, the highest **priority** wins.
 
-![The unified calendar: schedules, events and campaigns overlaid](img/schedules.webp)
+![The unified calendar: schedules, events and campaigns overlaid](img/en/schedules.webp)
 
-![Creating a schedule: playlist, targets, window and priority](img/schedule-new.webp)
+![Creating a schedule: playlist, targets, window and priority](img/en/schedule-new.webp)
 
-![Simulating a player's schedule over a day](img/schedule-simulation.webp)
+![Simulating a player's schedule over a day](img/en/schedule-simulation.webp)
 
 Multi-level networks (head office, regions, stores) compose their scheduling with **Hierarchical governance** — see the dedicated section below.
 
@@ -183,7 +183,7 @@ Multi-level networks (head office, regions, stores) compose their scheduling wit
 
 **Governance** is for networks where several levels decide what is shown: a head office, regions, stores. Each level composes **its** share of the schedule, and screens play the **sum** of the levels they depend on. A single-site installation does not need it: with no node, nothing changes (the “Owning node” field is not even displayed).
 
-![Hierarchical governance: national, regional, local](img/governance.webp)
+![Hierarchical governance: national, regional, local](img/en/governance.webp)
 
 ### The five notions
 
@@ -262,17 +262,17 @@ An **event** temporarily takes priority over the schedule: promotion, announceme
 - When it ends, the player returns exactly to its schedule (current time).
 - An event **(re)activated mid-window** with a media file never distributed before may take a few minutes to appear (the player downloads the file first — never a black screen). Activate/schedule in advance for an instant switch.
 
-![Events: manual or scheduled, with their state](img/events.webp)
+![Events: manual or scheduled, with their state](img/en/events.webp)
 
-![An event: content, target, type, hourly spot, keep screens on](img/event-edit.webp)
+![An event: content, target, type, hourly spot, keep screens on](img/en/event-edit.webp)
 
 ## On-demand broadcast (VOD)
 
 The **On-Demand** page broadcasts content immediately, on top of the schedule, without touching playlists. A **VOD config** groups media and a target: either **selected players** (from the same site) or an **entire site** — in which case any player added to the site later is picked up automatically; media are pre-downloaded, so triggering is instant: **Once** or **Loop** (until Stop). The `vod : trigger` permission alone is enough for a "store" account. Afterwards, the schedule resumes at the current time.
 
-![On-demand broadcast configurations](img/vod.webp)
+![On-demand broadcast configurations](img/en/vod.webp)
 
-![A VOD config: pre-downloaded media and target players](img/vod-edit.webp)
+![A VOD config: pre-downloaded media and target players](img/en/vod-edit.webp)
 
 > **BrightSign** specifics: start and stop can take **up to 2 seconds** (on-device local relay) — this is normal. During playback the playlist is suspended (a single hardware video stream on these players) and then resumes at the current time. The initial pre-download can take a while for 4K files: until a media file is cached, it streams (delayed start).
 
@@ -295,7 +295,7 @@ A **feed** is a source polled by the server: RSS/Atom, Google News, YouTube, wea
 
 Show a web page on screen: **WebView** mode (live rendering on the player) or **server capture** (the server screenshots the page periodically — for pages that refuse embedding or need server-side authentication). A web page is a media like any other: tags, playlists, scheduling.
 
-![Web page (URL Display): WebView mode or server screenshot](img/media-web-page.webp)
+![Web page (URL Display): WebView mode or server screenshot](img/en/media-web-page.webp)
 
 ## AI generation
 
@@ -307,7 +307,7 @@ Vitrail generates images, videos, music and voice-overs from a description. The 
 - **Editing**: background removal, instruction-based retouching, multiple variations, image → video (describe only the motion).
 - A **cost estimate** is shown before each generation.
 
-![AI generation: image, video, music or voice from a description](img/media-generate-ai.webp)
+![AI generation: image, video, music or voice from a description](img/en/media-generate-ai.webp)
 
 ## Promo generator
 
@@ -321,7 +321,7 @@ The **Promo generator** builds a promotional poster (image or short video) from 
 - **AI only makes the background** (and cuts out the product). Price, discount, name and legal notices are composited from what you typed — so they are exact.
 - **Chain visuals**: "Redo with another product" keeps brand, layout, background and notices; **presets** recall a full configuration.
 
-![The promo generator: a six-step path on the left, the preview in the centre](img/promo.webp)
+![The promo generator: a six-step path on the left, the preview in the centre](img/en/promo.webp)
 
 ### Series mode — one layout, N products
 
@@ -332,7 +332,7 @@ The **Single visual / Series** toggle at the top replaces the preview with a **t
 - **A row without a price does not stop the series**: it is highlighted, named in the warning, and skipped. The button says how many visuals will actually run.
 - Each visual is **named after its product**, otherwise they would all land in the media library under the same name.
 
-![Series mode: one row per visual, the row without a price is named and skipped](img/promo-serie.webp)
+![Series mode: one row per visual, the row without a price is named and skipped](img/en/promo-serie.webp)
 
 ## Brand kits
 
@@ -353,9 +353,9 @@ The **Campaigns** page sells your screens as advertising inventory: an advertise
 
 Create your **advertisers** (Advertisers page): each gets a media folder "Advertisers/<name>" and one or more **industry categories**. On each **site**, list the **excluded** categories: the advertisers concerned can neither target nor broadcast on that site (enforced in targeting, occupancy, quotes, reports, portal and delivery).
 
-![Advertisers and their industry categories](img/advertisers.webp)
+![Advertisers and their industry categories](img/en/advertisers.webp)
 
-![An advertiser: categories, portal access, allowed campaign types](img/advertiser-edit.webp)
+![An advertiser: categories, portal access, allowed campaign types](img/en/advertiser-edit.webp)
 
 ### Creating and publishing a campaign
 
@@ -369,9 +369,9 @@ A campaign = period (+ optional daily time window), **SOV sold in %**, price (SO
 - **Calendar**: monthly Gantt of campaigns with per-day load (amber/red).
 - **Import**: a full campaign from a JSON file (dry-run preview, created as draft, manual publish), also available **via API** with an `sfi_` key.
 
-![Campaigns: advertiser, period, SOV, status and load calendar](img/campaigns.webp)
+![Campaigns: advertiser, period, SOV, status and load calendar](img/en/campaigns.webp)
 
-![A campaign: targets, creatives, achievable SOV and quote](img/campaign-edit.webp)
+![A campaign: targets, creatives, achievable SOV and quote](img/en/campaign-edit.webp)
 
 ### Delivery, proof and report
 
@@ -397,9 +397,9 @@ The **Validations** page centralizes approval requests — currently campaigns (
 
 Reviewers (`approvals` permissions) see the whole organization's queue and a **bell** in the top bar; **CSV/PDF exports** of the queue; requests in a terminal status can be removed from the list (audit trace kept).
 
-![The approvals queue, with search and exports](img/approvals.webp)
+![The approvals queue, with search and exports](img/en/approvals.webp)
 
-![Reviewing a request: creatives, projected occupancy, decision](img/approval-review.webp)
+![Reviewing a request: creatives, projected occupancy, decision](img/en/approval-review.webp)
 
 ## Reports and analytics
 
@@ -449,7 +449,7 @@ Each player knows its power windows **14 days ahead**: if the server is unreacha
 
 Every uploaded video is **re-encoded** so that every screen can play it — by far the heaviest task the server performs. The **Settings → Server** page tells you why it takes the time it takes.
 
-![The Server page: encoding capacity, measured throughput, queue](img/server.webp)
+![The Server page: encoding capacity, measured throughput, queue](img/en/server.webp)
 
 **Encoding capacity** — the line that explains almost everything: **hardware acceleration active** or not. With no usable graphics card, encoding runs on the CPU and is far slower. **Measured throughput** = the speeds actually observed on your own files. **Work disk** = free space where the worker writes its temporary files.
 

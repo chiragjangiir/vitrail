@@ -259,13 +259,20 @@ async def dashboard_activity(
         # Sinon → le nom conservé dans le journal, et on signale qu'elle n'existe plus pour
         # que l'écran n'en fasse pas un lien mort.
         archived = _name_from_detail(a.resource_type, a.detail) if live is None else None
+        # « Disparue » exige d'avoir CHERCHÉ la ressource sans la trouver : un type que le fil
+        # ne sait pas résoudre, ou un resource_id qui n'est pas un identifiant (l'audit des
+        # annonceurs y range le nom), ne prouve rien — on affiche le nom du journal sans
+        # prétendre qu'elle est supprimée (créatif et annonceurs vivants marqués « since
+        # deleted », vu le 2026-11-09).
+        looked_up = (a.resource_type in _ACTIVITY_NAMEABLE
+                     and bool(a.resource_id) and str(a.resource_id).isdigit())
         items.append(ActivityItem(
             id=a.id_audit,
             action=a.action,
             resource_type=a.resource_type,
             resource_id=a.resource_id,
             resource_name=live or archived,
-            resource_gone=live is None and archived is not None,
+            resource_gone=looked_up and live is None and archived is not None,
             user_name=full_name or email,
             source=a.source,
             created_at=a.created_at,
