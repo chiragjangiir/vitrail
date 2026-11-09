@@ -39,6 +39,10 @@ type MediaType = 'all' | 'image' | 'video' | 'audio' | 'document' | 'html_packag
 // Ordre d'affichage des onglets de type (les types absents de la médiathèque sont masqués)
 const TYPE_ORDER: Exclude<MediaType, 'all'>[] = ['image', 'video', 'audio', 'document', 'html_package', 'url_display', 'feed_display', 'hdmi_input']
 
+// Dernière largeur mesurée (vignettes par ligne), gardée entre deux visites de la page
+// (navigation interne) : la vue d'accueil repart directement du bon nombre.
+let lastPerRow: number | null = null
+
 export default function MediaPage() {
   const t = useTranslations()
   const qc = useQueryClient()
@@ -64,7 +68,7 @@ export default function MediaPage() {
     setSearch(q); setShowAll(true)
   })
   // Nb de vignettes tenant sur une ligne à la largeur courante (landing dynamique).
-  const [perRow, setPerRow] = useState(5)
+  const [perRow, setPerRow] = useState<number | null>(() => lastPerRow)
   const [showUploader, setShowUploader] = useState(false)
   useCreateShortcut(() => setShowUploader(true))
   const [showGenerate, setShowGenerate] = useState(false)
@@ -313,8 +317,10 @@ export default function MediaPage() {
     roRef.current = null
     if (!el) return
     const TILE = 180, GAP = 16
-    const compute = () =>
-      setPerRow(Math.max(1, Math.floor((el.clientWidth + GAP) / (TILE + GAP))))
+    const compute = () => {
+      lastPerRow = Math.max(1, Math.floor((el.clientWidth + GAP) / (TILE + GAP)))
+      setPerRow(lastPerRow)
+    }
     compute()
     const ro = new ResizeObserver(compute)
     ro.observe(el)
@@ -325,7 +331,7 @@ export default function MediaPage() {
   // actif et qu'on n'a pas demandé la grille complète (évite le mur de contenu).
   // N = nombre exact de vignettes tenant sur UNE ligne à la largeur courante
   // (dynamique : ~5 en FHD, ~14 en ultrawide, plus en 4K). Mesuré sur le conteneur.
-  const RECENT_PER_TYPE = perRow
+  const RECENT_PER_TYPE = perRow ?? 5
   //
   // 🔴 Défaut trouvé par Ed EN PRODUCTION (2026-07-28) : cette vue rend ses PROPRES grilles
   // par type et ignore `viewMode`, `filteredItems` et le survol. Elle avalait donc les trois
@@ -346,7 +352,10 @@ export default function MediaPage() {
       queryFn: () =>
         api.get<MediaListItem[]>('/media/', { params: { media_type: ty, limit: RECENT_PER_TYPE } })
           .then((r) => r.data),
-      enabled: isLanding,
+      // Pas de requête avant la MESURE : sinon elles partaient avec le repli de 5, puis
+      // repartaient une fois la largeur connue — une requête inutile par type à chaque
+      // chargement, et une ligne trop courte le temps de la seconde (vu en CI 2026-11-09).
+      enabled: isLanding && perRow !== null,
       // Même polling que la liste paginée : sur la vue d'accueil un média fraîchement
       // uploadé restait « en cours » jusqu'à un rechargement manuel (cette vue n'avait
       // aucun refetchInterval, contrairement à la liste). On poll tant qu'un item de ce

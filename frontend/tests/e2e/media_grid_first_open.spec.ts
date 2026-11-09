@@ -41,6 +41,10 @@ function item(i: number) {
 test('landing_grid_measures_width_on_first_open', async ({ page }) => {
   // Large viewport : à 180px + 16px de gouttière, bien plus de 5 vignettes tiennent.
   await page.setViewportSize({ width: 1920, height: 1080 })
+  // Processeur ralenti : c'est sur un runner CI que la course se voyait (requête « 5 »
+  // partie avant la mesure). Sans ce frein, le poste de dev la masque.
+  const cdp = await page.context().newCDPSession(page)
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 })
 
   const limits: number[] = []
   await page.route('**/api/v1/users/me', (r) =>
@@ -75,16 +79,19 @@ test('landing_grid_measures_width_on_first_open', async ({ page }) => {
 
   // 1re ouverture, cache React Query vide.
   await page.goto(`${BASE}/media`)
-  await expect.poll(() => limits.length, { timeout: 10_000 }).toBeGreaterThan(0)
+  // La mesure doit refléter la largeur réelle, pas le repli initial de 5 — on attend la
+  // requête mesurée (une requête « 5 » peut partir avant elle, ce n'est pas le défaut visé).
+  await expect.poll(() => Math.max(0, ...limits), { timeout: 10_000 }).toBeGreaterThan(5)
   const firstOpen = Math.max(...limits)
 
-  // La mesure doit refléter la largeur réelle, pas le repli initial de 5.
-  expect(firstOpen).toBeGreaterThan(5)
-
-  // 2e visite (cache chaud) : le nombre demandé doit être IDENTIQUE.
+  // 2e visite (cache chaud) : aucune requête ne doit partir avec un AUTRE nombre que celui
+  // mesuré. La page repartait de 5 à chaque montage : elle envoyait une requête « 5 »
+  // inutile avant de se re-mesurer (vu en CI le 2026-11-09). Elle peut aussi ne rien
+  // demander du tout — le cache sert la bonne ligne — d'où l'attente sur la grille.
   limits.length = 0
   await page.goto(`${BASE}/templates`)
   await page.goto(`${BASE}/media`)
-  await expect.poll(() => limits.length, { timeout: 10_000 }).toBeGreaterThan(0)
-  expect(Math.max(...limits)).toBe(firstOpen)
+  await expect(page.getByText('m0', { exact: true }).first()).toBeVisible({ timeout: 10_000 })
+  await page.waitForTimeout(1_000)
+  expect(limits.filter((l) => l !== firstOpen)).toEqual([])
 })
