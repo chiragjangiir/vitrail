@@ -108,7 +108,14 @@ CMD ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=info", "--q
 # télécharge donc plus qu'une seule fois au lieu de deux.
 FROM rt AS screenshot
 WORKDIR /app
-RUN pip install --no-cache-dir playwright \
+# libatomic1 : le Node.js embarqué par Playwright (>= 1.65) en a besoin AVANT même que
+# `--with-deps` installe quoi que ce soit, et python:3.12-slim ne l'a pas (issue #1).
+# Version figée par constraints.txt, comme le reste de la pile.
+COPY constraints.txt ./
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libatomic1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir -c constraints.txt playwright \
     && playwright install --with-deps chromium
 COPY . .
 CMD ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=info", "--queues=cms_screenshot", "--concurrency=2"]
