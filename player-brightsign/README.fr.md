@@ -76,7 +76,7 @@ Pour une préparation manuelle de la carte microSD :
      > pas de rewind). Le screenshot capture le framebuffer **composite** (vidéo HW incluse) via le snapshot LDWS.
      > Effectif au **2e reboot** après insertion (le LDWS est configuré au boot, effectif au suivant).
      > **`"autorun_autoupdate": true`** (P1.2) → l'autorun se met à jour tout seul depuis prod
-     > (`/player-chromeos/brightsign/autorun.brs`) at boot, avec garde-fous anti-brick (taille/préfixe), effectif au
+     > (`/player-chromeos/brightsign/autorun.brs`) au boot, avec garde-fous anti-brick (taille/préfixe), effectif au
      > prochain boot. Opt-in (feature à risque). **Sync de publication** : après tout changement de
      > `player-brightsign/autorun.brs`, copier le fichier dans **`frontend/public/player-chromeos/brightsign/autorun.brs`**
      > (= la copie servie par prod, modèle dual identique au renderer) puis rebuild frontend prod.
@@ -86,11 +86,11 @@ Pour une préparation manuelle de la carte microSD :
      illisible → plus jamais de screenshot KO silencieux sur une SD sans ce fichier. Ne le copier à la main
      que pour **forcer une autre taille** de capture.
    - **Fichiers du renderer (offline au 1er boot)** : Pré-embarquer ces fichiers évite que le player ne reste bloqué sur « Connecting… » si la liaison réseau / DHCP met plusieurs minutes à s'établir au démarrage :
-     - `sf_rnd_ed25519.js` (copie de `player-chromeos/ed25519.js`)
-     - `sf_rnd_signflow.js` (copie de `player-chromeos/signflow.js`)
-     - `sf_rnd_audio_player.js` (copie de `player-chromeos/audio_player.js`)
-     - `sf_rnd_player.js` (copie de `player-chromeos/player.js`)
-     - `sf_rnd_style.css` (copie de `player-chromeos/style.css`)
+     - `sf_rnd_ed25519.js` (copie de `frontend/public/player-chromeos/ed25519.js`)
+     - `sf_rnd_signflow.js` (copie de `frontend/public/player-chromeos/signflow.js`)
+     - `sf_rnd_audio_player.js` (copie de `frontend/public/player-chromeos/audio_player.js`)
+     - `sf_rnd_player.js` (copie de `frontend/public/player-chromeos/player.js`)
+     - `sf_rnd_style.css` (copie de `frontend/public/player-chromeos/style.css`)
 3. Insérer la carte dans le HD1024, brancher l'écran (HDMI) + le réseau (Ethernet/DHCP), allumer.
 
 > Au 1er boot : le bridge échange `sfp_…` contre un **JWT**, le persiste en localStorage

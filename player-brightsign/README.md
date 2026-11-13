@@ -90,11 +90,11 @@ If preparing the microSD card manually:
      unreadable → no more silently failing screenshots on an SD card without this file. Only copy it by hand
      to **force a different** capture size.
    - **Renderer files (for offline first boot)**: Pre-provisioning these files prevents the player from remaining stuck on "Connecting…" when network connectivity takes time to initialize at boot:
-     - `sf_rnd_ed25519.js` (copy of `player-chromeos/ed25519.js`)
-     - `sf_rnd_signflow.js` (copy of `player-chromeos/signflow.js`)
-     - `sf_rnd_audio_player.js` (copy of `player-chromeos/audio_player.js`)
-     - `sf_rnd_player.js` (copy of `player-chromeos/player.js`)
-     - `sf_rnd_style.css` (copy of `player-chromeos/style.css`)
+     - `sf_rnd_ed25519.js` (copy of `frontend/public/player-chromeos/ed25519.js`)
+     - `sf_rnd_signflow.js` (copy of `frontend/public/player-chromeos/signflow.js`)
+     - `sf_rnd_audio_player.js` (copy of `frontend/public/player-chromeos/audio_player.js`)
+     - `sf_rnd_player.js` (copy of `frontend/public/player-chromeos/player.js`)
+     - `sf_rnd_style.css` (copy of `frontend/public/player-chromeos/style.css`)
 3. Insert the card into the HD1024, connect the screen (HDMI) + the network (Ethernet/DHCP), power on.
 
 > On first boot: the bridge exchanges `sfp_…` for a **JWT**, persists it in localStorage
